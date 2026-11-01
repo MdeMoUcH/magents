@@ -28,14 +28,16 @@ for s in "${skills[@]}"; do
   cp -r "$origen/skills/$s" "$destino/.claude/skills/$s"
 done
 
-# Todo lo que generan los agentes va en .magents/, que no se versiona. El .htaccess la protege solo en Apache.
+# Ni magents ni lo que generan los agentes se versionan. El .htaccess protege .magents/ solo en Apache.
 gitignore="$destino/.gitignore"
-if ! grep -qxF '.magents/' "$gitignore" 2>/dev/null; then
-  if [ -s "$gitignore" ] && [ -n "$(tail -c1 "$gitignore")" ]; then
-    echo >> "$gitignore"
+for ignorada in .claude/ .magents/; do
+  if ! grep -qxF "$ignorada" "$gitignore" 2>/dev/null; then
+    if [ -s "$gitignore" ] && [ -n "$(tail -c1 "$gitignore")" ]; then
+      echo >> "$gitignore"
+    fi
+    echo "$ignorada" >> "$gitignore"
   fi
-  echo '.magents/' >> "$gitignore"
-fi
+done
 
 mkdir -p "$destino/.magents"
 if [ ! -e "$destino/.magents/.htaccess" ]; then
@@ -77,6 +79,8 @@ if ! command -v git >/dev/null 2>&1; then
   echo "AVISO: no se encuentra git (/tarea lo necesita para ver los cambios)." >&2
 elif ! git -C "$destino" rev-parse --verify -q HEAD >/dev/null 2>&1; then
   echo "AVISO: el destino no es un repositorio git con al menos un commit; /tarea lo necesita para ver los cambios." >&2
+elif [ -n "$(git -C "$destino" ls-files -- .claude)" ]; then
+  echo "AVISO: .claude/ ya tiene archivos en git y .gitignore no los excluye; para dejar de versionarlos: git rm -r --cached .claude" >&2
 fi
 echo "Abre Claude Code en el proyecto, acepta la confianza de la carpeta (sin ella no arranca el MCP de Firefox) y ejecuta: /preparar"
 echo "Después, para cada tarea: /tarea <descripción>"
