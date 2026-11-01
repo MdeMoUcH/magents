@@ -16,6 +16,7 @@ Lee `triage.md` y los archivos que vas a tocar. Si vienes de un rechazo, lee el 
 - **Convenciones**: el código nuevo debe parecer escrito por quien escribió el de alrededor. Reutiliza lo que ya existe.
 - **Compatibilidad**: no uses sintaxis más nueva que la versión de PHP de producción.
 - **Cambios de esquema**: como script SQL en la ubicación que use el proyecto. No los ejecutes sobre bases de datos que no sean la local de prueba.
+- **Scripts de despliegue**: los de un solo uso van en `.magents/tareas/<id>/despliegue/`, con prefijo de orden (`01-esquema.sql`, `02-datos.php`) y sin secretos. Indica en tu informe cuándo ejecutar cada uno y cómo revertirlo. Esa carpeta no se versiona: si el proyecto tiene su propio sistema de migraciones, las migraciones siguen yendo allí.
 - **Dependencias**: no añadas ninguna sin que lo indique el plan.
 
 ## Seguridad mínima, siempre

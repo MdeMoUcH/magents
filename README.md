@@ -15,7 +15,7 @@ triage → desarrollador → revisor-codigo → revisor-seguridad → probador �
 | Revisión de código | `revisor-codigo` | `php-revision-codigo` | Sin herramientas de edición |
 | Revisión de seguridad | `revisor-seguridad` | `php-revision-seguridad` | Sin herramientas de edición |
 | Pruebas en Firefox | `probador` | `php-pruebas-firefox` | Sin edición + MCP de Firefox |
-| Documentación | `documentador` | `php-documentacion` | Edición, solo en `docs/` por instrucción |
+| Documentación | `documentador` | `php-documentacion` | Edición, solo en `.magents/` por instrucción |
 
 La skill `/tarea` coordina el flujo. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas).
 
@@ -34,7 +34,7 @@ Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen
 ./install.sh /ruta/al/proyecto
 ```
 
-Copia `.claude/agents` y `.claude/skills` y añade `.magents/` al `.gitignore`. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
+Copia `.claude/agents` y `.claude/skills`, añade `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
 
 ## Uso
 
@@ -48,11 +48,16 @@ La primera vez se crea `.magents/proyecto.md`. Conviene rellenarlo con la URL lo
 
 | Ruta | Contenido | ¿En git? |
 |---|---|---|
-| `.magents/tareas/<id>/` | Estado e informes de cada fase e iteración | No |
+| `.magents/tareas/<id>/README.md` | Cambios y decisiones de la tarea | No |
+| `.magents/tareas/<id>/informes/` | Estado e informes de cada fase e iteración | No |
+| `.magents/tareas/<id>/despliegue/` | Scripts y SQL de un solo uso, revisados en las dos revisiones | No |
+| `.magents/tareas/<id>/capturas/` | Capturas de las pruebas | No |
+| `.magents/tareas/<id>/anexos/` | Cualquier otra información | No |
+| `.magents/decisiones/` | Decisiones de arquitectura | No |
+| `.magents/CHANGELOG.md` | Historial de cambios | No |
 | `.magents/proyecto.md` | Configuración del entorno | No |
-| `docs/tareas/<id>.md` | Cambios y decisiones de la tarea | Sí |
-| `docs/decisiones/` | Decisiones de arquitectura | Sí |
-| `docs/CHANGELOG.md` | Historial de cambios | Sí |
+
+El `<id>` es un número correlativo por proyecto seguido del slug de la tarea, por ejemplo `0007-exportar-pedidos`.
 
 ## MCP de Firefox
 

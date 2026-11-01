@@ -6,13 +6,13 @@ user-invocable: false
 
 # Documentación de la tarea
 
-Lee todos los informes de `.magents/tareas/<id>/` y contrástalos con `git diff <commit-base>` y `git status --porcelain`. Si un informe y el diff no coinciden, manda el diff y señala la diferencia. Documenta solo lo que ha ocurrido; no inventes motivos: si una decisión no tiene motivo registrado, dilo.
+Lee todos los informes de `.magents/tareas/<id>/informes/` y contrástalos con `git diff <commit-base>` y `git status --porcelain`. Si un informe y el diff no coinciden, manda el diff y señala la diferencia. Documenta solo lo que ha ocurrido; no inventes motivos: si una decisión no tiene motivo registrado, dilo.
 
 ## Qué escribir
 
-Solo dentro de `docs/`:
+Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despliegue/`.
 
-1. **`docs/tareas/<id>.md`**, siempre:
+1. **`.magents/tareas/<id>/README.md`**, siempre. Si hace falta conservar otra información, va en `anexos/`, junto a la ficha.
 
    ```markdown
    # <Título>
@@ -24,7 +24,7 @@ Solo dentro de `docs/`:
    ## Decisiones
    Decisión, alternativas descartadas, motivo
    ## Despliegue
-   SQL a ejecutar, configuración, orden. "Nada" si no hay
+   SQL y scripts de `despliegue/`, configuración, orden, cuándo ejecutar cada uno y cómo revertirlo. "Nada" si no hay
    ## Verificación
    Qué se probó en Firefox y resultado
    ## Historial de iteraciones
@@ -33,14 +33,14 @@ Solo dentro de `docs/`:
    Problemas preexistentes detectados, incluidos los de seguridad
    ```
 
-2. **`docs/decisiones/NNNN-<slug>.md`**, solo si hay una decisión de arquitectura que afecte al futuro del proyecto (dependencia nueva, cambio de esquema importante, patrón nuevo). Formato: Contexto, Decisión, Consecuencias. Numera siguiendo lo que ya exista.
+2. **`.magents/decisiones/NNNN-<slug>.md`**, solo si hay una decisión de arquitectura que afecte al futuro del proyecto (dependencia nueva, cambio de esquema importante, patrón nuevo). Formato: Contexto, Decisión, Consecuencias. Numera siguiendo lo que ya exista.
 
-3. **`docs/CHANGELOG.md`**: añade una línea arriba con la fecha, un resumen y el enlace a la ficha. Créalo si no existe.
+3. **`.magents/CHANGELOG.md`**: añade una línea arriba con la fecha, el id, un resumen y el enlace a la ficha. Créalo si no existe.
 
 ## Reglas
 
-- Sin secretos ni datos personales. Describe las vulnerabilidades preexistentes indicando dónde y qué tipo, sin instrucciones de explotación.
-- Si el proyecto ya documenta en otro lugar o formato, respétalo e indícalo.
+- Sin secretos ni datos personales, tampoco en las capturas: mira cada una de `capturas/`, borra las que los muestren e indícalo en tu informe. Describe las vulnerabilidades preexistentes indicando dónde y qué tipo, sin instrucciones de explotación.
+- No toques la documentación propia del proyecto. Si habría que actualizarla, indícalo en tu informe.
 - Breve: la ficha es para quien dentro de un año pregunte por qué se hizo así.
 
 ## Formato del informe

@@ -10,7 +10,7 @@ Audita el código analizándolo: no lances ataques contra ningún sistema. Si en
 
 ## Método
 
-1. Obtén el cambio con `git diff <commit-base>` y `git status --porcelain`, incluidos los archivos nuevos. Excluye los cambios previos anotados en `estado.md`.
+1. Obtén el cambio con `git diff <commit-base>` y `git status --porcelain`, incluidos los archivos nuevos. Excluye los cambios previos anotados en `estado.md`. Audita además `.magents/tareas/<id>/despliegue/`, si existe, porque git la ignora: no debe contener secretos.
 2. Lista las **entradas** que toca: `$_GET`, `$_POST`, `$_REQUEST`, `$_COOKIE`, `$_FILES`, `$_SERVER`, `php://input`, argumentos de URL reescrita y datos de la BD escritos por usuarios.
 3. Sigue cada entrada **a través de las funciones**, también en el código existente, hasta llegar a un punto peligroso. Comprueba si la defensa es la adecuada para ese contexto.
 4. Comprueba quién puede llegar a cada ruta nueva o modificada.

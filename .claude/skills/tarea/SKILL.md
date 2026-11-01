@@ -33,7 +33,7 @@ Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las t
 
 ## Preparación
 
-1. Genera el identificador `<AAAAMMDD-HHMM>-<slug-corto>` y crea `.magents/tareas/<id>/`.
+1. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/`.
 2. Si existe `.magents/proyecto.md`, léelo. Si no, créalo copiando la plantilla `${CLAUDE_SKILL_DIR}/proyecto.plantilla.md`; el triage propondrá los valores.
 3. Si es un repositorio git, guarda en `estado.md` el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si no es un repositorio git, para y pide al usuario que lo inicialice por su cuenta antes de continuar, porque sin él los revisores no pueden ver qué ha cambiado.
 4. Al terminar, los cambios quedan sin confirmar para que el usuario los revise y haga el commit.
@@ -42,7 +42,7 @@ Mantén `estado.md` al día con la fase actual, la iteración y el historial de 
 
 ## Cómo lanzar cada fase
 
-Los subagentes no ven esta conversación. Pasa siempre en el prompt: el texto íntegro de la tarea, la ruta de la carpeta de la tarea, el commit base y lo específico de la fase. Guarda la respuesta final de cada uno, íntegra y sin resumir, en el archivo indicado.
+Los subagentes no ven esta conversación. Pasa siempre en el prompt: el texto íntegro de la tarea, el id, la ruta `.magents/tareas/<id>/`, el commit base y lo específico de la fase. Guarda la respuesta final de cada uno, íntegra y sin resumir, en el archivo indicado dentro de `informes/`, donde también va `estado.md`.
 
 | Fase | Subagente | Guardar en | Le pasas además |
 |---|---|---|---|
@@ -77,4 +77,4 @@ Resume al usuario: qué se hizo, archivos cambiados, número de iteraciones y mo
 Si el flujo se completó, cierra con estos dos apartados, basados en `git diff <commit-base>` y `git status --porcelain` y sin incluir los cambios previos anotados en `estado.md`:
 
 - **Resumen de cambios:** unas pocas líneas con lo que cambia para quien use o mantenga la web.
-- **Mensaje de commit recomendado:** en un bloque de código, listo para copiar, en español. Solo lo propones: no ejecutes el commit.
+- **Mensaje de commit recomendado:** en un bloque de código, listo para copiar, en español y empezando por el id (`<id>: ...`). Solo lo propones: no ejecutes el commit.

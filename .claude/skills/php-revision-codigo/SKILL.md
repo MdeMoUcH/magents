@@ -10,7 +10,7 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 
 ## Qué ver
 
-`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Excluye los cambios previos anotados en `estado.md`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
+`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe: git la ignora, así que no aparece ahí. Excluye los cambios previos anotados en `estado.md`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
 
 ## Qué comprobar
 

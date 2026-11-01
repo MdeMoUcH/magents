@@ -28,13 +28,18 @@ for s in "${skills[@]}"; do
   cp -r "$origen/skills/$s" "$destino/.claude/skills/$s"
 done
 
-# Los informes de trabajo no se versionan; docs/ sí.
+# Todo lo que generan los agentes va en .magents/, que no se versiona ni se sirve por web.
 gitignore="$destino/.gitignore"
 if ! grep -qxF '.magents/' "$gitignore" 2>/dev/null; then
   if [ -s "$gitignore" ] && [ -n "$(tail -c1 "$gitignore")" ]; then
     echo >> "$gitignore"
   fi
   echo '.magents/' >> "$gitignore"
+fi
+
+mkdir -p "$destino/.magents"
+if [ ! -e "$destino/.magents/.htaccess" ]; then
+  echo 'Require all denied' > "$destino/.magents/.htaccess"
 fi
 
 echo "Instalado en $destino"
