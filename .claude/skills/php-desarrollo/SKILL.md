@@ -20,7 +20,7 @@ Lee `triage.md`, `.magents/proyecto.md` y los archivos que vas a tocar. No modif
 - **Cambios de esquema**: como script SQL en la ubicación que use el proyecto. No los ejecutes sobre bases de datos que no sean la local de prueba.
 - **Scripts de despliegue**: los de un solo uso van en `.magents/tareas/<id>/despliegue/`, con prefijo de orden (`01-esquema.sql`, `02-datos.php`) y sin secretos. Indica en tu informe cuándo ejecutar cada uno y cómo revertirlo. Esa carpeta no se versiona: si el proyecto tiene su propio sistema de migraciones, las migraciones siguen yendo allí.
 - **Dependencias**: no añadas ninguna sin que lo indique el plan.
-- **Entorno**: modifica `.magents/entorno/` solo si lo indica el plan, sin tocar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`; lo propio del proyecto va en `antes-de-iniciar.sh`. Para repetir pruebas que escriben, restablece la BD con `reiniciar-bd.sh`, que borra los datos, y vuelve a aplicar tus cambios de esquema. Esa carpeta no aparece en el diff: detalla el cambio en tu informe, indica si producción también lo necesita y añade a «Pasos adicionales para probar» que hay que reiniciar el entorno.
+- **Entorno**: modifica `.magents/entorno/` y `.magents/scripts/` solo si lo indica el plan, sin tocar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`; lo propio del proyecto va en `.magents/scripts/antes-de-iniciar.sh`. Para repetir pruebas que escriben, restablece la BD con `.magents/scripts/reiniciar-bd.sh`, que borra los datos, y vuelve a aplicar tus cambios de esquema. Esas carpetas no aparecen en el diff: detalla el cambio en tu informe, indica si producción también lo necesita y añade a «Pasos adicionales para probar» que hay que reiniciar el entorno.
 
 ## Seguridad mínima, siempre
 
@@ -47,7 +47,7 @@ Usa git solo para consultar: los commits los hace el usuario. No afirmes que alg
 ## Cambios
 `ruta`: qué y por qué
 ## Cambios de entorno
-(solo si los hay: qué cambia en `.magents/entorno/` y si producción también lo necesita)
+(solo si los hay: qué cambia en `.magents/entorno/` o `.magents/scripts/` y si producción también lo necesita)
 ## Decisiones
 Decisión, alternativa descartada y motivo
 ## Hallazgos atendidos

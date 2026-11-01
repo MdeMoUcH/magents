@@ -45,15 +45,31 @@ if [ ! -e "$destino/.magents/.htaccess" ]; then
 fi
 
 # Estos scripts son fijos: si el entorno ya existe, se actualizan. El resto es propio de cada proyecto.
-for script in iniciar.sh parar.sh; do
-  if [ -e "$destino/.magents/entorno/$script" ]; then
-    cp "$origen/skills/php-preparacion/plantillas/$script" "$destino/.magents/entorno/$script"
-    chmod +x "$destino/.magents/entorno/$script"
+entorno="$destino/.magents/entorno"
+scripts="$destino/.magents/scripts"
+plantillas="$origen/skills/php-preparacion/plantillas/scripts"
+if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
+  mkdir -p "$scripts"
+  # Versiones anteriores los tenían en entorno/: se guardan, por si tenían cambios propios.
+  for script in iniciar.sh parar.sh reiniciar-bd.sh; do
+    if [ -e "$entorno/$script" ]; then
+      mkdir -p "$scripts/anterior"
+      mv "$entorno/$script" "$scripts/anterior/$script"
+      echo "AVISO: $script se ha movido a .magents/scripts/; el antiguo queda en .magents/scripts/anterior/ por si tenía cambios propios." >&2
+    fi
+  done
+  if [ -e "$entorno/antes-de-iniciar.sh" ] && [ ! -e "$scripts/antes-de-iniciar.sh" ]; then
+    mv "$entorno/antes-de-iniciar.sh" "$scripts/antes-de-iniciar.sh"
   fi
-done
-if [ -e "$destino/.magents/entorno/iniciar.sh" ] && grep -q '^  bd:' "$destino/.magents/entorno/compose.yml" 2>/dev/null; then
-  cp "$origen/skills/php-preparacion/plantillas/reiniciar-bd.sh" "$destino/.magents/entorno/reiniciar-bd.sh"
-  chmod +x "$destino/.magents/entorno/reiniciar-bd.sh"
+  if [ -e "$destino/.magents/proyecto.md" ]; then
+    sed -i -E 's#\.magents/entorno/(iniciar|parar|reiniciar-bd|antes-de-iniciar)\.sh#.magents/scripts/\1.sh#g' "$destino/.magents/proyecto.md"
+  fi
+  cp "$plantillas/iniciar.sh" "$plantillas/parar.sh" "$scripts/"
+  chmod +x "$scripts/iniciar.sh" "$scripts/parar.sh"
+  if grep -q '^  bd:' "$entorno/compose.yml" 2>/dev/null; then
+    cp "$plantillas/reiniciar-bd.sh" "$scripts/"
+    chmod +x "$scripts/reiniciar-bd.sh"
+  fi
 fi
 
 echo "Instalado en $destino"

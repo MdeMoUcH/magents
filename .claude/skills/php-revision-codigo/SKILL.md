@@ -10,7 +10,7 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 
 ## Qué ver
 
-`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe, y lo cambiado en `.magents/entorno/` (`find .magents/entorno -type f -newer .magents/tareas/<id>/informes/triage.md`): git las ignora, así que no aparecen ahí, y `iniciar.sh` y `parar.sh` no se pueden modificar. Excluye los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
+`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe, y lo cambiado en `.magents/entorno/` y `.magents/scripts/` (`find .magents/entorno .magents/scripts -type f -newer .magents/tareas/<id>/informes/triage.md`): git las ignora, así que no aparecen ahí, y `iniciar.sh`, `parar.sh` y `reiniciar-bd.sh` no se pueden modificar. Excluye los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
 
 ## Qué comprobar
 

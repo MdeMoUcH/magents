@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Inicia el entorno local de pruebas o, si ya está en marcha, lo reinicia. Conserva los datos de la BD.
 set -euo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")"
+# Los comandos de Docker se ejecutan desde entorno/, donde está compose.yml.
+cd "$(dirname "${BASH_SOURCE[0]}")/../entorno"
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "ERROR: hace falta curl para comprobar que la web responde." >&2
@@ -13,8 +14,8 @@ MAGENTS_GID="$(id -g)"
 export MAGENTS_UID MAGENTS_GID
 
 # Adaptación propia del proyecto, antes de parar nada: si falla, el entorno sigue como estaba.
-if [ -e antes-de-iniciar.sh ]; then
-  bash antes-de-iniciar.sh
+if [ -e ../scripts/antes-de-iniciar.sh ]; then
+  bash ../scripts/antes-de-iniciar.sh
 fi
 
 docker compose down --remove-orphans

@@ -27,7 +27,7 @@ Ejecutar da mejores planes que solo leer, y puedes hacerlo si cambia el plan: us
 
 ## `.magents/proyecto.md`
 
-Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, inclúyelo en el plan como cambio en `.magents/entorno/`. Nunca propongas modificar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`: lo propio del proyecto va en `antes-de-iniciar.sh`.
+Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, inclúyelo en el plan como cambio en `.magents/entorno/` o `.magents/scripts/`. Nunca propongas modificar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`: lo propio del proyecto va en `.magents/scripts/antes-de-iniciar.sh`.
 
 ## Formato del informe
 

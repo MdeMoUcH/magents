@@ -43,7 +43,7 @@ Se respeta la forma de programar de cada proyecto. La indentación es con tabula
 ./install.sh /ruta/al/proyecto
 ```
 
-Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también `iniciar.sh`, `parar.sh` y `reiniciar-bd.sh` si el proyecto ya tiene `.magents/entorno/`, así que no los modifiques a mano. Las demás plantillas no llegan a un entorno ya generado. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
+Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también los scripts fijos de `.magents/scripts/` si el proyecto ya tiene entorno, así que no los modifiques a mano. Si venías de una versión con los scripts en `.magents/entorno/`, los mueve, guarda los antiguos en `.magents/scripts/anterior/` y corrige sus rutas en `proyecto.md`. Las demás plantillas no llegan a un entorno ya generado. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
 
 ## Uso
 
@@ -57,15 +57,15 @@ Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.
 
 ### Entorno local
 
-`/preparar` detecta el stack y te enseña una propuesta. Con tu confirmación crea `.magents/proyecto.md` y, si el proyecto no tiene ya su propio entorno, `.magents/entorno/`:
+`/preparar` detecta el stack y te enseña una propuesta. Con tu confirmación crea `.magents/proyecto.md` y, si el proyecto no tiene ya su propio entorno, `.magents/entorno/` y `.magents/scripts/`:
 
 ```bash
-.magents/entorno/iniciar.sh   # Inicia o reinicia, espera a que responda y muestra la URL
-.magents/entorno/parar.sh     # Para el entorno
-.magents/entorno/reiniciar-bd.sh   # Si hay BD: borra sus datos y la recarga desde bd-inicial/
+.magents/scripts/iniciar.sh   # Inicia o reinicia, espera a que responda y muestra la URL
+.magents/scripts/parar.sh     # Para el entorno
+.magents/scripts/reiniciar-bd.sh   # Si hay BD: borra sus datos y la recarga desde bd-inicial/
 ```
 
-Los dos primeros conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Si vuelves a ejecutar `/preparar`, guarda una copia del entorno anterior en lugar de sobrescribirlo. Lo que un proyecto necesite antes de arrancar va en `.magents/entorno/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta si existe y `install.sh` no toca. Los errores de PHP van a `docker compose logs web`, no a la página.
+Los dos primeros conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Si vuelves a ejecutar `/preparar`, guarda una copia del entorno anterior en lugar de sobrescribirlo. Lo que un proyecto necesite antes de arrancar va en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta si existe y `install.sh` no toca. Los errores de PHP van a `docker compose logs web`, no a la página.
 
 Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
@@ -81,7 +81,8 @@ Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP
 | `.magents/decisiones/` | Decisiones de arquitectura | No |
 | `.magents/CHANGELOG.md` | Historial de cambios | No |
 | `.magents/proyecto.md` | Configuración del entorno | No |
-| `.magents/entorno/` | Docker local y scripts para iniciarlo y pararlo | No |
+| `.magents/entorno/` | Configuración de Docker local | No |
+| `.magents/scripts/` | Scripts para iniciar, parar y restablecer el entorno | No |
 | `.magents/preparacion/` | Propuesta e informe de `/preparar` | No |
 
 El `<id>` es un número correlativo por proyecto seguido del slug de la tarea, por ejemplo `0007-exportar-pedidos`.

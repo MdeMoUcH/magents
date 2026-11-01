@@ -5,11 +5,11 @@ Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.mag
 ## Entorno local de pruebas
 
 - URL base: <!-- p. ej. http://127.0.0.1:8123 -->
-- Cómo arrancarlo o reiniciarlo: <!-- p. ej. .magents/entorno/iniciar.sh -->
-- Cómo pararlo: <!-- p. ej. .magents/entorno/parar.sh -->
+- Cómo arrancarlo o reiniciarlo: <!-- p. ej. .magents/scripts/iniciar.sh -->
+- Cómo pararlo: <!-- p. ej. .magents/scripts/parar.sh -->
 - Logs de errores PHP: <!-- p. ej. docker compose -f .magents/entorno/compose.yml logs web -->
 - Base de datos de prueba: <!-- cómo crearla; nunca la de producción -->
-- Cómo restablecer la BD de prueba: <!-- p. ej. .magents/entorno/reiniciar-bd.sh -->
+- Cómo restablecer la BD de prueba: <!-- p. ej. .magents/scripts/reiniciar-bd.sh -->
 - Usuarios de prueba: <!-- rol y cómo obtener el acceso -->
 - Aislamiento de producción: <!-- qué configuración se sustituye y cómo se ha comprobado -->
 

@@ -10,7 +10,7 @@ Audita el código analizándolo: no lances ataques contra ningún sistema. Si en
 
 ## Método
 
-1. Obtén el cambio con `git diff <commit-base>` y `git status --porcelain`, incluidos los archivos nuevos. Excluye los cambios previos anotados en `estado.md` e `informes/cambios-previos.diff`. Audita además `.magents/tareas/<id>/despliegue/`, si existe, porque git la ignora: no debe contener secretos. Audita también lo cambiado en `.magents/entorno/` (`find .magents/entorno -type f -newer .magents/tareas/<id>/informes/triage.md`), que git también ignora: puertos solo en `127.0.0.1`, sin secretos, sin conexiones a producción y sin montar nada fuera del proyecto.
+1. Obtén el cambio con `git diff <commit-base>` y `git status --porcelain`, incluidos los archivos nuevos. Excluye los cambios previos anotados en `estado.md` e `informes/cambios-previos.diff`. Audita además `.magents/tareas/<id>/despliegue/`, si existe, porque git la ignora: no debe contener secretos. Audita también lo cambiado en `.magents/entorno/` y `.magents/scripts/` (`find .magents/entorno .magents/scripts -type f -newer .magents/tareas/<id>/informes/triage.md`), que git también ignora: puertos solo en `127.0.0.1`, sin secretos, sin conexiones a producción y sin montar nada fuera del proyecto.
 2. Lista las **entradas** que toca: `$_GET`, `$_POST`, `$_REQUEST`, `$_COOKIE`, `$_FILES`, `$_SERVER`, `php://input`, argumentos de URL reescrita y datos de la BD escritos por usuarios.
 3. Sigue cada entrada **a través de las funciones**, también en el código existente, hasta llegar a un punto peligroso. Comprueba si la defensa es la adecuada para ese contexto.
 4. Comprueba quién puede llegar a cada ruta nueva o modificada.

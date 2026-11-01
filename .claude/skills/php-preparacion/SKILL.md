@@ -51,18 +51,18 @@ VEREDICTO: PROPUESTA | BLOQUEADO
 
 Aplica solo lo que el prompt indica como confirmado. Antes de empezar, guarda la salida de `git status --porcelain` y anota si el entorno ya estaba en marcha.
 
-1. Si se ha confirmado regenerar y ya existe `.magents/entorno/`, para el entorno con su `parar.sh` y mueve la carpeta a `.magents/entorno.anterior-<fecha y hora>/`. Nunca la sobrescribas. Copia su `bd-inicial/` a la carpeta nueva para no perder el volcado. El volumen de la BD se conserva, así que `bd-inicial/` no se vuelve a cargar: indícalo si ha cambiado.
+1. Si se ha confirmado regenerar y ya existe `.magents/entorno/`, para el entorno con `.magents/scripts/parar.sh` y mueve esa carpeta a `.magents/entorno.anterior-<fecha y hora>/`. Nunca la sobrescribas. Copia su `bd-inicial/` a la carpeta nueva para no perder el volcado. El volumen de la BD se conserva, así que `bd-inicial/` no se vuelve a cargar: indícalo si ha cambiado.
 2. Crea `.magents/proyecto.md` desde `plantillas/proyecto.md`, o actualiza solo los valores confirmados.
-3. Si se genera el entorno, copia a `.magents/entorno/` `iniciar.sh` y `parar.sh` sin alterarlos, también `reiniciar-bd.sh` si hay BD, y `php.ini`, `magents.conf`, `Dockerfile` y `compose.yml` adaptados: rellena cada `__VALOR__` y borra lo que no aplique. `__PROYECTO__` va en minúsculas, con letras, números y guiones. Si `.git` es un archivo (worktree o submódulo), cambia su línea de `tmpfs` por un volumen `/dev/null:/var/www/html/.git:ro`. Crea también los archivos de configuración sustitutos en `.magents/entorno/config/`, solo con valores de prueba. Si hay BD, crea `.magents/entorno/bd-inicial/` aunque quede vacía, porque si no la crearía Docker como root.
+3. Si se genera el entorno, copia de `plantillas/scripts/` a `.magents/scripts/` `iniciar.sh` y `parar.sh` sin alterarlos, también `reiniciar-bd.sh` si hay BD, y a `.magents/entorno/` `php.ini`, `magents.conf`, `Dockerfile` y `compose.yml` adaptados: rellena cada `__VALOR__` y borra lo que no aplique. `__PROYECTO__` va en minúsculas, con letras, números y guiones. Si `.git` es un archivo (worktree o submódulo), cambia su línea de `tmpfs` por un volumen `/dev/null:/var/www/html/.git:ro`. Crea también los archivos de configuración sustitutos en `.magents/entorno/config/`, solo con valores de prueba. Si hay BD, crea `.magents/entorno/bd-inicial/` aunque quede vacía, porque si no la crearía Docker como root.
 4. Si una versión antigua de PHP no se puede construir, no la cambies por otra más nueva: `BLOQUEADO`, y explica el error.
-5. Nunca modifiques los scripts fijos, porque `install.sh` los sobrescribe. Si el arranque necesita algo propio del proyecto, ponlo en `.magents/entorno/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta si existe y `install.sh` no toca.
+5. Nunca modifiques los scripts fijos, porque `install.sh` los sobrescribe. Si el arranque necesita algo propio del proyecto, ponlo en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta desde `.magents/entorno/` si existe y `install.sh` no toca. Todo script del entorno va en `.magents/scripts/`.
 6. Si `apt-get` no descarga dentro de la red de Docker, por ejemplo con una VPN, construye desde ese script con `docker build --network=host -t <imagen> .`, y en `compose.yml` cambia `build: .` por `image: <imagen>` y `pull_policy: never`. Compose no sirve para esto, porque construir con `network: host` le exige permisos adicionales.
 
 ### Comprobaciones
 
 Ejecuta todas y anota el comando y el resultado real:
 
-1. `iniciar.sh`, o el comando del entorno propio, termina sin error y la URL responde.
+1. `.magents/scripts/iniciar.sh`, o el comando del entorno propio, termina sin error y la URL responde.
 2. `php -v` dentro del contenedor coincide con la versión confirmada.
 3. Desde dentro del contenedor, cada conexión de la tabla de aislamiento apunta al sustituto, sin mostrar secretos. Si hay BD, la web se conecta a la de prueba.
 4. `/.git/HEAD` y `/.magents/proyecto.md` no se sirven por la URL local.
