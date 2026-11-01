@@ -1,0 +1,51 @@
+---
+name: php-triage
+description: Método para analizar una tarea de una web PHP contra el código actual y convertirla en un plan con criterios de aceptación verificables.
+user-invocable: false
+---
+
+# Triage de tareas PHP
+
+Tu resultado es lo único que el desarrollador y los revisores sabrán de la tarea: tiene que bastarles sin volver a investigar.
+
+## Pasos
+
+1. **Entiende el stack real**, no lo supongas: versión de PHP (`composer.json`, Dockerfile, sintaxis usada), framework o MVC propio, servidor (`.htaccess`, configuración de Nginx), base de datos y capa de acceso (PDO, mysqli, ORM propio), plantillas, front-end, tests.
+2. **Localiza el código implicado**: sigue el recorrido de la petición desde la ruta hasta el controlador, el modelo, la plantilla y el SQL. Lee los archivos; no te quedes en los nombres.
+3. **Busca lo reutilizable**: helpers, clases y patrones existentes que resuelvan parte de la tarea.
+4. **Identifica las convenciones**: idioma de nombres, indentación, estilo de etiquetas PHP, manejo de errores, traducciones.
+5. **Mide el impacto**: quién más usa lo que se va a tocar, cambios de esquema, datos existentes.
+6. **Detecta dudas**: pregunta solo lo que cambie la implementación y no se pueda deducir del código. Lo demás, decídelo y anótalo como supuesto.
+
+## Proyectos antiguos
+
+No propongas modernizar lo que no se pide. Respeta el estilo existente, aunque sea antiguo, y sugiere las mejoras aparte. Si el proyecto usa `<?` o `mysql_*`, indica si el código nuevo puede o no usar sintaxis moderna según la versión de PHP de producción. Si esa versión no se puede determinar y afecta a la tarea, es una duda.
+
+## `.magents/proyecto.md`
+
+Si le faltan valores, propón en tu informe los que puedas deducir. Si no hay entorno local, propón uno con Docker que reproduzca el del proyecto, por ejemplo `php:<versión>-apache` con `a2enmod rewrite` si hay `.htaccess`, y solo escuchando en `127.0.0.1`.
+
+## Formato del informe
+
+```markdown
+# Triage: <tarea>
+## Entendimiento de la tarea
+## Stack y convenciones relevantes
+## Código afectado
+`ruta:línea` y qué papel tiene
+## Plan de implementación
+Pasos concretos, archivo por archivo
+## Criterios de aceptación
+- [ ] CA1: comportamiento observable y comprobable en el navegador
+## Casos límite y riesgos
+Incluye los puntos sensibles para seguridad: entradas, permisos, datos
+## Supuestos
+## Propuesta para .magents/proyecto.md
+(solo si falta algo)
+## Dudas
+(solo si las hay: pregunta, por qué importa, opciones y tu recomendación)
+
+VEREDICTO: LISTO | DUDAS
+```
+
+Usa `DUDAS` solo si no se puede hacer un plan fiable sin la respuesta.
