@@ -6,7 +6,7 @@ user-invocable: false
 
 # Documentación de la tarea
 
-Lee todos los informes de `.magents/tareas/<id>/informes/` y contrástalos con `git diff <commit-base>` y `git status --porcelain`. Excluye los cambios previos de `informes/cambios-previos.diff`, si existe. Si un informe y el diff no coinciden, manda el diff y señala la diferencia. Documenta solo lo que ha ocurrido; no inventes motivos: si una decisión no tiene motivo registrado, dilo.
+Lee todos los informes de `.magents/tareas/<id>/informes/` y contrástalos con `git diff <commit-base>` y `git status --porcelain`. Excluye los cambios previos de `informes/cambios-previos.diff`, si existe. Si un informe y el diff no coinciden, manda el diff y señala la diferencia. Los cambios en `.magents/entorno/` no aparecen en el diff: compruébalos en sus archivos. Documenta solo lo que ha ocurrido; no inventes motivos: si una decisión no tiene motivo registrado, dilo.
 
 ## Qué escribir
 
@@ -23,6 +23,8 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
    `ruta`: qué cambió
    ## Decisiones
    Decisión, alternativas descartadas, motivo
+   ## Cambios de entorno
+   Qué cambió en `.magents/entorno/` y si producción también lo necesita. "Nada" si no hay
    ## Despliegue
    SQL y scripts de `despliegue/`, configuración, orden, cuándo ejecutar cada uno y cómo revertirlo. "Nada" si no hay
    ## Verificación

@@ -10,6 +10,8 @@ Coordinas al subagente `preparador`: **tú no detectas ni generas nada**, lanzas
 
 Si te ejecutas de forma independiente, lee antes `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas valen también para ti.
 
+Si no es un repositorio git o no tiene ningún commit, para y pide al usuario que lo inicialice y haga un commit inicial por su cuenta: el preparador lo necesita para comprobar que el entorno no ensucia el proyecto.
+
 ## Pasos
 
 1. **Entorno existente**: si `.magents/proyecto.md` ya tiene URL base y cómo arrancarlo, enséñaselos al usuario y pregúntale con AskUserQuestion si lo regenera o lo conserva. Si lo conserva, termina aquí. Regenerar nunca sobrescribe: el preparador guarda una copia de `.magents/entorno/`.

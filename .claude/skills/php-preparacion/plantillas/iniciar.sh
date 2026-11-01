@@ -3,6 +3,11 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+if ! command -v curl >/dev/null 2>&1; then
+  echo "ERROR: hace falta curl para comprobar que la web responde." >&2
+  exit 1
+fi
+
 MAGENTS_UID="$(id -u)"
 MAGENTS_GID="$(id -g)"
 export MAGENTS_UID MAGENTS_GID
@@ -14,11 +19,25 @@ if ! docker compose up -d --build --wait --wait-timeout 180; then
   exit 1
 fi
 
-url="http://$(docker compose port web 80)"
-if ! codigo="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$url/")"; then
+direccion="$(docker compose port web 80)"
+url="http://$direccion"
+url_localhost="http://localhost:${direccion##*:}"
+if ! respuesta="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 30 "$url/")"; then
   echo "ERROR: $url no responde." >&2
   exit 1
 fi
+codigo="${respuesta%% *}"
+destino="${respuesta#* }"
+
+# Una redirección fuera del entorno local llevaría las pruebas a otra web, quizá a producción.
+case "$destino" in
+  "" | "$url" | "$url"/* | "$url_localhost" | "$url_localhost"/*) ;;
+  *)
+    echo "ERROR: $url redirige fuera del entorno local: $destino" >&2
+    exit 1
+    ;;
+esac
+
 if [ "$codigo" -ge 500 ]; then
   docker compose logs --tail 50 web >&2 || true
   echo "ERROR: $url devuelve HTTP $codigo." >&2

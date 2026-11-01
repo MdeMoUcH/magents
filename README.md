@@ -20,13 +20,13 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 | Pruebas en Firefox | `probador` | `php-pruebas-firefox` | Sin edición + MCP de Firefox |
 | Documentación | `documentador` | `php-documentacion` | Edición, solo en `.magents/` por instrucción |
 
-La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git y de carpeta. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas).
+La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git, carpeta y Docker. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas).
 
 Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen y un mensaje de commit recomendado. Los commits los haces tú: los agentes solo usan git para consultar y no hacen despliegues.
 
 ## Estilo del código
 
-Se respeta la forma de programar de cada proyecto. La indentación es con tabuladores, salvo en archivos existentes indentados con espacios, que los conservan. Los comentarios son breves y nunca ocupan más que el código. La revisión de código rechaza lo que incumpla estas normas de indentación y comentarios.
+Se respeta la forma de programar de cada proyecto. La indentación es con tabuladores, salvo en archivos existentes indentados con espacios, que los conservan, y en formatos que no los admiten, como YAML. Los comentarios son breves y nunca ocupan más que el código. La revisión de código rechaza lo que incumpla estas normas de indentación y comentarios.
 
 ## Requisitos
 
@@ -43,7 +43,7 @@ Se respeta la forma de programar de cada proyecto. La indentación es con tabula
 ./install.sh /ruta/al/proyecto
 ```
 
-Copia `.claude/agents` y `.claude/skills`, añade `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
+Copia `.claude/agents` y `.claude/skills`, añade `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también `iniciar.sh` y `parar.sh` si el proyecto ya tiene `.magents/entorno/`, así que no los modifiques a mano. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
 
 ## Uso
 
@@ -64,7 +64,7 @@ Copia `.claude/agents` y `.claude/skills`, añade `.magents/` al `.gitignore` y 
 .magents/entorno/parar.sh     # Para el entorno
 ```
 
-Ambos conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción y que `.git/` y `.magents/` no se sirven. Si vuelves a ejecutar `/preparar`, guarda una copia del entorno anterior en lugar de sobrescribirlo.
+Ambos conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Si vuelves a ejecutar `/preparar`, guarda una copia del entorno anterior en lugar de sobrescribirlo.
 
 Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
@@ -100,6 +100,7 @@ Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de 
 - El límite de carpeta y la regla de git solo lectura son instrucciones, no bloqueos técnicos. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
 
 - Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
+- `.magents/.htaccess` no protege en Nginx. Excluye `.magents/` si despliegas por FTP o rsync: subirla publicaría informes con vulnerabilidades detalladas.
 - El aislamiento de producción se basa en sustituir la configuración y comprobarla: si queda en el código un destino que el preparador no detecte, el contenedor podría alcanzarlo, porque tiene salida a la red.
 - Usar Docker equivale en la práctica a tener permisos de root en el equipo, y limitar los agentes a sus comandos es una instrucción, no un bloqueo técnico.
 - Si una sesión no se ejecuta en un modo que permita las acciones, Claude Code pedirá confirmación durante el flujo.

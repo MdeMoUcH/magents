@@ -42,6 +42,14 @@ if [ ! -e "$destino/.magents/.htaccess" ]; then
   echo 'Require all denied' > "$destino/.magents/.htaccess"
 fi
 
+# Estos scripts son fijos: si el entorno ya existe, se actualizan. El resto es propio de cada proyecto.
+for script in iniciar.sh parar.sh; do
+  if [ -e "$destino/.magents/entorno/$script" ]; then
+    cp "$origen/skills/php-preparacion/plantillas/$script" "$destino/.magents/entorno/$script"
+    chmod +x "$destino/.magents/entorno/$script"
+  fi
+done
+
 echo "Instalado en $destino"
 if ! command -v node >/dev/null 2>&1; then
   echo "AVISO: no se encuentra node (hace falta >= 20.19 para las pruebas en Firefox)." >&2

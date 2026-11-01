@@ -31,9 +31,9 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 
 ## Preparación
 
-1. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/`.
-2. Si no es un repositorio git o no tiene ningún commit, para y pide al usuario que lo inicialice y haga un commit inicial por su cuenta, porque sin commit base los revisores no pueden ver qué ha cambiado.
-3. Si `.magents/proyecto.md` no existe o le falta la URL base o cómo arrancar el entorno, lee `${CLAUDE_SKILL_DIR}/../preparar/SKILL.md` y sigue sus pasos antes de continuar. Si no termina con `LISTO`, para: sin entorno no se puede probar la tarea, y el usuario puede retomarla con `/tarea` cuando lo tenga.
+1. Si no es un repositorio git o no tiene ningún commit, para y pide al usuario que lo inicialice y haga un commit inicial por su cuenta, porque sin commit base los revisores no pueden ver qué ha cambiado.
+2. Si `.magents/proyecto.md` no existe o le falta la URL base o cómo arrancar el entorno, lee `${CLAUDE_SKILL_DIR}/../preparar/SKILL.md` y sigue sus pasos antes de continuar. Si no termina con `LISTO`, para: sin entorno no se puede probar la tarea, y el usuario tendrá que lanzar `/tarea` de nuevo cuando lo tenga.
+3. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/` y `.magents/tareas/<id>/capturas/`.
 4. Guarda en `estado.md` el texto íntegro de la tarea, el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si hay alguno, guarda también `git diff HEAD` en `informes/cambios-previos.diff`, avisa al usuario de que pueden mezclarse con los de la tarea si afectan a los mismos archivos y pregúntale si continúa o prefiere confirmarlos antes.
 
 Mantén `estado.md` al día con la fase actual, la iteración y el historial de veredictos.

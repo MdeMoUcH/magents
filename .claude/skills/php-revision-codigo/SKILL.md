@@ -10,7 +10,7 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 
 ## Qué ver
 
-`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe: git la ignora, así que no aparece ahí. Excluye los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
+`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe, y lo cambiado en `.magents/entorno/` (`find .magents/entorno -type f -newer .magents/tareas/<id>/informes/triage.md`): git las ignora, así que no aparecen ahí, y `iniciar.sh` y `parar.sh` no se pueden modificar. Excluye los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
 
 ## Qué comprobar
 
@@ -20,7 +20,7 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host).
 5. **Rendimiento evidente**: N+1, consultas sin límite sobre tablas grandes.
 6. **Convenciones**: encaja con el código de alrededor, reutiliza lo existente, sin depuración ni código muerto.
-   - Indentación con tabuladores en archivos nuevos y en los que ya los usan; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear.
+   - Indentación con tabuladores en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear.
    - Comentarios breves, que nunca ocupen más que el código al que acompañan y normalmente mucho menos.
 7. **Tests**: ejecuta los definidos en `.magents/proyecto.md`, si los hay.
 
