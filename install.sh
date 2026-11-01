@@ -48,8 +48,14 @@ fi
 entorno="$destino/.magents/entorno"
 scripts="$destino/.magents/scripts"
 plantillas="$origen/skills/php-preparacion/plantillas/scripts"
+
+# Este script no depende del entorno: se instala siempre, con la ruta de este magents.
+mkdir -p "$scripts"
+cp "$plantillas/copiar-revision.sh" "$scripts/"
+chmod +x "$scripts/copiar-revision.sh"
+dirname "$origen" > "$scripts/.ruta-magents"
+
 if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
-  mkdir -p "$scripts"
   # Versiones anteriores los tenían en entorno/: se guardan, por si tenían cambios propios.
   for script in iniciar.sh parar.sh reiniciar-bd.sh; do
     if [ -e "$entorno/$script" ]; then
@@ -94,6 +100,9 @@ elif ! docker compose version >/dev/null 2>&1; then
 fi
 if ! command -v curl >/dev/null 2>&1; then
   echo "AVISO: no se encuentra curl (iniciar.sh y las pruebas lo usan para comprobar que la web responde)." >&2
+fi
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "AVISO: no se encuentra rsync (copiar-revision.sh lo necesita)." >&2
 fi
 if ! command -v git >/dev/null 2>&1; then
   echo "AVISO: no se encuentra git (/tarea lo necesita para ver los cambios)." >&2

@@ -36,6 +36,7 @@ Se respeta la forma de programar de cada proyecto. La indentación es con tabula
 - Node.js 20.19 o superior, para el MCP de Firefox
 - Docker con Compose, si el proyecto no tiene entorno propio; también sirve para `php -l` si no hay PHP en el equipo
 - curl
+- rsync, para `copiar-revision.sh`
 
 ## Instalación
 
@@ -69,6 +70,16 @@ Los dos primeros conservan los datos de la BD, y el entorno escucha solo en `127
 
 Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
+### Copia para revisar
+
+```bash
+.magents/scripts/copiar-revision.sh [--sin-diff]
+```
+
+Copia el contenido de `.magents/` a `.magents/revision/<proyecto>/` de este repositorio, que git ignora, junto con `git log` y `git status`. Sirve para revisar desde aquí cómo han trabajado los agentes sin dar acceso a otras carpetas. Deja fuera `entorno/config`, `entorno/bd-inicial`, las copias de entornos anteriores, los temporales y los enlaces simbólicos. No incluye el código. Las capturas sí se copian, así que borra de la copia las que muestren datos reales. Cada ejecución deja la copia igual que el origen, así que también recupera lo borrado de ella. Lo ejecutas tú, nunca los agentes. Se instala siempre y necesita `rsync`.
+
+Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de la tarea siguiente, o al estado actual si es la última. Excluye `.env`, `.env.*`, `*.pem` y `*.key`, pero puede contener contraseñas en otros archivos versionados, como un `config.ini`, así que revísalos antes de avisar. Los archivos nuevos sin seguimiento no entran y solo aparecen en `git-status.txt`. Con `--sin-diff` no los genera y borra los de una copia anterior.
+
 ## Dónde queda cada cosa
 
 | Ruta | Contenido | ¿En git? |
@@ -82,7 +93,7 @@ Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP
 | `.magents/CHANGELOG.md` | Historial de cambios | No |
 | `.magents/proyecto.md` | Configuración del entorno | No |
 | `.magents/entorno/` | Configuración de Docker local | No |
-| `.magents/scripts/` | Scripts para iniciar, parar y restablecer el entorno | No |
+| `.magents/scripts/` | Scripts para iniciar, parar y restablecer el entorno, y para copiar lo necesario para una revisión | No |
 | `.magents/preparacion/` | Propuesta e informe de `/preparar` | No |
 
 El `<id>` es un número correlativo por proyecto seguido del slug de la tarea, por ejemplo `0007-exportar-pedidos`.
