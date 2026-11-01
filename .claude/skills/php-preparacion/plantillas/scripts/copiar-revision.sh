@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Copia a magents lo útil de .magents/ para revisar cómo han trabajado los agentes.
 # Lo ejecuta solo el usuario, porque escribe fuera del proyecto.
+# menu: confirmar: Sustituye la copia anterior en magents y borra de ella lo que ya no exista aquí.
 # Uso: copiar-revision.sh [--sin-diff]
 set -euo pipefail
 
@@ -13,6 +14,9 @@ case "${1:-}" in
     exit 1
     ;;
 esac
+
+source "$(dirname "${BASH_SOURCE[0]}")/confirmar.sh"
+magents_confirmar "${BASH_SOURCE[0]}"
 
 # Commit base de una tarea, según su estado.md.
 commit_base() {

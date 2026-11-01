@@ -16,6 +16,16 @@ if [ "$origen" = "$destino/.claude" ]; then
   exit 1
 fi
 
+# Reinstalar sustituye los archivos de magents. Sin terminal, como en una prueba, no se pregunta.
+if [ -t 0 ] && [ -e "$destino/.claude/skills/tarea/SKILL.md" ]; then
+  echo "ATENCIÓN: se sustituirán en $destino los agentes y skills de magents, y se perderán sus cambios propios. Los scripts modificados se guardan en .magents/scripts/anterior/."
+  read -r -p "Escribe si para continuar: " respuesta || respuesta=""
+  if [ "$respuesta" != "si" ]; then
+    echo "Cancelado."
+    exit 1
+  fi
+fi
+
 agentes=(preparador triage desarrollador revisor-codigo revisor-seguridad probador documentador)
 skills=(preparar tarea magents-normas php-preparacion php-triage php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
 
@@ -74,6 +84,8 @@ instalar_script() {
 mkdir -p "$scripts"
 instalar_script copiar-revision.sh
 instalar_script comprobar-entorno.sh
+instalar_script confirmar.sh
+instalar_script menu.sh
 dirname "$origen" > "$scripts/.ruta-magents"
 
 if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
@@ -99,7 +111,7 @@ if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
 fi
 
 # Registro de lo instalado, para distinguir en la próxima instalación los cambios propios.
-(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh $(ls iniciar.sh parar.sh reiniciar-bd.sh 2>/dev/null)) > "$instalados"
+(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh menu.sh $(ls iniciar.sh parar.sh reiniciar-bd.sh 2>/dev/null)) > "$instalados"
 
 echo "Instalado en $destino"
 # Solo informa: un entorno con problemas no impide instalar.

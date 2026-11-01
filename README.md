@@ -44,7 +44,7 @@ Se respeta la forma de programar de cada proyecto. La indentación es con tabula
 ./install.sh /ruta/al/proyecto
 ```
 
-Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también los scripts fijos de `.magents/scripts/` si el proyecto ya tiene entorno, así que no los modifiques a mano: si encuentra cambios, o una versión instalada sin registro, guarda el script en `.magents/scripts/anterior/` y avisa. Si venías de una versión con los scripts en `.magents/entorno/`, los mueve, guarda los antiguos en `.magents/scripts/anterior/` y corrige sus rutas en `proyecto.md`. Las demás plantillas no llegan a un entorno ya generado. Al terminar ejecuta `comprobar-entorno.sh` y muestra lo que encuentre, sin impedir la instalación. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
+Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también los scripts fijos de `.magents/scripts/` si el proyecto ya tiene entorno, así que no los modifiques a mano: si encuentra cambios, o una versión instalada sin registro, guarda el script en `.magents/scripts/anterior/` y avisa. Si lo lanzas desde una terminal, pide confirmación antes de sustituir una instalación existente. Si venías de una versión con los scripts en `.magents/entorno/`, los mueve, guarda los antiguos en `.magents/scripts/anterior/` y corrige sus rutas en `proyecto.md`. Las demás plantillas no llegan a un entorno ya generado. Al terminar ejecuta `comprobar-entorno.sh` y muestra lo que encuentre, sin impedir la instalación. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
 
 ## Uso
 
@@ -61,13 +61,16 @@ Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.
 `/preparar` detecta el stack y te enseña una propuesta. Con tu confirmación crea `.magents/proyecto.md` y, si el proyecto no tiene ya su propio entorno, `.magents/entorno/` y `.magents/scripts/`:
 
 ```bash
+.magents/scripts/menu.sh      # Lista los scripts, muestra el estado y permite lanzarlos
 .magents/scripts/iniciar.sh   # Inicia o reinicia, espera a que responda y muestra la URL
 .magents/scripts/parar.sh     # Para el entorno
 .magents/scripts/reiniciar-bd.sh   # Si hay BD: borra sus datos y la recarga desde bd-inicial/
 .magents/scripts/comprobar-entorno.sh   # Busca fallos de estructura, sin arrancar ni cambiar nada
 ```
 
-Los dos primeros conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Lo que un proyecto necesite antes de arrancar va en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta si existe y `install.sh` no toca. Si `compose.yml` usa `pull_policy: never` y falta ese script, `iniciar.sh` da error, porque nadie construiría la imagen.
+Lo que puede perder algo pide confirmación, tanto desde `menu.sh` como lanzado a mano: `reiniciar-bd.sh` y `copiar-revision.sh` siempre, e `iniciar.sh` y `parar.sh` si el entorno está en marcha, porque se pierden los logs y temporales de los contenedores. Sin terminal o dentro de Claude Code no pregunta, para que los agentes no se queden esperando; esto incluye los comandos `!` de Claude Code. Para no preguntar en un uso propio, define `MAGENTS_CONFIRMADO=1`. Un script añade esa confirmación con una línea `# menu: confirmar: <motivo>` o `# menu: confirmar-si-en-marcha: <motivo>` y cargando `confirmar.sh`, y su descripción sale de la línea 2.
+
+`iniciar.sh` y `parar.sh` conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Lo que un proyecto necesite antes de arrancar va en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta si existe y `install.sh` no toca. Si `compose.yml` usa `pull_policy: never` y falta ese script, `iniciar.sh` da error, porque nadie construiría la imagen.
 
 Si ya hay entorno, `/preparar` te deja elegir:
 

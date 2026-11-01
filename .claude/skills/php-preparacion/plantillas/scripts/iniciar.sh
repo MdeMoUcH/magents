@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Inicia el entorno local de pruebas o, si ya está en marcha, lo reinicia. Conserva los datos de la BD.
+# menu: confirmar-si-en-marcha: Recrea los contenedores: se pierden sus logs y temporales. La BD se conserva.
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/confirmar.sh"
+magents_confirmar "${BASH_SOURCE[0]}"
 # Los comandos de Docker se ejecutan desde entorno/, donde está compose.yml.
 cd "$(dirname "${BASH_SOURCE[0]}")/../entorno"
 
