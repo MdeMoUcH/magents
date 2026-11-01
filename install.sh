@@ -49,10 +49,31 @@ entorno="$destino/.magents/entorno"
 scripts="$destino/.magents/scripts"
 plantillas="$origen/skills/php-preparacion/plantillas/scripts"
 
+instalados="$scripts/.instalados"
+
+# Copia un script fijo. Si el actual no es el que instaló magents, lo guarda en anterior/.
+instalar_script() {
+  local script="$1" actual="$scripts/$1" nuevo="$plantillas/$1" copia hash
+  if [ -e "$actual" ] && ! cmp -s "$actual" "$nuevo"; then
+    hash="$(sha256sum "$actual" | cut -d' ' -f1)"
+    if ! grep -qxF "$hash  $script" "$instalados" 2>/dev/null; then
+      mkdir -p "$scripts/anterior"
+      copia="$scripts/anterior/$script"
+      if [ -e "$copia" ]; then
+        copia="$copia.$(date +%Y%m%d-%H%M%S)"
+      fi
+      cp -p "$actual" "$copia"
+      echo "AVISO: .magents/scripts/$script tenía cambios propios o de una versión sin registro; queda en ${copia#"$destino"/}. Lo propio del proyecto va en antes-de-iniciar.sh." >&2
+    fi
+  fi
+  cp "$nuevo" "$actual"
+  chmod +x "$actual"
+}
+
 # Estos scripts no dependen del entorno: se instalan siempre, con la ruta de este magents.
 mkdir -p "$scripts"
-cp "$plantillas/copiar-revision.sh" "$plantillas/comprobar-entorno.sh" "$scripts/"
-chmod +x "$scripts/copiar-revision.sh" "$scripts/comprobar-entorno.sh"
+instalar_script copiar-revision.sh
+instalar_script comprobar-entorno.sh
 dirname "$origen" > "$scripts/.ruta-magents"
 
 if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
@@ -70,13 +91,15 @@ if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
   if [ -e "$destino/.magents/proyecto.md" ]; then
     sed -i -E 's#\.magents/entorno/(iniciar|parar|reiniciar-bd|antes-de-iniciar)\.sh#.magents/scripts/\1.sh#g' "$destino/.magents/proyecto.md"
   fi
-  cp "$plantillas/iniciar.sh" "$plantillas/parar.sh" "$scripts/"
-  chmod +x "$scripts/iniciar.sh" "$scripts/parar.sh"
+  instalar_script iniciar.sh
+  instalar_script parar.sh
   if grep -q '^  bd:' "$entorno/compose.yml" 2>/dev/null; then
-    cp "$plantillas/reiniciar-bd.sh" "$scripts/"
-    chmod +x "$scripts/reiniciar-bd.sh"
+    instalar_script reiniciar-bd.sh
   fi
 fi
+
+# Registro de lo instalado, para distinguir en la próxima instalación los cambios propios.
+(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh $(ls iniciar.sh parar.sh reiniciar-bd.sh 2>/dev/null)) > "$instalados"
 
 echo "Instalado en $destino"
 # Solo informa: un entorno con problemas no impide instalar.

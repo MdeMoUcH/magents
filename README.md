@@ -44,7 +44,7 @@ Se respeta la forma de programar de cada proyecto. La indentación es con tabula
 ./install.sh /ruta/al/proyecto
 ```
 
-Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también los scripts fijos de `.magents/scripts/` si el proyecto ya tiene entorno, así que no los modifiques a mano. Si venías de una versión con los scripts en `.magents/entorno/`, los mueve, guarda los antiguos en `.magents/scripts/anterior/` y corrige sus rutas en `proyecto.md`. Las demás plantillas no llegan a un entorno ya generado. Al terminar ejecuta `comprobar-entorno.sh` y muestra lo que encuentre, sin impedir la instalación. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
+Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también los scripts fijos de `.magents/scripts/` si el proyecto ya tiene entorno, así que no los modifiques a mano: si encuentra cambios, o una versión instalada sin registro, guarda el script en `.magents/scripts/anterior/` y avisa. Si venías de una versión con los scripts en `.magents/entorno/`, los mueve, guarda los antiguos en `.magents/scripts/anterior/` y corrige sus rutas en `proyecto.md`. Las demás plantillas no llegan a un entorno ya generado. Al terminar ejecuta `comprobar-entorno.sh` y muestra lo que encuentre, sin impedir la instalación. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
 
 ## Uso
 
@@ -75,7 +75,7 @@ Si ya hay entorno, `/preparar` te deja elegir:
 - **Regenerar**: crea uno nuevo y guarda el anterior en una copia.
 - **Conservar**: termina sin hacer nada.
 
-`comprobar-entorno.sh` solo detecta fallos de estructura, y lo ejecutan `install.sh` y `/tarea`. Los de funcionamiento los busca «Revisar». Los errores de PHP van a `docker compose logs web`, no a la página.
+`comprobar-entorno.sh` solo detecta fallos de estructura, y lo ejecutan `install.sh` y `/tarea`. Los de funcionamiento los busca «Revisar». Los errores de PHP van a `docker compose logs web`, no a la página, gracias al `LogLevel info` de `magents.conf`.
 
 Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
@@ -102,7 +102,7 @@ Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de l
 | `.magents/CHANGELOG.md` | Historial de cambios | No |
 | `.magents/proyecto.md` | Configuración del entorno | No |
 | `.magents/entorno/` | Configuración de Docker local | No |
-| `.magents/scripts/` | Scripts para iniciar, parar y restablecer el entorno, y para copiar lo necesario para una revisión | No |
+| `.magents/scripts/` | Scripts para iniciar, parar, comprobar y restablecer el entorno, y para copiar lo necesario para una revisión | No |
 | `.magents/preparacion/` | Propuesta, informe, revisiones y reparaciones de `/preparar` | No |
 
 El `<id>` es un número correlativo por proyecto seguido del slug de la tarea, por ejemplo `0007-exportar-pedidos`.
@@ -115,12 +115,11 @@ La opción `--tools` es necesaria: el preset por defecto no incluye las herramie
 
 ## Límite de carpeta
 
-Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de fuera, se bloquean y `/tarea` te pide permiso indicando la ruta y el motivo; el permiso vale solo para esa ruta, ese fin y esa tarea.
+Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de fuera, se bloquean y `/tarea` o `/preparar` te piden permiso indicando la ruta y el motivo; el permiso vale solo para esa ruta, ese fin y esa ejecución.
 
 ## Limitaciones
 
 - El límite de carpeta y la regla de git solo lectura son instrucciones, no bloqueos técnicos. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
-
 - Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
 - `.magents/.htaccess` no protege en Nginx. Excluye `.magents/` si despliegas por FTP o rsync: subirla publicaría informes con vulnerabilidades detalladas.
 - El aislamiento de producción se basa en sustituir la configuración y comprobarla: si queda en el código un destino que el preparador no detecte, el contenedor podría alcanzarlo, porque tiene salida a la red.

@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 Tarea: $ARGUMENTS
 
-Coordinas seis subagentes. **Tú no analizas, programas, revisas ni pruebas**: lanzas cada fase con la herramienta Agent, guardas lo que devuelve y decides la siguiente según su veredicto. Trabaja sin parar hasta terminar o hasta tener una duda real para el usuario. Háblale en español, con una línea por cada cambio de fase.
+Coordinas siete subagentes. **Tú no analizas, programas, revisas ni pruebas**: lanzas cada fase con la herramienta Agent, guardas lo que devuelve y decides la siguiente según su veredicto. Trabaja sin parar hasta terminar o hasta tener una duda real para el usuario. Háblale en español, con una línea por cada cambio de fase.
 
 Si no hay descripción de la tarea, pregúntala. Si la descripción es `continuar <NNNN>`, ve a «Retomar una tarea».
 

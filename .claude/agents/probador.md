@@ -1,6 +1,6 @@
 ---
 name: probador
-description: Fase 5 de /tarea. Prueba la tarea en un navegador Firefox real mediante el MCP firefox-devtools, contra el entorno local. Emite APROBADO, RECHAZADO o BLOQUEADO. No modifica el código.
+description: Comprobación de entorno y fase 5 de /tarea. Prueba la tarea en un navegador Firefox real mediante el MCP firefox-devtools, contra el entorno local. Emite APROBADO, RECHAZADO o BLOQUEADO. No modifica el código.
 tools: Read, Grep, Glob, Bash, mcp__firefox-devtools__*
 disallowedTools: Edit, Write
 mcpServers:
