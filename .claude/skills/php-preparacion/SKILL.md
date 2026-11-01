@@ -6,7 +6,7 @@ user-invocable: false
 
 # Preparación del entorno
 
-El prompt indica el modo: `propuesta` o `generar`. Las plantillas están en `.claude/skills/php-preparacion/plantillas/`.
+El prompt indica el modo: `propuesta`, `generar`, `revisar` o `reparar`. Las plantillas están en `.claude/skills/php-preparacion/plantillas/`.
 
 ## Reglas de seguridad
 
@@ -80,6 +80,48 @@ Si alguna falla y no lo puedes arreglar dentro de `.magents/`, termina con `BLOQ
 | Comprobación | Comando | Resultado |
 ## Supuestos pendientes de confirmar
 ## Pendiente del usuario
+
+VEREDICTO: LISTO | BLOQUEADO
+```
+
+## Modo `revisar`
+
+No cambies ningún archivo salvo la sonda temporal de las comprobaciones, que debes borrar. Reiniciar el entorno recrea el contenedor y pierde sus logs: si `git status` u otra señal indica una tarea en curso, no lo hagas y termina con `BLOQUEADO`, para que el usuario decida. Anota si estaba en marcha y déjalo igual al terminar. Si no está en marcha, arráncalo solo para las comprobaciones.
+
+1. Ejecuta `.magents/scripts/comprobar-entorno.sh`, si existe, y parte de su salida.
+2. Compara `.magents/entorno/` y `proyecto.md` con las plantillas y normas actuales de esta skill. Por ejemplo, un `LogLevel` que falta en `magents.conf`, un `proyecto.md` que describe un comportamiento que los scripts ya no tienen, o un paso de construcción que quedó solo en `.magents/scripts/anterior/`.
+3. Ejecuta las comprobaciones de «Modo `generar`» con el entorno tal como está. Omite solo las que no se puedan repetir sin cambiar datos, e indícalo.
+
+Separa lo que está mal de lo que solo es distinto. Una adaptación del proyecto, como otra versión de PHP, más extensiones o un `--network=host`, no es un problema si funciona. No propongas igualarla a la plantilla.
+
+```markdown
+# Revisión del entorno
+## Comprobaciones
+| Comprobación | Comando | Resultado |
+## Problemas
+| Problema | Evidencia | Consecuencia | Arreglo propuesto, con los archivos que cambia |
+## Adaptaciones que se conservan
+## Sin comprobar
+
+VEREDICTO: CORRECTO | PROBLEMAS | BLOQUEADO
+```
+
+## Modo `reparar`
+
+Aplica solo los arreglos que el prompt indica como confirmados.
+
+1. Si el entorno está en marcha, anótalo. Copia `.magents/entorno/` a `.magents/entorno.anterior-<fecha y hora>/` y `proyecto.md` dentro de esa copia. Copia también `antes-de-iniciar.sh`, si vas a cambiarlo.
+2. Escribe solo dentro de `.magents/`. No modifiques los scripts fijos, y pon lo propio del proyecto en `.magents/scripts/antes-de-iniciar.sh`, como en «Modo `generar`».
+3. No borres el volumen de la BD ni cambies `bd-inicial/`. Si un arreglo lo exigiera, termina con `BLOQUEADO`.
+4. Ejecuta `.magents/scripts/comprobar-entorno.sh` y todas las comprobaciones de «Modo `generar`», con el mismo criterio de `BLOQUEADO` y el mismo estado final del entorno.
+
+```markdown
+# Reparación del entorno
+## Arreglos aplicados
+## Copia
+## Comprobaciones
+| Comprobación | Comando | Resultado |
+## Pendiente
 
 VEREDICTO: LISTO | BLOQUEADO
 ```

@@ -9,6 +9,12 @@ if ! command -v curl >/dev/null 2>&1; then
   exit 1
 fi
 
+# Con pull_policy: never Compose no construye ni descarga: sin esto se usaría una imagen antigua o ninguna.
+if grep -q 'pull_policy: *never' compose.yml && [ ! -e ../scripts/antes-de-iniciar.sh ]; then
+  echo "ERROR: compose.yml no construye su imagen y falta .magents/scripts/antes-de-iniciar.sh. Ejecuta /preparar en Claude Code y elige «Revisar», o crea ese script con el docker build." >&2
+  exit 1
+fi
+
 MAGENTS_UID="$(id -u)"
 MAGENTS_GID="$(id -g)"
 export MAGENTS_UID MAGENTS_GID

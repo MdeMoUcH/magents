@@ -49,10 +49,10 @@ entorno="$destino/.magents/entorno"
 scripts="$destino/.magents/scripts"
 plantillas="$origen/skills/php-preparacion/plantillas/scripts"
 
-# Este script no depende del entorno: se instala siempre, con la ruta de este magents.
+# Estos scripts no dependen del entorno: se instalan siempre, con la ruta de este magents.
 mkdir -p "$scripts"
-cp "$plantillas/copiar-revision.sh" "$scripts/"
-chmod +x "$scripts/copiar-revision.sh"
+cp "$plantillas/copiar-revision.sh" "$plantillas/comprobar-entorno.sh" "$scripts/"
+chmod +x "$scripts/copiar-revision.sh" "$scripts/comprobar-entorno.sh"
 dirname "$origen" > "$scripts/.ruta-magents"
 
 if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
@@ -79,6 +79,8 @@ if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
 fi
 
 echo "Instalado en $destino"
+# Solo informa: un entorno con problemas no impide instalar.
+"$scripts/comprobar-entorno.sh" || true
 if ! command -v node >/dev/null 2>&1; then
   echo "AVISO: no se encuentra node (hace falta >= 20.19 para las pruebas en Firefox)." >&2
 elif ! node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>20||(a===20&&b>=19)?0:1)'; then

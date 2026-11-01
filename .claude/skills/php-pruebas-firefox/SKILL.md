@@ -34,6 +34,8 @@ Informe: una sección por cada punto, con lo que has comprobado y el resultado, 
 4. Si el entorno no está definido o no arranca, no improvises otro: `BLOQUEADO`, y explica que hay que ejecutar `/preparar` o qué falla.
 5. Aplica los pasos adicionales del informe de desarrollo.
 
+**Evidencia anterior:** nunca borres ni sobrescribas evidencia de otra ejecución, aunque vayas a repetir esas pruebas o el prompt te pida sustituirla. Si el prompt indica una ejecución interrumpida, antes de reiniciar el entorno o restablecer la BD guarda en tu carpeta de evidencia el log de PHP y el estado que no se pueda recuperar.
+
 ## Herramientas MCP
 
 | Para | Herramienta |
@@ -47,7 +49,7 @@ Informe: una sección por cada punto, con lo que has comprobado y el resultado, 
 
 **Diálogos de JavaScript:** el controlador de Firefox puede descartarlos solo y hacer fallar `accept_dialog` y `dismiss_dialog`. En ese caso, y solo para esto, sustituye `window.confirm` con `evaluate_script`, mantén el clic real e indica en «Sin probar» que no se pulsó el diálogo.
 
-Guarda las capturas con una ruta relativa dentro de la carpeta de la tarea (`.magents/tareas/<id>/capturas/`), porque las rutas relativas se resuelven desde el directorio del proyecto. Los `uid` caducan al cambiar la página: repite `take_snapshot` tras cada navegación o cambio. El navegador es headless y efímero; no tiene las sesiones del usuario.
+Guarda las capturas y las salidas que sirvan de evidencia en la carpeta que indique el prompt, con una ruta relativa como `.magents/tareas/<id>/capturas/<n>/`, porque las rutas relativas se resuelven desde el directorio del proyecto. Los `uid` caducan al cambiar la página: repite `take_snapshot` tras cada navegación o cambio. El navegador es headless y efímero; no tiene las sesiones del usuario.
 
 Si las herramientas `mcp__firefox-devtools__*` no están disponibles, **no sustituyas la prueba por curl**: `BLOQUEADO`, con el error exacto. Las causas habituales, que debes indicar al usuario, son dos: la carpeta del proyecto no está aceptada como confiable (hay que abrir Claude Code en ella de forma interactiva y aceptar el diálogo) o no hay Node 20.19 o superior en el `PATH` (compruébalo con `node -v`).
 
@@ -68,9 +70,11 @@ En cada paso comprueba también:
 
 ## Criterio
 
-- `APROBADO`: **todos** los criterios se han ejecutado y pasan, sin errores nuevos.
-- `RECHAZADO`: algún criterio falla, o hay un error causado por el cambio. Los errores que ya existían se anotan, sin bloquear.
-- `BLOQUEADO`: no se ha podido probar (entorno, datos, credenciales, MCP). **Un criterio sin ejecutar nunca es un aprobado.**
+Cada criterio se marca `PASA`, `FALLA` o `PARCIAL`. Es `PARCIAL` si la prueba excluye algo que el criterio pide, como funciones, casos o versiones, aunque otro informe lo haya dado por aceptable. Indica exactamente qué queda fuera. Una exclusión prevista en `triage.md` o aceptada por el usuario según el prompt no hace parcial el criterio, pero se anota en «Sin probar».
+
+- `APROBADO`: **todos** los criterios se han ejecutado y están en `PASA`, sin errores nuevos.
+- `RECHAZADO`: algún criterio está en `FALLA`, o hay un error causado por el cambio. Los errores que ya existían se anotan, sin bloquear.
+- `BLOQUEADO`: no se ha podido probar (entorno, datos, credenciales, MCP), o queda algún criterio en `PARCIAL` sin ninguno en `FALLA`. **Un criterio sin ejecutar del todo nunca es un aprobado.**
 
 ## Al terminar
 
@@ -89,7 +93,7 @@ URL, cómo se levantó, versión de PHP
 ## Fallos
 Pasos exactos para reproducir, mensaje de error y archivo probable
 ## Evidencia
-Rutas de las capturas
+Rutas de las capturas y salidas, todas en tu carpeta de evidencia
 ## Sin probar
 Lo que no se ha ejecutado y por qué
 
