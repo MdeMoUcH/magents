@@ -43,5 +43,5 @@ No bloquees por gustos. Verifica cada hallazgo en el código antes de incluirlo.
 ## Comprobaciones ejecutadas
 Comando y resultado real
 
-VEREDICTO: APROBADO | RECHAZADO
+VEREDICTO: APROBADO | RECHAZADO | BLOQUEADO
 ```

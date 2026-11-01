@@ -13,6 +13,10 @@ Coordinas seis subagentes. **Tú no analizas, programas, revisas ni pruebas**: l
 
 Si no hay descripción de la tarea, pregúntala.
 
+## Límite de carpeta
+
+Ni tú ni los subagentes salís de la raíz del proyecto, el directorio donde se lanzó `/tarea`. No se lee, lista ni modifica nada fuera de ella. Si tú o un subagente lo necesitáis, pide antes permiso al usuario con AskUserQuestion, indicando la ruta exacta y el motivo. Si lo concede, vale solo para esa ruta, ese fin y esta tarea: anótalo en `estado.md` y pásalo de forma explícita en el prompt del subagente. Si lo niega, sigue sin ello o informa de lo que no se ha podido hacer.
+
 ## Flujo
 
 ```

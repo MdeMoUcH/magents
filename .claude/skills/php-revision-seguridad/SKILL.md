@@ -53,5 +53,5 @@ Entradas y rutas seguidas
 ## Endurecimiento
 ## Lo que no se pudo verificar
 
-VEREDICTO: APROBADO | RECHAZADO
+VEREDICTO: APROBADO | RECHAZADO | BLOQUEADO
 ```

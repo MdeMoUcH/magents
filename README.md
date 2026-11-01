@@ -60,7 +60,13 @@ La primera vez se crea `.magents/proyecto.md`. Conviene rellenarlo con la URL lo
 
 La opción `--tools` es necesaria: el preset por defecto no incluye las herramientas de consola y red.
 
+## Límite de carpeta
+
+Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de fuera, se bloquean y `/tarea` te pide permiso indicando la ruta y el motivo; el permiso vale solo para esa ruta, ese fin y esa tarea.
+
 ## Limitaciones
+
+- El límite de carpeta es una instrucción, no un bloqueo técnico. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
 
 - Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
 - Si una sesión no se ejecuta en un modo que permita las acciones, Claude Code pedirá confirmación durante el flujo.

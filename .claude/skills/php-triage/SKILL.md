@@ -45,7 +45,7 @@ Incluye los puntos sensibles para seguridad: entradas, permisos, datos
 ## Dudas
 (solo si las hay: pregunta, por qué importa, opciones y tu recomendación)
 
-VEREDICTO: LISTO | DUDAS
+VEREDICTO: LISTO | DUDAS | BLOQUEADO
 ```
 
 Usa `DUDAS` solo si no se puede hacer un plan fiable sin la respuesta.
