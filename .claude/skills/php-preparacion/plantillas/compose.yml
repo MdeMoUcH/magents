@@ -1,0 +1,56 @@
+# Entorno local de pruebas generado por /preparar. No usar en producción.
+# iniciar.sh necesita que el servicio se llame "web" y escuche en el puerto 80.
+name: magents-__PROYECTO__
+
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:__PUERTO__:80"
+    # Con tu usuario, para que lo que escriba la web no quede como propiedad de root.
+    user: "${MAGENTS_UID:-1000}:${MAGENTS_GID:-1000}"
+    volumes:
+      - ../..:/var/www/html
+      # Sustituye la configuración real, para que la web nunca conecte con producción:
+      # - ./config/__ARCHIVO__:/var/www/html/__RUTA_CONFIG__:ro
+    tmpfs:
+      # Oculta estas carpetas a la web del contenedor.
+      - /var/www/html/.magents
+      - /var/www/html/.claude
+      - /var/www/html/.git
+    healthcheck:
+      # Cualquier respuesta HTTP sirve: iniciar.sh comprueba después el código.
+      test: ["CMD", "curl", "-sS", "-o", "/dev/null", "http://127.0.0.1/"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+    # Con base de datos, descomenta también el servicio bd y el volumen:
+    # depends_on:
+    #   bd:
+    #     condition: service_healthy
+
+  # bd:
+  #   image: mariadb:__VERSION_BD__
+  #   environment:
+  #     MARIADB_DATABASE: pruebas
+  #     MARIADB_USER: pruebas
+  #     MARIADB_PASSWORD: pruebas
+  #     MARIADB_RANDOM_ROOT_PASSWORD: "1"
+  #   volumes:
+  #     - bd:/var/lib/mysql
+  #     # Se carga solo cuando el volumen está vacío.
+  #     - ./bd-inicial:/docker-entrypoint-initdb.d:ro
+  #   healthcheck:
+  #     test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+  #     interval: 3s
+  #     timeout: 5s
+  #     retries: 40
+
+  # Solo si la web envía correo por SMTP; apúntala a mailpit:1025.
+  # mailpit:
+  #   image: axllent/mailpit
+  #   ports:
+  #     - "127.0.0.1:__PUERTO_CORREO__:8025"
+
+# volumes:
+#   bd:

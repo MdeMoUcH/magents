@@ -23,7 +23,7 @@ No propongas modernizar lo que no se pide. Respeta el estilo existente, aunque s
 
 ## `.magents/proyecto.md`
 
-Si le faltan valores, propón en tu informe los que puedas deducir. Si no hay entorno local, propón uno con Docker que reproduzca el del proyecto, por ejemplo `php:<versión>-apache` con `a2enmod rewrite` si hay `.htaccess`, y solo escuchando en `127.0.0.1`.
+Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, inclúyelo en el plan como cambio en `.magents/entorno/`.
 
 ## Formato del informe
 
@@ -40,8 +40,8 @@ Pasos concretos, archivo por archivo
 ## Casos límite y riesgos
 Incluye los puntos sensibles para seguridad: entradas, permisos, datos
 ## Supuestos
-## Propuesta para .magents/proyecto.md
-(solo si falta algo)
+## Discrepancias con .magents/proyecto.md
+(solo si las hay)
 ## Dudas
 (solo si las hay: pregunta, por qué importa, opciones y tu recomendación)
 

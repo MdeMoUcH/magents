@@ -4,16 +4,17 @@ Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.mag
 
 ## Entorno local de pruebas
 
-- URL base: <!-- p. ej. http://127.0.0.1:8088 -->
-- Cómo arrancarlo: <!-- p. ej. docker compose up -d -->
-- Cómo pararlo: <!-- p. ej. docker compose down -->
-- Logs de errores PHP: <!-- p. ej. docker compose logs web -->
+- URL base: <!-- p. ej. http://127.0.0.1:8123 -->
+- Cómo arrancarlo o reiniciarlo: <!-- p. ej. .magents/entorno/iniciar.sh -->
+- Cómo pararlo: <!-- p. ej. .magents/entorno/parar.sh -->
+- Logs de errores PHP: <!-- p. ej. docker compose -f .magents/entorno/compose.yml logs web -->
 - Base de datos de prueba: <!-- cómo crearla o restaurarla; nunca la de producción -->
 - Usuarios de prueba: <!-- rol y cómo obtener el acceso -->
+- Aislamiento de producción: <!-- qué configuración se sustituye y cómo se ha comprobado -->
 
 ## Stack
 
-- Versión de PHP en producción: <!-- condiciona la sintaxis que se puede usar -->
+- Versión de PHP en producción: <!-- condiciona la sintaxis que se puede usar; indica si es confirmada o supuesta -->
 - Servidor web: <!-- Apache con .htaccess, Nginx... -->
 - Base de datos:
 - Framework o estructura:

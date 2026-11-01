@@ -32,8 +32,8 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 ## Preparación
 
 1. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/`.
-2. Si existe `.magents/proyecto.md`, léelo. Si no, créalo copiando la plantilla `${CLAUDE_SKILL_DIR}/proyecto.plantilla.md`; el triage propondrá los valores.
-3. Si no es un repositorio git o no tiene ningún commit, para y pide al usuario que lo inicialice y haga un commit inicial por su cuenta, porque sin commit base los revisores no pueden ver qué ha cambiado.
+2. Si no es un repositorio git o no tiene ningún commit, para y pide al usuario que lo inicialice y haga un commit inicial por su cuenta, porque sin commit base los revisores no pueden ver qué ha cambiado.
+3. Si `.magents/proyecto.md` no existe o le falta la URL base o cómo arrancar el entorno, lee `${CLAUDE_SKILL_DIR}/../preparar/SKILL.md` y sigue sus pasos antes de continuar. Si no termina con `LISTO`, para: sin entorno no se puede probar la tarea, y el usuario puede retomarla con `/tarea` cuando lo tenga.
 4. Guarda en `estado.md` el texto íntegro de la tarea, el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si hay alguno, guarda también `git diff HEAD` en `informes/cambios-previos.diff`, avisa al usuario de que pueden mezclarse con los de la tarea si afectan a los mismos archivos y pregúntale si continúa o prefiere confirmarlos antes.
 
 Mantén `estado.md` al día con la fase actual, la iteración y el historial de veredictos.
@@ -48,7 +48,7 @@ Los subagentes no ven esta conversación. Pasa siempre en el prompt: el texto í
 
 | Fase | Subagente | Guardar en | Le pasas además |
 |---|---|---|---|
-| 1 | `triage` | `triage.md` | respuestas previas del usuario, si las hay |
+| 1 | `triage` | `triage.md` | ruta de `.magents/proyecto.md`; respuestas previas del usuario, si las hay |
 | Entorno | `probador` | `entorno.md` | indicación de hacer solo la comprobación de entorno; rutas de `triage.md` y `.magents/proyecto.md` |
 | 2 | `desarrollador` | `desarrollo-<n>.md` | rutas de `triage.md` y `.magents/proyecto.md`; desde `n=2`, ruta del informe que rechazó |
 | 3 | `revisor-codigo` | `revision-codigo-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md` |
@@ -67,7 +67,7 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 | `RECHAZADO` | `n += 1` y volver a `desarrollador` |
 | `DUDAS` / `BLOQUEADO` | Pregunta al usuario con AskUserQuestion, incluyendo el contexto, y relanza esa misma fase con la respuesta. Un `BLOQUEADO` del probador no es un rechazo: no gastes una iteración de desarrollo en él |
 
-- **Propuesta para `proyecto.md`**: si el triage incluye una, enséñasela al usuario y aplícala a `.magents/proyecto.md` con lo que confirme, antes de la comprobación de entorno.
+- **Discrepancias con `proyecto.md`**: si el triage señala alguna, enséñasela al usuario antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme.
 - **Límite**: como máximo **5 iteraciones** de desarrollo. Si la 5.ª se rechaza, para y presenta al usuario el historial y el problema pendiente.
 - **Ciclo sin avance**: si el mismo problema vuelve a aparecer en dos rechazos seguidos, para antes del límite y pregunta.
 - **Desacuerdo**: si el desarrollador responde que un hallazgo es erróneo, no lo decides tú: la siguiente revisión lo reevalúa con ese argumento, y si se mantiene preguntas al usuario.
@@ -76,7 +76,7 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 
 ## Al terminar
 
-Resume al usuario: qué se hizo, archivos cambiados, número de iteraciones y motivos de los rechazos, evidencia de las pruebas, riesgos preexistentes detectados, y dónde está la documentación. Indica que los cambios están sin confirmar. Si el flujo terminó sin completarse, dilo de forma explícita y no recomiendes ningún commit.
+Resume al usuario: qué se hizo, archivos cambiados, número de iteraciones y motivos de los rechazos, evidencia de las pruebas, cambios de entorno que también pueda necesitar producción, riesgos preexistentes detectados, y dónde está la documentación. Indica que los cambios están sin confirmar. Si el flujo terminó sin completarse, dilo de forma explícita y no recomiendes ningún commit.
 
 Si el flujo se completó, cierra con estos dos apartados, basados en `git diff <commit-base>` y `git status --porcelain` y sin incluir los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`:
 

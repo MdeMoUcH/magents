@@ -8,10 +8,11 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
                         └──── RECHAZADO ──┴─────────────────┴───────────────┘
 ```
 
-`entorno` es `probador` comprobando, antes de desarrollar, que se va a poder probar.
+`entorno` es `probador` comprobando, antes de desarrollar, que se va a poder probar. Antes de la primera tarea, `/preparar` genera el entorno local con el agente `preparador`.
 
 | Fase | Subagente | Skill | Permisos |
 |---|---|---|---|
+| Preparación (`/preparar`): detecta el stack y genera el entorno | `preparador` | `php-preparacion` | Edición, solo en `.magents/` por instrucción |
 | Triage: analiza la tarea contra el código actual | `triage` | `php-triage` | Sin herramientas de edición |
 | Desarrollo | `desarrollador` | `php-desarrollo` | Edición |
 | Revisión de código | `revisor-codigo` | `php-revision-codigo` | Sin herramientas de edición |
@@ -29,7 +30,8 @@ Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen
 - Firefox
 - Git, con un repositorio que tenga al menos un commit
 - Node.js 20.19 o superior, para el MCP de Firefox
-- Docker, para el entorno de pruebas y `php -l` si no hay PHP en el equipo
+- Docker con Compose, si el proyecto no tiene entorno propio; también sirve para `php -l` si no hay PHP en el equipo
+- curl
 
 ## Instalación
 
@@ -42,13 +44,25 @@ Copia `.claude/agents` y `.claude/skills`, añade `.magents/` al `.gitignore` y 
 ## Uso
 
 ```
+/preparar
 /tarea Añadir un formulario de contacto que guarde los mensajes en la base de datos
 /tarea continuar 0007
 ```
 
-La segunda forma retoma una tarea interrumpida.
+`/preparar` se ejecuta una vez tras instalar, y `/tarea` lo lanza por su cuenta si falta. La última forma retoma una tarea interrumpida.
 
-La primera vez se crea `.magents/proyecto.md`, y el triage propone valores que `/tarea` guarda con tu confirmación. Conviene rellenarlo con la URL local, cómo arrancar el entorno, la versión de PHP de producción y la base de datos de prueba: el probador solo trabaja en local y se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
+### Entorno local
+
+`/preparar` detecta el stack y te enseña una propuesta. Con tu confirmación crea `.magents/proyecto.md` y, si el proyecto no tiene ya su propio entorno, `.magents/entorno/`:
+
+```bash
+.magents/entorno/iniciar.sh   # Inicia o reinicia, espera a que responda y muestra la URL
+.magents/entorno/parar.sh     # Para el entorno
+```
+
+Ambos conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción y que `.git/` y `.magents/` no se sirven. Si vuelves a ejecutar `/preparar`, guarda una copia del entorno anterior en lugar de sobrescribirlo.
+
+Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
 ## Dónde queda cada cosa
 
@@ -62,6 +76,8 @@ La primera vez se crea `.magents/proyecto.md`, y el triage propone valores que `
 | `.magents/decisiones/` | Decisiones de arquitectura | No |
 | `.magents/CHANGELOG.md` | Historial de cambios | No |
 | `.magents/proyecto.md` | Configuración del entorno | No |
+| `.magents/entorno/` | Docker local y scripts para iniciarlo y pararlo | No |
+| `.magents/preparacion/` | Propuesta e informe de `/preparar` | No |
 
 El `<id>` es un número correlativo por proyecto seguido del slug de la tarea, por ejemplo `0007-exportar-pedidos`.
 
@@ -80,4 +96,6 @@ Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de 
 - El límite de carpeta y la regla de git solo lectura son instrucciones, no bloqueos técnicos. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
 
 - Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
+- El aislamiento de producción se basa en sustituir la configuración y comprobarla: si queda en el código un destino que el preparador no detecte, el contenedor podría alcanzarlo, porque tiene salida a la red.
+- Usar Docker equivale en la práctica a tener permisos de root en el equipo, y limitar los agentes a sus comandos es una instrucción, no un bloqueo técnico.
 - Si una sesión no se ejecuta en un modo que permita las acciones, Claude Code pedirá confirmación durante el flujo.

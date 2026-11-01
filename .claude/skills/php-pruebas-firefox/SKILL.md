@@ -17,8 +17,8 @@ user-invocable: false
 
 Si el prompt te pide solo esta comprobación, no pruebes la tarea, porque aún no está desarrollada. Se hace antes del desarrollo para no gastarlo si no se va a poder probar:
 
-1. Confirma que las herramientas `mcp__firefox-devtools__*` están disponibles y abre la URL local con `new_page`.
-2. Arranca el entorno como se indica en «Preparar el entorno» y comprueba que responde.
+1. Arranca el entorno como se indica en «Preparar el entorno» y comprueba que responde.
+2. Confirma que las herramientas `mcp__firefox-devtools__*` están disponibles y abre la URL local con `new_page`.
 3. Si los criterios de aceptación de `triage.md` requieren escribir datos, confirma que la BD es de prueba. Confirma también que hay los usuarios de prueba que necesiten.
 4. Para lo que hayas arrancado y no cambies datos.
 
@@ -26,14 +26,10 @@ Informe: una sección por cada punto, con lo que has comprobado y el resultado, 
 
 ## Preparar el entorno
 
-1. Lee `.magents/proyecto.md` y arranca el entorno como allí se indique. Comprueba que responde con `curl`.
-2. Si no está definido y el proyecto es PHP sencillo, usa un contenedor temporal que solo escuche en local:
-   ```bash
-   docker run -d --rm --name magents-pruebas -p 127.0.0.1:8088:80 \
-     -v "$PWD":/var/www/html php:<versión>-apache
-   ```
-   Con `.htaccess`, añade `a2enmod rewrite` y `AllowOverride All`. Con `<?`, activa `short_open_tag=On`. Si hace falta BD y no hay ninguna de prueba, o la configuración exige algo que no puedes reproducir: `BLOQUEADO`, y explica qué falta.
-3. Aplica los pasos adicionales del informe de desarrollo.
+1. Lee `.magents/proyecto.md` y comprueba con `curl` si la URL local ya responde. Si responde, úsalo sin reiniciarlo y no lo pares al terminar, salvo que los pasos de desarrollo exijan reiniciarlo.
+2. Si no responde, arráncalo como allí se indique y vuelve a comprobarlo.
+3. Si el entorno no está definido o no arranca, no improvises otro: `BLOQUEADO`, y explica que hay que ejecutar `/preparar` o qué falla.
+4. Aplica los pasos adicionales del informe de desarrollo.
 
 ## Herramientas MCP
 

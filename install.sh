@@ -16,8 +16,8 @@ if [ "$origen" = "$destino/.claude" ]; then
   exit 1
 fi
 
-agentes=(triage desarrollador revisor-codigo revisor-seguridad probador documentador)
-skills=(tarea magents-normas php-triage php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
+agentes=(preparador triage desarrollador revisor-codigo revisor-seguridad probador documentador)
+skills=(preparar tarea magents-normas php-preparacion php-triage php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
 
 mkdir -p "$destino/.claude/agents" "$destino/.claude/skills"
 for a in "${agentes[@]}"; do
@@ -58,11 +58,17 @@ if ! command -v claude >/dev/null 2>&1; then
   echo "AVISO: no se encuentra claude (hace falta Claude Code para usar los agentes)." >&2
 fi
 if ! command -v docker >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra docker (hace falta para el entorno de pruebas y php -l si no hay PHP en el equipo)." >&2
+  echo "AVISO: no se encuentra docker (/preparar lo necesita si el proyecto no tiene entorno propio; también sirve para php -l)." >&2
+elif ! docker compose version >/dev/null 2>&1; then
+  echo "AVISO: no se encuentra docker compose (/preparar lo necesita si el proyecto no tiene entorno propio)." >&2
+fi
+if ! command -v curl >/dev/null 2>&1; then
+  echo "AVISO: no se encuentra curl (iniciar.sh y las pruebas lo usan para comprobar que la web responde)." >&2
 fi
 if ! command -v git >/dev/null 2>&1; then
   echo "AVISO: no se encuentra git (/tarea lo necesita para ver los cambios)." >&2
 elif ! git -C "$destino" rev-parse --verify -q HEAD >/dev/null 2>&1; then
   echo "AVISO: el destino no es un repositorio git con al menos un commit; /tarea lo necesita para ver los cambios." >&2
 fi
-echo "Abre Claude Code en el proyecto, acepta la confianza de la carpeta (sin ella no arranca el MCP de Firefox) y ejecuta: /tarea <descripción>"
+echo "Abre Claude Code en el proyecto, acepta la confianza de la carpeta (sin ella no arranca el MCP de Firefox) y ejecuta: /preparar"
+echo "Después, para cada tarea: /tarea <descripción>"
