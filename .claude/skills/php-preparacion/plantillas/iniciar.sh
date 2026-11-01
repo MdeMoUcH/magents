@@ -12,6 +12,11 @@ MAGENTS_UID="$(id -u)"
 MAGENTS_GID="$(id -g)"
 export MAGENTS_UID MAGENTS_GID
 
+# Adaptación propia del proyecto, antes de parar nada: si falla, el entorno sigue como estaba.
+if [ -e antes-de-iniciar.sh ]; then
+  bash antes-de-iniciar.sh
+fi
+
 docker compose down --remove-orphans
 if ! docker compose up -d --build --wait --wait-timeout 900; then
   docker compose logs --tail 50 >&2 || true

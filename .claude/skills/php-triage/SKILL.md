@@ -21,9 +21,13 @@ Tu resultado es lo único que el desarrollador y los revisores sabrán de la tar
 
 No propongas modernizar lo que no se pide. Respeta el estilo existente, aunque sea antiguo, y sugiere las mejoras aparte. Si el proyecto usa `<?` o `mysql_*`, indica si el código nuevo puede o no usar sintaxis moderna según la versión de PHP de producción. Si esa versión no se puede determinar y afecta a la tarea, es una duda.
 
+## Experimentos
+
+Ejecutar da mejores planes que solo leer, y puedes hacerlo si cambia el plan: usa contenedores desechables, con el proyecto en solo lectura y `--network none` siempre que sea posible. No escribas en la BD de prueba: un login también escribe, porque actualiza datos del usuario. Si necesitas datos o escrituras, deja el experimento para el desarrollador o el probador. Declara en tu informe lo que hayas ejecutado y lo que quede en Docker.
+
 ## `.magents/proyecto.md`
 
-Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, inclúyelo en el plan como cambio en `.magents/entorno/`.
+Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, inclúyelo en el plan como cambio en `.magents/entorno/`. Nunca propongas modificar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`: lo propio del proyecto va en `antes-de-iniciar.sh`.
 
 ## Formato del informe
 

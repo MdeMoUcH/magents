@@ -45,6 +45,8 @@ Informe: una sección por cada punto, con lo que has comprobado y el resultado, 
 | Evidencia | `screenshot_page`, `set_viewport_size` |
 | Comprobar estado | `evaluate_script` (solo para leer; no para simular lo que debe hacer el usuario) |
 
+**Diálogos de JavaScript:** el controlador de Firefox puede descartarlos solo y hacer fallar `accept_dialog` y `dismiss_dialog`. En ese caso, y solo para esto, sustituye `window.confirm` con `evaluate_script`, mantén el clic real e indica en «Sin probar» que no se pulsó el diálogo.
+
 Guarda las capturas con una ruta relativa dentro de la carpeta de la tarea (`.magents/tareas/<id>/capturas/`), porque las rutas relativas se resuelven desde el directorio del proyecto. Los `uid` caducan al cambiar la página: repite `take_snapshot` tras cada navegación o cambio. El navegador es headless y efímero; no tiene las sesiones del usuario.
 
 Si las herramientas `mcp__firefox-devtools__*` no están disponibles, **no sustituyas la prueba por curl**: `BLOQUEADO`, con el error exacto. Las causas habituales, que debes indicar al usuario, son dos: la carpeta del proyecto no está aceptada como confiable (hay que abrir Claude Code en ella de forma interactiva y aceptar el diálogo) o no hay Node 20.19 o superior en el `PATH` (compruébalo con `node -v`).
@@ -72,7 +74,7 @@ En cada paso comprueba también:
 
 ## Al terminar
 
-Para y elimina lo que hayas arrancado, restaura los datos de prueba que hayas cambiado si procede, y confirma que no quedan contenedores tuyos.
+Si has cambiado datos, restablece la BD con el comando de `.magents/proyecto.md` y vuelve a aplicar los pasos adicionales de desarrollo, o indica en tu informe lo que queda cambiado si no hay comando. Después para y elimina lo que hayas arrancado, y confirma que no quedan contenedores tuyos.
 
 ## Formato del informe
 

@@ -26,7 +26,7 @@ Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen
 
 ## Estilo del código
 
-Se respeta la forma de programar de cada proyecto. La indentación es con tabuladores, salvo en archivos existentes indentados con espacios, que los conservan, y en formatos que no los admiten, como YAML. Los comentarios son breves y nunca ocupan más que el código. La revisión de código rechaza lo que incumpla estas normas de indentación y comentarios.
+Se respeta la forma de programar de cada proyecto. La indentación es con tabuladores, salvo en archivos existentes indentados con espacios, que los conservan, y en formatos que no los admiten, como YAML. En archivos que ya mezclan ambos, lo nuevo va con tabuladores. Los comentarios son breves y nunca ocupan más que el código. La revisión de código rechaza lo que incumpla estas normas de indentación y comentarios.
 
 ## Requisitos
 
@@ -43,7 +43,7 @@ Se respeta la forma de programar de cada proyecto. La indentación es con tabula
 ./install.sh /ruta/al/proyecto
 ```
 
-Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también `iniciar.sh` y `parar.sh` si el proyecto ya tiene `.magents/entorno/`, así que no los modifiques a mano. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
+Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también `iniciar.sh`, `parar.sh` y `reiniciar-bd.sh` si el proyecto ya tiene `.magents/entorno/`, así que no los modifiques a mano. Las demás plantillas no llegan a un entorno ya generado. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
 
 ## Uso
 
@@ -62,9 +62,10 @@ Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.
 ```bash
 .magents/entorno/iniciar.sh   # Inicia o reinicia, espera a que responda y muestra la URL
 .magents/entorno/parar.sh     # Para el entorno
+.magents/entorno/reiniciar-bd.sh   # Si hay BD: borra sus datos y la recarga desde bd-inicial/
 ```
 
-Ambos conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Si vuelves a ejecutar `/preparar`, guarda una copia del entorno anterior en lugar de sobrescribirlo.
+Los dos primeros conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Si vuelves a ejecutar `/preparar`, guarda una copia del entorno anterior en lugar de sobrescribirlo. Lo que un proyecto necesite antes de arrancar va en `.magents/entorno/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta si existe y `install.sh` no toca. Los errores de PHP van a `docker compose logs web`, no a la página.
 
 Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 

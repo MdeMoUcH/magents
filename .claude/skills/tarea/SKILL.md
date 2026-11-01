@@ -15,7 +15,7 @@ Si no hay descripción de la tarea, pregúntala. Si la descripción es `continua
 
 ## Normas comunes
 
-Lee `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas de git y de carpeta valen también para ti, y los subagentes ya las cargan.
+Lee `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas valen también para ti, y los subagentes ya las cargan.
 
 Si tú o un subagente necesitáis salir de la raíz del proyecto, pide antes permiso al usuario con AskUserQuestion, indicando la ruta exacta y el motivo. Si lo concede, vale solo para esa ruta, ese fin y esta tarea: anótalo en `estado.md` y pásalo de forma explícita en el prompt del subagente. Si lo niega, sigue sin ello o informa de lo que no se ha podido hacer.
 
@@ -36,11 +36,13 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 3. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/` y `.magents/tareas/<id>/capturas/`.
 4. Guarda en `estado.md` el texto íntegro de la tarea, el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si hay alguno, guarda también `git diff HEAD` en `informes/cambios-previos.diff`, avisa al usuario de que pueden mezclarse con los de la tarea si afectan a los mismos archivos y pregúntale si continúa o prefiere confirmarlos antes.
 
-Mantén `estado.md` al día con la fase actual, la iteración y el historial de veredictos.
+Mantén `estado.md` al día con la fase actual, la iteración y el historial de veredictos. Si quedas esperando algo del usuario, anótalo en una línea `Pendiente: <qué falta y qué hay que hacer después>`, y bórrala al resolverlo.
+
+Si el usuario hace un commit antes de que empiece el desarrollo, cambia el commit base por el nuevo en su apartado de `estado.md`, anota el anterior en el historial y actualiza los cambios previos. Una vez empezado el desarrollo, el commit base ya no cambia.
 
 ## Retomar una tarea
 
-Con `continuar <NNNN>`, busca `.magents/tareas/<NNNN>-*/` y lee su `informes/estado.md` y sus informes. Conserva el id, el commit base y el contador de iteraciones, y relanza la primera fase sin veredicto guardado. No repitas la preparación. Si los archivos han cambiado desde el último informe, avisa al usuario antes de seguir. Si no encuentras la carpeta o no hay `estado.md`, díselo y para.
+Con `continuar <NNNN>`, busca `.magents/tareas/<NNNN>-*/` y lee su `informes/estado.md` y sus informes. Conserva el id, el commit base y el contador de iteraciones. Si hay una línea `Pendiente:`, o una confirmación o un cambio de entorno sin resolver en el historial, resuélvelo antes de lanzar nada. Después relanza la primera fase sin veredicto guardado. No repitas la preparación. Si los archivos han cambiado desde el último informe, avisa al usuario antes de seguir. Si no encuentras la carpeta o no hay `estado.md`, díselo y para.
 
 ## Cómo lanzar cada fase
 
@@ -67,7 +69,7 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 | `RECHAZADO` | `n += 1` y volver a `desarrollador` |
 | `DUDAS` / `BLOQUEADO` | Pregunta al usuario con AskUserQuestion, incluyendo el contexto, y relanza esa misma fase con la respuesta. Un `BLOQUEADO` del probador no es un rechazo: no gastes una iteración de desarrollo en él |
 
-- **Discrepancias con `proyecto.md`**: si el triage señala alguna, enséñasela al usuario antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme.
+- **Discrepancias con `proyecto.md`**: si el triage señala alguna, enséñasela al usuario antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme y guarda su respuesta en `informes/preparacion-<n>.md`. Con `LISTO`, sigue con la comprobación de entorno. Con `BLOQUEADO`, aplica la regla de esa tabla, con un máximo de tres bloqueos seguidos.
 - **Límite**: como máximo **5 iteraciones** de desarrollo. Si la 5.ª se rechaza, para y presenta al usuario el historial y el problema pendiente.
 - **Ciclo sin avance**: si el mismo problema vuelve a aparecer en dos rechazos seguidos, para antes del límite y pregunta.
 - **Desacuerdo**: si el desarrollador responde que un hallazgo es erróneo, no lo decides tú: la siguiente revisión lo reevalúa con ese argumento, y si se mantiene preguntas al usuario.

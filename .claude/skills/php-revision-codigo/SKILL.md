@@ -20,9 +20,9 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host).
 5. **Rendimiento evidente**: N+1, consultas sin límite sobre tablas grandes.
 6. **Convenciones**: encaja con el código de alrededor, reutiliza lo existente, sin depuración ni código muerto.
-   - Indentación con tabuladores en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear.
+   - Indentación con tabuladores en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear; en uno que ya mezcla ambos, lo nuevo va con tabuladores y no se sugiere pasar nada a espacios.
    - Comentarios breves, que nunca ocupen más que el código al que acompañan y normalmente mucho menos.
-7. **Tests**: ejecuta los definidos en `.magents/proyecto.md`, si los hay.
+7. **Tests**: ejecuta los definidos en `.magents/proyecto.md`, si los hay. Si necesitas confirmar un bloqueante con escrituras, puedes hacerlo en el entorno local y restablecer la BD al terminar con el comando de `proyecto.md`, volviendo a aplicar los pasos adicionales de desarrollo.
 
 La seguridad la audita la fase siguiente; si ves algo evidente, anótalo igualmente.
 

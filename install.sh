@@ -51,6 +51,10 @@ for script in iniciar.sh parar.sh; do
     chmod +x "$destino/.magents/entorno/$script"
   fi
 done
+if [ -e "$destino/.magents/entorno/iniciar.sh" ] && grep -q '^  bd:' "$destino/.magents/entorno/compose.yml" 2>/dev/null; then
+  cp "$origen/skills/php-preparacion/plantillas/reiniciar-bd.sh" "$destino/.magents/entorno/reiniciar-bd.sh"
+  chmod +x "$destino/.magents/entorno/reiniciar-bd.sh"
+fi
 
 echo "Instalado en $destino"
 if ! command -v node >/dev/null 2>&1; then
