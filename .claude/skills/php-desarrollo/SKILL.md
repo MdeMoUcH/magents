@@ -34,7 +34,7 @@ Lee `triage.md` y los archivos que vas a tocar. Si vienes de un rechazo, lee el 
 2. Ejecuta los tests y el análisis estático definidos en `.magents/proyecto.md`, si los hay.
 3. Revisa tu diff completo y quita lo que no sea de la tarea.
 
-No hagas commits ni push. No afirmes que algo funciona si no lo has ejecutado.
+Usa git solo para consultar: los commits los hace el usuario. No afirmes que algo funciona si no lo has ejecutado.
 
 ## Formato del informe
 

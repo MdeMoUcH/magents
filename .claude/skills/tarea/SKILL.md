@@ -17,6 +17,10 @@ Si no hay descripción de la tarea, pregúntala.
 
 Ni tú ni los subagentes salís de la raíz del proyecto, el directorio donde se lanzó `/tarea`. No se lee, lista ni modifica nada fuera de ella. Si tú o un subagente lo necesitáis, pide antes permiso al usuario con AskUserQuestion, indicando la ruta exacta y el motivo. Si lo concede, vale solo para esa ruta, ese fin y esta tarea: anótalo en `estado.md` y pásalo de forma explícita en el prompt del subagente. Si lo niega, sigue sin ello o informa de lo que no se ha podido hacer.
 
+## Git solo lectura
+
+Los commits los hace el usuario. Ni tú ni los subagentes usáis git más que para consultar (`status`, `diff`, `log`, `show`, `rev-parse`). Nunca ejecutéis nada que cambie el repositorio, el índice, las ramas o la configuración (`add`, `commit`, `push`, `pull`, `fetch`, `merge`, `rebase`, `reset`, `restore`, `checkout`, `switch`, `stash`, `tag`, `clean`, `init`, `config`, entre otros).
+
 ## Flujo
 
 ```
@@ -31,8 +35,8 @@ Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las t
 
 1. Genera el identificador `<AAAAMMDD-HHMM>-<slug-corto>` y crea `.magents/tareas/<id>/`.
 2. Si existe `.magents/proyecto.md`, léelo. Si no, créalo copiando la plantilla `${CLAUDE_SKILL_DIR}/proyecto.plantilla.md`; el triage propondrá los valores.
-3. Si es un repositorio git, guarda en `estado.md` el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si no es un repositorio git, díselo al usuario y pregúntale si quiere inicializarlo, porque sin él los revisores no pueden ver qué ha cambiado.
-4. No crees ramas ni hagas commits: al terminar, los cambios quedan sin confirmar para que el usuario los revise.
+3. Si es un repositorio git, guarda en `estado.md` el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si no es un repositorio git, para y pide al usuario que lo inicialice por su cuenta antes de continuar, porque sin él los revisores no pueden ver qué ha cambiado.
+4. Al terminar, los cambios quedan sin confirmar para que el usuario los revise y haga el commit.
 
 Mantén `estado.md` al día con la fase actual, la iteración y el historial de veredictos.
 
@@ -64,8 +68,13 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 - **Ciclo sin avance**: si el mismo problema vuelve a aparecer en dos rechazos seguidos, para antes del límite y pregunta.
 - **Desacuerdo**: si el desarrollador responde que un hallazgo es erróneo, no lo decides tú: la siguiente revisión lo reevalúa con ese argumento, y si se mantiene preguntas al usuario.
 - **Nunca** te saltes una fase, ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.
-- Las acciones de producción, los commits y los push están fuera del flujo salvo que el usuario los pida.
+- Las acciones de producción están fuera del flujo salvo que el usuario las pida.
 
 ## Al terminar
 
-Resume al usuario: qué se hizo, archivos cambiados, número de iteraciones y motivos de los rechazos, evidencia de las pruebas, riesgos preexistentes detectados, y dónde está la documentación. Indica que los cambios están sin confirmar. Si el flujo terminó sin completarse, dilo de forma explícita.
+Resume al usuario: qué se hizo, archivos cambiados, número de iteraciones y motivos de los rechazos, evidencia de las pruebas, riesgos preexistentes detectados, y dónde está la documentación. Indica que los cambios están sin confirmar. Si el flujo terminó sin completarse, dilo de forma explícita y no recomiendes ningún commit.
+
+Si el flujo se completó, cierra con estos dos apartados, basados en `git diff <commit-base>` y `git status --porcelain` y sin incluir los cambios previos anotados en `estado.md`:
+
+- **Resumen de cambios:** unas pocas líneas con lo que cambia para quien use o mantenga la web.
+- **Mensaje de commit recomendado:** en un bloque de código, listo para copiar, en español. Solo lo propones: no ejecutes el commit.

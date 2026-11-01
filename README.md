@@ -19,7 +19,7 @@ triage → desarrollador → revisor-codigo → revisor-seguridad → probador �
 
 La skill `/tarea` coordina el flujo. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas).
 
-Al terminar, los cambios quedan **sin confirmar** en el proyecto: los agentes no hacen commits, push ni despliegues.
+Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen y un mensaje de commit recomendado. Los commits los haces tú: los agentes solo usan git para consultar y no hacen despliegues.
 
 ## Requisitos
 
