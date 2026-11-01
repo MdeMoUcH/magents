@@ -10,11 +10,11 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 
 ## Qué ver
 
-`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe: git la ignora, así que no aparece ahí. Excluye los cambios previos anotados en `estado.md`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
+`git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe: git la ignora, así que no aparece ahí. Excluye los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
 
 ## Qué comprobar
 
-1. **Plan**: cada paso y criterio de aceptación de `triage.md` está implementado, y no hay nada ajeno a la tarea.
+1. **Plan**: cada paso y criterio de aceptación de `triage.md` está implementado, no hay nada ajeno a la tarea y no se ha tocado ninguna ruta prohibida en `.magents/proyecto.md`.
 2. **Lógica**: condiciones invertidas, casos límite, `null`, comparaciones `==` problemáticas (`0 == "a"`, `in_array` sin modo estricto), datos vacíos, errores de BD sin tratar.
 3. **Integración**: llamadas con la firma correcta, rutas y `.htaccess`, nombres de campos que coinciden entre el formulario, el PHP y el SQL, plantillas, traducciones, migración incluida.
 4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host).

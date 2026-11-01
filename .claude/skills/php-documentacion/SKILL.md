@@ -6,7 +6,7 @@ user-invocable: false
 
 # Documentación de la tarea
 
-Lee todos los informes de `.magents/tareas/<id>/informes/` y contrástalos con `git diff <commit-base>` y `git status --porcelain`. Si un informe y el diff no coinciden, manda el diff y señala la diferencia. Documenta solo lo que ha ocurrido; no inventes motivos: si una decisión no tiene motivo registrado, dilo.
+Lee todos los informes de `.magents/tareas/<id>/informes/` y contrástalos con `git diff <commit-base>` y `git status --porcelain`. Excluye los cambios previos de `informes/cambios-previos.diff`, si existe. Si un informe y el diff no coinciden, manda el diff y señala la diferencia. Documenta solo lo que ha ocurrido; no inventes motivos: si una decisión no tiene motivo registrado, dilo.
 
 ## Qué escribir
 

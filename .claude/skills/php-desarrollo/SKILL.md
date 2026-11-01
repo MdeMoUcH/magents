@@ -8,7 +8,7 @@ user-invocable: false
 
 ## Antes de escribir
 
-Lee `triage.md` y los archivos que vas a tocar. Si vienes de un rechazo, lee el informe: arregla **todos** los hallazgos bloqueantes y busca el mismo fallo en el resto de tu cambio. Si un hallazgo te parece erróneo, no lo ignores: explica por qué en tu informe.
+Lee `triage.md`, `.magents/proyecto.md` y los archivos que vas a tocar. No modifiques las rutas de «Rutas que no se deben tocar»: si la tarea lo exige, termina con `BLOQUEADO`. Si vienes de un rechazo, lee el informe: arregla **todos** los hallazgos bloqueantes y busca el mismo fallo en el resto de tu cambio. Si un hallazgo te parece erróneo, no lo ignores: explica por qué en tu informe.
 
 ## Al escribir
 

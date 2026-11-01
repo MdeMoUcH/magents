@@ -3,10 +3,12 @@
 Agentes de Claude Code para el desarrollo de webs en PHP. Cada tarea pasa por seis fases, cada una con su subagente y su skill:
 
 ```
-triage → desarrollador → revisor-codigo → revisor-seguridad → probador → documentador
-              ↑                 │                 │               │
-              └──── RECHAZADO ──┴─────────────────┴───────────────┘
+triage → entorno → desarrollador → revisor-codigo → revisor-seguridad → probador → documentador
+                        ↑                 │                 │               │
+                        └──── RECHAZADO ──┴─────────────────┴───────────────┘
 ```
+
+`entorno` es `probador` comprobando, antes de desarrollar, que se va a poder probar.
 
 | Fase | Subagente | Skill | Permisos |
 |---|---|---|---|
@@ -17,7 +19,7 @@ triage → desarrollador → revisor-codigo → revisor-seguridad → probador �
 | Pruebas en Firefox | `probador` | `php-pruebas-firefox` | Sin edición + MCP de Firefox |
 | Documentación | `documentador` | `php-documentacion` | Edición, solo en `.magents/` por instrucción |
 
-La skill `/tarea` coordina el flujo. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas).
+La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git y de carpeta. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas).
 
 Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen y un mensaje de commit recomendado. Los commits los haces tú: los agentes solo usan git para consultar y no hacen despliegues.
 
@@ -25,6 +27,7 @@ Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen
 
 - [Claude Code](https://code.claude.com)
 - Firefox
+- Git, con un repositorio que tenga al menos un commit
 - Node.js 20.19 o superior, para el MCP de Firefox
 - Docker, para el entorno de pruebas y `php -l` si no hay PHP en el equipo
 
@@ -40,9 +43,12 @@ Copia `.claude/agents` y `.claude/skills`, añade `.magents/` al `.gitignore` y 
 
 ```
 /tarea Añadir un formulario de contacto que guarde los mensajes en la base de datos
+/tarea continuar 0007
 ```
 
-La primera vez se crea `.magents/proyecto.md`. Conviene rellenarlo con la URL local, cómo arrancar el entorno, la versión de PHP de producción y la base de datos de prueba: el probador solo trabaja en local y se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
+La segunda forma retoma una tarea interrumpida.
+
+La primera vez se crea `.magents/proyecto.md`, y el triage propone valores que `/tarea` guarda con tu confirmación. Conviene rellenarlo con la URL local, cómo arrancar el entorno, la versión de PHP de producción y la base de datos de prueba: el probador solo trabaja en local y se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
 ## Dónde queda cada cosa
 
@@ -71,7 +77,7 @@ Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de 
 
 ## Limitaciones
 
-- El límite de carpeta es una instrucción, no un bloqueo técnico. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
+- El límite de carpeta y la regla de git solo lectura son instrucciones, no bloqueos técnicos. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
 
 - Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
 - Si una sesión no se ejecuta en un modo que permita las acciones, Claude Code pedirá confirmación durante el flujo.

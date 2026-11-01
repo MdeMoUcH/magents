@@ -1,6 +1,6 @@
 # Configuración del proyecto para los agentes
 
-Sin contraseñas de producción aquí. Si este archivo contiene credenciales de prueba, no lo subas a git.
+Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.magents/` está en `.gitignore`.
 
 ## Entorno local de pruebas
 
