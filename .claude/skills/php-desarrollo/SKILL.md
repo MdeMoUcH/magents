@@ -13,7 +13,9 @@ Lee `triage.md`, `.magents/proyecto.md` y los archivos que vas a tocar. No modif
 ## Al escribir
 
 - **Alcance**: solo lo que pide la tarea, sin refactorizar ni reformatear lo que no toca. Los problemas ajenos se anotan, no se arreglan.
-- **Convenciones**: el código nuevo debe parecer escrito por quien escribió el de alrededor. Reutiliza lo que ya existe.
+- **Convenciones**: el código nuevo debe parecer escrito por quien escribió el de alrededor, en nombres, estructura y estilo. Reutiliza lo que ya existe.
+- **Indentación**: con tabuladores, en archivos nuevos y en los que ya los usan. En un archivo existente indentado con espacios, mantén los espacios, sin mezclar ni reformatear.
+- **Comentarios**: breves y concisos, y solo donde aporten algo que el código no diga. Nunca pueden ocupar más que el código al que acompañan; lo normal es que ocupen mucho menos.
 - **Compatibilidad**: no uses sintaxis más nueva que la versión de PHP de producción.
 - **Cambios de esquema**: como script SQL en la ubicación que use el proyecto. No los ejecutes sobre bases de datos que no sean la local de prueba.
 - **Scripts de despliegue**: los de un solo uso van en `.magents/tareas/<id>/despliegue/`, con prefijo de orden (`01-esquema.sql`, `02-datos.php`) y sin secretos. Indica en tu informe cuándo ejecutar cada uno y cómo revertirlo. Esa carpeta no se versiona: si el proyecto tiene su propio sistema de migraciones, las migraciones siguen yendo allí.

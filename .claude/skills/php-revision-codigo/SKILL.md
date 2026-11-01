@@ -20,13 +20,15 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host).
 5. **Rendimiento evidente**: N+1, consultas sin límite sobre tablas grandes.
 6. **Convenciones**: encaja con el código de alrededor, reutiliza lo existente, sin depuración ni código muerto.
+   - Indentación con tabuladores en archivos nuevos y en los que ya los usan; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear.
+   - Comentarios breves, que nunca ocupen más que el código al que acompañan y normalmente mucho menos.
 7. **Tests**: ejecuta los definidos en `.magents/proyecto.md`, si los hay.
 
 La seguridad la audita la fase siguiente; si ves algo evidente, anótalo igualmente.
 
 ## Criterio
 
-- **Bloqueante**: fallo real con un escenario concreto, criterio de aceptación incumplido o rotura de código existente. → `RECHAZADO`
+- **Bloqueante**: fallo real con un escenario concreto, criterio de aceptación incumplido, rotura de código existente, o incumplimiento de las normas de indentación o comentarios. → `RECHAZADO`
 - **Sugerencia**: mejora opcional. No bloquea.
 - **Preexistente**: problema que ya estaba y que el cambio no empeora. Se anota, no bloquea.
 

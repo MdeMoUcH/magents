@@ -24,6 +24,10 @@ La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes
 
 Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen y un mensaje de commit recomendado. Los commits los haces tú: los agentes solo usan git para consultar y no hacen despliegues.
 
+## Estilo del código
+
+Se respeta la forma de programar de cada proyecto. La indentación es con tabuladores, salvo en archivos existentes indentados con espacios, que los conservan. Los comentarios son breves y nunca ocupan más que el código. La revisión de código rechaza lo que incumpla estas normas de indentación y comentarios.
+
 ## Requisitos
 
 - [Claude Code](https://code.claude.com)
