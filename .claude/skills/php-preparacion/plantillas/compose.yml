@@ -45,6 +45,8 @@ services:
   #     interval: 3s
   #     timeout: 5s
   #     retries: 40
+  #     # Margen para cargar un volcado grande la primera vez.
+  #     start_period: 14m
 
   # Solo si la web envía correo por SMTP; apúntala a mailpit:1025.
   # mailpit:

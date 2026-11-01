@@ -13,7 +13,7 @@ MAGENTS_GID="$(id -g)"
 export MAGENTS_UID MAGENTS_GID
 
 docker compose down --remove-orphans
-if ! docker compose up -d --build --wait --wait-timeout 180; then
+if ! docker compose up -d --build --wait --wait-timeout 900; then
   docker compose logs --tail 50 >&2 || true
   echo "ERROR: el entorno no ha arrancado." >&2
   exit 1
