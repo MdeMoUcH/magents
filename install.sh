@@ -48,7 +48,13 @@ if ! command -v node >/dev/null 2>&1; then
 elif ! node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>20||(a===20&&b>=19)?0:1)'; then
   echo "AVISO: node $(node -v) es antiguo (hace falta >= 20.19 para las pruebas en Firefox)." >&2
 fi
+if ! command -v npx >/dev/null 2>&1; then
+  echo "AVISO: no se encuentra npx (hace falta para lanzar el MCP de Firefox)." >&2
+fi
 if ! command -v firefox >/dev/null 2>&1; then
   echo "AVISO: no se encuentra firefox." >&2
 fi
-echo "Abre Claude Code en el proyecto y ejecuta: /tarea <descripción>"
+if ! command -v claude >/dev/null 2>&1; then
+  echo "AVISO: no se encuentra claude (hace falta Claude Code para usar los agentes)." >&2
+fi
+echo "Abre Claude Code en el proyecto, acepta la confianza de la carpeta (sin ella no arranca el MCP de Firefox) y ejecuta: /tarea <descripción>"
