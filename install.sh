@@ -60,6 +60,20 @@ if [ ! -e "$destino/.magents/.htaccess" ]; then
   echo 'Require all denied' > "$destino/.magents/.htaccess"
 fi
 
+# Versiones anteriores dejaban cada copia del entorno suelta en .magents/.
+for copia in "$destino/.magents"/entorno.anterior-*; do
+  [ -d "$copia" ] || continue
+  nombre="${copia##*/entorno.anterior-}"
+  mkdir -p "$destino/.magents/entorno.anterior"
+  if [ ! -e "$destino/.magents/entorno.anterior/$nombre" ] && mv "$copia" "$destino/.magents/entorno.anterior/$nombre" 2>/dev/null; then
+    if [ -e "$destino/.magents/proyecto.md" ]; then
+      sed -i "s#\.magents/entorno\.anterior-$nombre#.magents/entorno.anterior/$nombre#g" "$destino/.magents/proyecto.md"
+    fi
+  else
+    magents_aviso "AVISO: no se ha podido mover .magents/entorno.anterior-$nombre a .magents/entorno.anterior/; se queda donde está."
+  fi
+done
+
 # Estos scripts son fijos: si el entorno ya existe, se actualizan. El resto es propio de cada proyecto.
 entorno="$destino/.magents/entorno"
 scripts="$destino/.magents/scripts"

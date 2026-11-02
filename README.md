@@ -75,7 +75,7 @@ Lo que puede perder algo pide confirmación, tanto desde `menu.sh` como lanzado 
 Si ya hay entorno, `/preparar` te deja elegir:
 
 - **Revisar** (recomendado): lo prueba, te enseña los problemas y sus arreglos, y aplica solo los que confirmes, dentro de `.magents/`, con copia previa y sin tocar el volumen de la BD. Conserva las adaptaciones del proyecto que funcionan. No se ejecuta si hay una tarea en curso, porque reiniciar pierde los logs del contenedor.
-- **Regenerar**: crea uno nuevo y guarda el anterior en una copia.
+- **Regenerar**: crea uno nuevo y guarda el anterior en `.magents/entorno.anterior/<fecha y hora>/`. Esas copias se borran a mano y no se ejecutan donde están: para recuperar una, se mueve de vuelta a `entorno/`.
 - **Conservar**: termina sin hacer nada.
 
 `comprobar-entorno.sh` solo detecta fallos de estructura, y lo ejecutan `install.sh` y `/tarea`. Los de funcionamiento los busca «Revisar». Los errores de PHP van a `docker compose logs web`, no a la página, gracias al `LogLevel info` de `magents.conf`.

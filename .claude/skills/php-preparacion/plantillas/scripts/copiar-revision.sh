@@ -78,6 +78,7 @@ mkdir -p "$destino"
 rsync -a --delete --no-links \
   --exclude '/entorno/bd-inicial' \
   --exclude '/entorno/config' \
+  --exclude '/entorno.anterior' \
   --exclude '/entorno.anterior-*' \
   --exclude '/tareas/*/tmp' \
   --exclude '/preparacion/tmp' \

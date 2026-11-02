@@ -24,7 +24,7 @@ Si no es un repositorio git o no tiene ningún commit, para y pide al usuario qu
 
 ## Revisar un entorno existente
 
-1. **Revisión**: lanza `preparador` en modo `revisar` con la salida de `.magents/scripts/comprobar-entorno.sh`, si existe. Guarda su respuesta en `.magents/preparacion/revision-<fecha y hora>.md`, en el mismo formato de fecha que `entorno.anterior-*`.
+1. **Revisión**: lanza `preparador` en modo `revisar` con la salida de `.magents/scripts/comprobar-entorno.sh`, si existe. Guarda su respuesta en `.magents/preparacion/revision-<fecha y hora>.md`, en el mismo formato de fecha que `entorno.anterior/`.
 2. **Sin problemas**: con `CORRECTO`, díselo al usuario y termina.
 3. **Confirmación**: con `PROBLEMAS`, enséñale cada problema y su arreglo, y pregúntale con AskUserQuestion cuáles aplica. Si no aplica ninguno, indica que el entorno sigue con esos problemas y termina.
 4. **Reparación**: lanza `preparador` en modo `reparar` con la ruta de la revisión y lo confirmado, y guarda su respuesta en `.magents/preparacion/reparacion-<fecha y hora>.md`.
