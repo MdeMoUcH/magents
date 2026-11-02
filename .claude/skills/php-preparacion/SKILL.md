@@ -14,6 +14,7 @@ El prompt indica el modo: `propuesta`, `generar`, `revisar` o `reparar`. Las pla
 - **Secretos**: no copies a informes, `proyecto.md` ni `.magents/entorno/` ninguna contraseña, clave o token del proyecto. Nombra el archivo y la variable, nunca el valor.
 - **Datos**: no te conectes a producción ni descargues un volcado. Usa el esquema del repositorio o el volcado anonimizado que el usuario deje en `.magents/entorno/bd-inicial/`.
 - **Red**: publica los puertos solo en `127.0.0.1`.
+- **Nombres de servicio**: el DNS de Docker solo resuelve un servicio mientras está en marcha. Parado, el nombre se consulta en el DNS del equipo y puede acabar en una IP pública, y la web intentaría autenticarse allí. Por eso, si hay más servicios que `web`, todos llevan IP fija en una subred propia y `web` los tiene en `extra_hosts`, también con un entorno propio del proyecto. Cambiar solo el nombre no lo evita.
 - **Redirecciones**: la web local no debe redirigir fuera de la URL local. Las de `https`, `www` o URL base fija se neutralizan desde `compose.yml`, sin tocar el proyecto: variables de entorno o un archivo montado encima, también `.htaccess`.
 
 ## Modo `propuesta`
@@ -26,6 +27,7 @@ No escribas nada. Averigua:
 4. **Base de datos**: motor y versión, dónde está el esquema y si hay datos de prueba. Si no hay esquema, indica que el usuario debe aportar un volcado anonimizado.
 5. **Escrituras**: rutas donde escribe la web. Las que estén en `.gitignore` no necesitan nada. Las demás ensuciarían el diff de los revisores: propón montarlas como `tmpfs` con `mode=1777`, solo si su contenido no está versionado y no hace falta conservarlo.
 6. **Puerto**: elige uno libre al azar entre 8100 y 8899 (`ss -ltn`), para reducir choques con otros proyectos.
+   **Subred**, si hay más servicios que `web`: con `n` = puerto − 8100, `__SUBRED__` es `10.<213 + n / 256, sin decimales>.<n % 256>`, y la red es `__SUBRED__.0/28`. Al salir del puerto, dos entornos de magents con puertos distintos no chocan. Compruébala con `ip -4 route show table all to match __SUBRED__.1 | grep -v '^default'`: si sale alguna ruta, esa red ya está en uso (VPN o red local), así que elige otra `/28` de `10.0.0.0/8` e indícalo. No uses `ip route get`, porque con una VPN da su interfaz para cualquier IP. Con el puerto fuera de ese intervalo, elige también una al azar.
 7. **Comprobaciones y rutas**: tests, análisis estático y rutas que no se deben tocar.
 
 Si no hay entorno propio y Docker no está disponible: `BLOQUEADO`.
@@ -66,11 +68,12 @@ Ejecuta todas y anota el comando y el resultado real:
 1. `.magents/scripts/iniciar.sh`, o el comando del entorno propio, termina sin error y la URL responde.
 2. `php -v` dentro del contenedor coincide con la versión confirmada.
 3. Desde dentro del contenedor, cada conexión de la tabla de aislamiento apunta al sustituto, sin mostrar secretos. Si hay BD, la web se conecta a la de prueba.
-4. `/.git/HEAD` y `/.magents/proyecto.md` no se sirven por la URL local.
-5. Las páginas principales, como la de inicio y la de acceso, no redirigen fuera de la URL local (`curl -sI`).
-6. Un `Warning`, un `Notice` y un `Deprecated` provocados con una sonda temporal llegan al log indicado en `proyecto.md` y no se muestran en la página. Borra la sonda.
-7. `git status --porcelain` no ha cambiado.
-8. El comando de parada termina sin error y no queda ningún contenedor de este entorno.
+4. Si hay más servicios que `web`: `.magents/scripts/comprobar-entorno.sh` pasa y cada nombre que usa la configuración de la web, también un alias, está en `/etc/hosts` del contenedor. Después, solo si pasa, para cada servicio con `docker compose stop <servicio>`: `getent ahosts <nombre>` dentro de `web` sigue dando su IP privada; no uses `getent hosts`, que consulta `AAAA` fuera de Docker aunque el nombre esté en `/etc/hosts`. Espera 60 s, porque antes de que caduque la caché ARP la conexión puede tardar todo su tiempo de espera, y la web debe dar su error en menos de 20 s. Vuelve a levantarlo con `docker compose up -d --wait <servicio>`. Si no pasa, no pares el servicio y anótalo.
+5. `/.git/HEAD` y `/.magents/proyecto.md` no se sirven por la URL local.
+6. Las páginas principales, como la de inicio y la de acceso, no redirigen fuera de la URL local (`curl -sI`).
+7. Un `Warning`, un `Notice` y un `Deprecated` provocados con una sonda temporal llegan al log indicado en `proyecto.md` y no se muestran en la página. Borra la sonda.
+8. `git status --porcelain` no ha cambiado.
+9. El comando de parada termina sin error y no queda ningún contenedor de este entorno.
 
 Si alguna falla y no lo puedes arreglar dentro de `.magents/`, termina con `BLOQUEADO`. Deja el entorno parado, salvo que ya estuviera en marcha: en ese caso vuelve a iniciarlo.
 
@@ -113,7 +116,7 @@ Aplica solo los arreglos que el prompt indica como confirmados.
 
 1. Si el entorno está en marcha, anótalo. Copia `.magents/entorno/` a `.magents/entorno.anterior-<fecha y hora>/` y `proyecto.md` dentro de esa copia. Copia también `antes-de-iniciar.sh`, si vas a cambiarlo.
 2. Escribe solo dentro de `.magents/`. No modifiques los scripts fijos, y pon lo propio del proyecto en `.magents/scripts/antes-de-iniciar.sh`, con las normas de estilo de «Modo `generar`».
-3. No borres el volumen de la BD ni cambies `bd-inicial/`. Si un arreglo lo exigiera, termina con `BLOQUEADO`.
+3. No borres el volumen de la BD ni cambies `bd-inicial/`. Si un arreglo lo exigiera, termina con `BLOQUEADO`. Al añadir la subred propia, conserva `name:` y la clave del volumen, de los que depende su nombre, y aplícala con `.magents/scripts/iniciar.sh`, que borra la red antigua sin tocar los volúmenes.
 4. Ejecuta `.magents/scripts/comprobar-entorno.sh` y todas las comprobaciones de «Modo `generar`», con el mismo criterio de `BLOQUEADO` y el mismo estado final del entorno.
 
 ```markdown

@@ -16,6 +16,49 @@ problema() {
   problemas=$((problemas + 1))
 }
 
+# Un servicio parado deja de resolverse en Docker: su nombre se consultaría en el DNS del equipo.
+# Lee la lista de servicios, sus IP fijas y los extra_hosts de web. Ignora los comentarios.
+leer_compose() {
+  awk '
+    /^[[:space:]]*#/ { next }
+    /^[^[:space:]]/ { en_servicios = ($0 ~ /^services:/); servicio = ""; next }
+    !en_servicios { next }
+    /^  [^[:space:]-][^:]*:/ { servicio = $1; sub(/:.*/, "", servicio); print "servicio", servicio; en_hosts = 0; next }
+    /^    [^[:space:]]/ { en_hosts = (servicio == "web" && $0 ~ /^    extra_hosts:/) }
+    /ipv4_address:/ { print "ip", servicio, $2; next }
+    en_hosts && /^      / {
+      linea = $0
+      gsub(/["\047]/, "", linea); sub(/^ *(- *)?/, "", linea); sub(/[:=] */, " ", linea); sub(/ *(#.*)?$/, "", linea)
+      print "host", linea
+    }
+  ' "$entorno/compose.yml"
+}
+
+comprobar_nombres_fijos() {
+  local tipo a b nombre
+  local servicios=()
+  local -A ips=() hosts=()
+  while read -r tipo a b; do
+    case "$tipo" in
+      servicio) servicios+=("$a") ;;
+      ip) ips[$a]="$b" ;;
+      host) hosts[$a]="$b" ;;
+    esac
+  done < <(leer_compose)
+
+  [ "${#servicios[@]}" -gt 1 ] || return 0
+  if ! grep -qE '^[[:space:]]+-[[:space:]]+subnet:' "$entorno/compose.yml"; then
+    problema "compose.yml no define una subred propia: con un servicio parado, su nombre podría resolverse fuera de Docker."
+  fi
+  for nombre in "${servicios[@]}"; do
+    if [ -z "${ips[$nombre]:-}" ]; then
+      problema "el servicio $nombre no tiene IP fija (ipv4_address)."
+    elif [ "$nombre" != "web" ] && [ "${hosts[$nombre]:-}" != "${ips[$nombre]}" ]; then
+      problema "web no tiene $nombre en extra_hosts con la IP ${ips[$nombre]}: con $nombre parado, su nombre podría resolverse fuera de Docker."
+    fi
+  done
+}
+
 if [ ! -e "$proyecto_md" ]; then
   echo "Sin .magents/proyecto.md: aún no hay entorno que comprobar."
   exit 0
@@ -50,6 +93,8 @@ if [ -e "$entorno/compose.yml" ]; then
   if grep -q '^  bd:' "$entorno/compose.yml" && [ ! -x "$scripts/reiniciar-bd.sh" ]; then
     problema "hay servicio bd y falta .magents/scripts/reiniciar-bd.sh o no es ejecutable."
   fi
+
+  comprobar_nombres_fijos
 
   # Docker crearía como root un origen de montaje que no exista.
   while IFS= read -r origen; do

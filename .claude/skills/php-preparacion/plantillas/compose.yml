@@ -28,9 +28,20 @@ services:
     # depends_on:
     #   bd:
     #     condition: service_healthy
+    # Con otros servicios, descomenta esto y la red del final. Sin estas entradas, al parar
+    # un servicio su nombre se consultaría en el DNS del equipo y podría salir a Internet.
+    # networks:
+    #   default:
+    #     ipv4_address: __SUBRED__.2
+    # extra_hosts:
+    #   - "bd:__SUBRED__.3"
+    #   - "mailpit:__SUBRED__.4"
 
   # bd:
   #   image: mariadb:__VERSION_BD__
+  #   networks:
+  #     default:
+  #       ipv4_address: __SUBRED__.3
   #   environment:
   #     MARIADB_DATABASE: pruebas
   #     MARIADB_USER: pruebas
@@ -51,8 +62,17 @@ services:
   # Solo si la web envía correo por SMTP; apúntala a mailpit:1025.
   # mailpit:
   #   image: axllent/mailpit
+  #   networks:
+  #     default:
+  #       ipv4_address: __SUBRED__.4
   #   ports:
   #     - "127.0.0.1:__PUERTO_CORREO__:8025"
 
 # volumes:
 #   bd:
+
+# networks:
+#   default:
+#     ipam:
+#       config:
+#         - subnet: __SUBRED__.0/28

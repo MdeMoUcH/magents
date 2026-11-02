@@ -36,6 +36,15 @@ Informe: una sección por cada punto, con lo que has comprobado y el resultado, 
 
 **Evidencia anterior:** nunca borres ni sobrescribas evidencia de otra ejecución, aunque vayas a repetir esas pruebas o el prompt te pida sustituirla. Si el prompt indica una ejecución interrumpida, antes de reiniciar el entorno o restablecer la BD guarda en tu carpeta de evidencia el log de PHP y el estado que no se pueda recuperar.
 
+## Probar con la BD u otro servicio caído
+
+Ejecuta antes `.magents/scripts/comprobar-entorno.sh`. Si no pasa, no pares el servicio, porque su nombre podría resolverse fuera de Docker: el criterio queda en `BLOQUEADO`, y hay que ejecutar `/preparar` con «Revisar».
+
+- **Para**: `docker compose -f .magents/entorno/compose.yml stop <servicio>`, solo ese servicio, sin borrar nada. Espera 60 s antes de probar: hasta que caduca la caché ARP, la conexión puede tardar todo su tiempo de espera (60 s en `mysqli`). Después falla con `No route to host`: la primera vez hasta en unos 15 s, y luego en unos 3 s.
+- **Restablece**: `docker compose -f .magents/entorno/compose.yml up -d --wait <servicio>`, también si la prueba falla. Conserva los datos.
+- **No uses `docker compose pause`**: la conexión se queda colgada en lugar de fallar, y no prueba lo mismo que una caída.
+- Con un entorno propio del proyecto, comprueba lo mismo a mano: el nombre debe estar en `/etc/hosts` de la web. Si no, `BLOQUEADO`. No uses `getent hosts`, que consulta `AAAA` fuera de Docker aunque esté; usa `getent ahosts`.
+
 ## Herramientas MCP
 
 | Para | Herramienta |
