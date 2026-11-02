@@ -110,6 +110,17 @@ instalar_script confirmar.sh
 instalar_script menu.sh
 dirname "$origen" > "$scripts/.ruta-magents"
 
+# Fecha del commit de magents que se instala, para mostrarla en menu.sh.
+raiz_magents="$(dirname "$origen")"
+fecha_magents=""
+if [ "$(git -C "$raiz_magents" rev-parse --show-toplevel 2>/dev/null)" = "$raiz_magents" ]; then
+  fecha_magents="$(git -C "$raiz_magents" log -1 --format=%cd --date=format-local:'%Y-%m-%d %H:%M' 2>/dev/null || true)"
+  if [ -n "$fecha_magents" ] && [ -n "$(git -C "$raiz_magents" status --porcelain 2>/dev/null)" ]; then
+    fecha_magents="$fecha_magents +cambios"
+  fi
+fi
+printf '%s\n' "${fecha_magents:-sin fecha}" > "$scripts/.version-magents"
+
 if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
   # Versiones anteriores los tenían en entorno/: se guardan, por si tenían cambios propios.
   for script in iniciar.sh parar.sh reiniciar-bd.sh; do

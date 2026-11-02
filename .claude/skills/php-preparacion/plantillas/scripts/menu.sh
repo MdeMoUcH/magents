@@ -87,6 +87,13 @@ if [ -t 1 ] && [ -z "${CLAUDECODE:-}" ]; then
   trap echo EXIT
 fi
 
+version_magents="$(cat "$scripts_dir/.version-magents" 2>/dev/null || true)"
+version_magents="${version_magents:-sin fecha}"
+# En amarillo si se instaló con cambios sin commit: la fecha no refleja del todo lo instalado.
+if [[ "$version_magents" == *"+cambios" ]]; then
+  version_magents="$(magents_pintar 33 "$version_magents")"
+fi
+
 aviso=""
 while true; do
   limpiar
@@ -96,7 +103,7 @@ while true; do
     magents_atencion "$aviso"
     aviso=""
   fi
-  echo "  magents · $proyecto · $(magents_estado)"
+  echo "  magents ($version_magents) · $proyecto · $(magents_estado)"
   echo
   for i in "${!lista[@]}"; do
     # El relleno va dentro del color: los códigos invisibles descuadrarían %-22s.
