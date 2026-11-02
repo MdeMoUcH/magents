@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Detecta fallos de estructura del entorno sin arrancarlo. No cambia nada. Sale con 1 si hay problemas.
+# Detecta fallos de estructura del entorno y muestra su estado, sin arrancarlo. No cambia nada. Sale con 1 si hay problemas.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/confirmar.sh"
 magents_cabecera
@@ -118,6 +118,9 @@ fi
 
 if [ "$problemas" -gt 0 ]; then
   echo "Ejecuta /preparar en Claude Code y elige «Revisar» para arreglarlo." >&2
-  exit 1
+else
+  magents_ok "Estructura del entorno correcta."
 fi
-magents_ok "Estructura del entorno correcta."
+echo
+magents_resumen_entorno
+[ "$problemas" -eq 0 ]

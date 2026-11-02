@@ -65,7 +65,7 @@ Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.
 .magents/scripts/iniciar.sh   # Inicia o reinicia, espera a que responda y muestra la URL
 .magents/scripts/parar.sh     # Para el entorno
 .magents/scripts/reiniciar-bd.sh   # Si hay BD: borra sus datos y la recarga desde bd-inicial/
-.magents/scripts/comprobar-entorno.sh   # Busca fallos de estructura, sin arrancar ni cambiar nada
+.magents/scripts/comprobar-entorno.sh   # Busca fallos de estructura y muestra el estado, sin arrancar ni cambiar nada
 ```
 
 Lo que puede perder algo pide confirmación, tanto desde `menu.sh` como lanzado a mano: `reiniciar-bd.sh` y `copiar-revision.sh` siempre, e `iniciar.sh` y `parar.sh` si el entorno está en marcha, porque se pierden los logs y temporales de los contenedores. Sin terminal o dentro de Claude Code no pregunta, para que los agentes no se queden esperando; esto incluye los comandos `!` de Claude Code. Para no preguntar en un uso propio, define `MAGENTS_CONFIRMADO=1`. Un script añade esa confirmación con una línea `# menu: confirmar: <motivo>` o `# menu: confirmar-si-en-marcha: <motivo>` y cargando `confirmar.sh`, y su descripción sale de la línea 2. En una terminal, los scripts e `install.sh` muestran una cabecera, que se omite para agentes y tuberías. El color sigue la misma regla: morado para el logo, verde para lo correcto, rojo para los errores y amarillo para lo que requiere atención. `NO_COLOR=1` lo desactiva.
@@ -78,7 +78,7 @@ Si ya hay entorno, `/preparar` te deja elegir:
 - **Regenerar**: crea uno nuevo y guarda el anterior en `.magents/entorno.anterior/<fecha y hora>/`. Esas copias se borran a mano y no se ejecutan donde están: para recuperar una, se mueve de vuelta a `entorno/`.
 - **Conservar**: termina sin hacer nada.
 
-`comprobar-entorno.sh` solo detecta fallos de estructura, y lo ejecutan `install.sh` y `/tarea`. Los de funcionamiento los busca «Revisar». Los errores de PHP van a `docker compose logs web`, no a la página, gracias al `LogLevel info` de `magents.conf`.
+`comprobar-entorno.sh` solo detecta fallos de estructura, muestra el estado sin que influya en el resultado, y lo ejecutan `install.sh` y `/tarea`. Los de funcionamiento los busca «Revisar». Los errores de PHP van a `docker compose logs web`, no a la página, gracias al `LogLevel info` de `magents.conf`.
 
 Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
