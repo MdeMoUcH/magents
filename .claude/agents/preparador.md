@@ -2,6 +2,13 @@
 name: preparador
 description: Agente de /preparar. Detecta el stack de una web PHP, propone su configuración y, con la confirmación del usuario, genera y comprueba el entorno Docker local en .magents/. No toca el código del proyecto.
 tools: Read, Edit, Write, Grep, Glob, Bash
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          onFailure: block
 skills:
   - magents-normas
   - php-preparacion

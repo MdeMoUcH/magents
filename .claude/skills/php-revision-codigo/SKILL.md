@@ -1,6 +1,6 @@
 ---
 name: php-revision-codigo
-description: Método para revisar código PHP generado: cumplimiento del plan, errores de lógica, integración, convenciones y mantenibilidad, con veredicto APROBADO o RECHAZADO.
+description: "Método para revisar código PHP generado: cumplimiento del plan, errores de lógica, integración, convenciones y mantenibilidad, con veredicto APROBADO o RECHAZADO."
 user-invocable: false
 ---
 
@@ -20,7 +20,7 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host).
 5. **Rendimiento evidente**: N+1, consultas sin límite sobre tablas grandes.
 6. **Convenciones**: encaja con el código de alrededor, reutiliza lo existente, sin depuración ni código muerto.
-   - Indentación con tabuladores en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear; en uno que ya mezcla ambos, lo nuevo va con tabuladores y no se sugiere pasar nada a espacios.
+   - Indentación con tabuladores en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear; en uno que ya mezcla ambos, lo nuevo sigue el estilo de las líneas de alrededor y no se sugiere reformatear.
    - Comentarios breves, que nunca ocupen más que el código al que acompañan y normalmente mucho menos.
 7. **Tests**: ejecuta los definidos en `.magents/proyecto.md`, si los hay. Si necesitas confirmar un bloqueante con escrituras, puedes hacerlo en el entorno local y restablecer la BD al terminar con el comando de `proyecto.md`, volviendo a aplicar los pasos adicionales de desarrollo.
 
@@ -28,8 +28,8 @@ La seguridad la audita la fase siguiente; si ves algo evidente, anótalo igualme
 
 ## Criterio
 
-- **Bloqueante**: fallo real con un escenario concreto, criterio de aceptación incumplido, rotura de código existente, o incumplimiento de las normas de indentación o comentarios. → `RECHAZADO`
-- **Sugerencia**: mejora opcional. No bloquea.
+- **Bloqueante**: fallo real con un escenario concreto, criterio de aceptación incumplido, rotura de código existente, o incumplimiento de la norma de comentarios. → `RECHAZADO`
+- **Sugerencia**: mejora opcional, incluida la indentación, que por sí sola no merece una iteración. No bloquea; si hay otra iteración, el desarrollador la corrige.
 - **Preexistente**: problema que ya estaba y que el cambio no empeora. Se anota, no bloquea.
 
 No bloquees por gustos. Verifica cada hallazgo en el código antes de incluirlo. Si un hallazgo anterior fue discutido por el desarrollador, evalúa su argumento y resuelve.

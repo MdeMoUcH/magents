@@ -14,7 +14,7 @@ Lee `triage.md`, `.magents/proyecto.md` y los archivos que vas a tocar. No modif
 
 - **Alcance**: solo lo que pide la tarea, sin refactorizar ni reformatear lo que no toca. Los problemas ajenos se anotan, no se arreglan.
 - **Convenciones**: el código nuevo debe parecer escrito por quien escribió el de alrededor, en nombres, estructura y estilo. Reutiliza lo que ya existe.
-- **Indentación**: con tabuladores, en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML. En un archivo existente indentado con espacios, mantén los espacios, sin mezclar ni reformatear. En uno que ya mezcla ambos, usa tabuladores en lo nuevo y no pases nada a espacios.
+- **Indentación**: con tabuladores, en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML. En un archivo existente indentado con espacios, mantén los espacios, sin mezclar ni reformatear. En uno que ya mezcla ambos, sigue el estilo de las líneas de alrededor y no reformatees nada.
 - **Comentarios**: breves y concisos, y solo donde aporten algo que el código no diga. Nunca pueden ocupar más que el código al que acompañan; lo normal es que ocupen mucho menos.
 - **Compatibilidad**: no uses sintaxis más nueva que la versión de PHP de producción.
 - **Cambios de esquema**: como script SQL en la ubicación que use el proyecto. No los ejecutes sobre bases de datos que no sean la local de prueba.

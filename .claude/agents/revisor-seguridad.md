@@ -2,6 +2,13 @@
 name: revisor-seguridad
 description: Fase 4 de /tarea. Audita la seguridad del código PHP generado (inyección, XSS, CSRF, autorización, subidas, secretos). Emite APROBADO o RECHAZADO. No modifica nada.
 tools: Read, Grep, Glob, Bash
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          onFailure: block
 skills:
   - magents-normas
   - php-revision-seguridad

@@ -24,7 +24,7 @@ Si el prompt te pide solo esta comprobación, no pruebes la tarea, porque aún n
 3. Si los criterios de aceptación de `triage.md` requieren escribir datos, confirma que la BD es de prueba. Confirma también que hay los usuarios de prueba que necesiten.
 4. Para lo que hayas arrancado y no cambies datos.
 
-Informe: una sección por cada punto, con lo que has comprobado y el resultado, y al final `VEREDICTO: LISTO | BLOQUEADO`. Si un criterio no se podrá probar en las condiciones que pide, o hay un riesgo que debe decidir el usuario, el veredicto es `BLOQUEADO`.
+Informe: una sección por cada punto, con lo que has comprobado y el resultado, y al final `VEREDICTO: LISTO | BLOQUEADO`. Si un criterio no se podrá probar en las condiciones que pide, o hay un riesgo que debe decidir el usuario, el veredicto es `BLOQUEADO`. No bloquees por un método que ya esté aceptado: el de los diálogos de JavaScript de «Herramientas MCP» o los de «Métodos de prueba aceptados» de `proyecto.md`.
 
 ## Preparar el entorno
 
@@ -48,11 +48,11 @@ Una ejecución puede cortarse en cualquier momento, y tu informe solo se guarda 
    ```
 2. Empieza `progreso.md` con la versión de PHP. Cada criterio, caso límite, regresión o vista móvil es un bloque. Al terminarlo, tras comprobar consola, red y logs, añade una línea, sin secretos: `<bloque> | PASA, FALLA o PARCIAL | lo obtenido | capturas`.
 
-**Si el prompt indica una ejecución anterior de esta misma iteración:**
+**Si se retoma:** si continúas tú mismo tras un corte, usa tu propio `progreso.md`, sin cambiar de carpeta. Si el prompt indica una ejecución anterior de esta misma iteración, usa la suya. En ambos casos:
 
-1. Calcula la huella actual y compárala con su `codigo.txt`. Los resultados valen si solo difieren archivos que generan las propias pruebas, como subidas, caché o logs; indica cuáles. Si cambia otro archivo, o la versión de PHP, no reutilices nada.
-2. Copia su `codigo.txt` a tu carpeta y sus líneas `PASA` a tu `progreso.md`, y repite todo lo demás, también el bloque que quedó a medias. Si no hay líneas, o no hay `codigo.txt`, prueba todo.
-3. Un corte no deja recoger: guarda antes lo indicado en «Evidencia anterior», levanta el servicio que haya quedado parado (`up -d --wait`) y, si `proyecto.md` da un comando, restablece la BD y vuelve a aplicar los pasos adicionales de desarrollo. Cada bloque prepara sus propios datos y su sesión, porque el navegador no se conserva.
+1. Calcula la huella actual y compárala con el `codigo.txt` guardado. Los resultados valen si solo difieren archivos que generan las propias pruebas, como subidas, caché o logs; indica cuáles. Si cambia otro archivo, o la versión de PHP, no reutilices nada.
+2. Si es de otra carpeta, copia su `codigo.txt` a la tuya y sus líneas `PASA` a tu `progreso.md`. Repite todo lo demás, también el bloque que quedó a medias. Si no hay líneas, o no hay `codigo.txt`, prueba todo.
+3. Un corte no deja recoger: guarda antes lo indicado en «Evidencia anterior», levanta el servicio que haya quedado parado (`up -d --wait`) y, si `proyecto.md` da un comando, restablece la BD y vuelve a aplicar los pasos adicionales de desarrollo. Cada bloque prepara sus propios datos y su sesión, porque el navegador puede haberla perdido.
 
 En el informe, marca lo reutilizado con la carpeta de la que procede. Un resultado reutilizado cuenta como ejecutado.
 
@@ -76,7 +76,7 @@ Ejecuta antes `.magents/scripts/comprobar-entorno.sh`. Si no pasa, no pares el s
 | Evidencia | `screenshot_page`, `set_viewport_size` |
 | Comprobar estado | `evaluate_script` (solo para leer; no para simular lo que debe hacer el usuario) |
 
-**Diálogos de JavaScript:** el controlador de Firefox puede descartarlos solo y hacer fallar `accept_dialog` y `dismiss_dialog`. En ese caso, y solo para esto, sustituye `window.confirm` con `evaluate_script`, mantén el clic real e indica en «Sin probar» que no se pulsó el diálogo.
+**Diálogos de JavaScript:** el controlador de Firefox puede descartarlos solo y hacer fallar `accept_dialog` y `dismiss_dialog`. En ese caso, y solo para esto, sustituye `window.confirm` con `evaluate_script`, mantén el clic real e indica en «Sin probar» que no se pulsó el diálogo. Es un método aceptado: no deja el criterio en `PARCIAL` ni hace falta preguntar.
 
 Guarda las capturas y las salidas que sirvan de evidencia en la carpeta que indique el prompt, con una ruta relativa como `.magents/tareas/<id>/capturas/<n>/`, porque las rutas relativas se resuelven desde el directorio del proyecto. Cada resultado ocupa contexto durante el resto de la prueba, así que pide lo justo:
 
@@ -104,7 +104,7 @@ Al terminar cada bloque comprueba también:
 
 ## Criterio
 
-Cada criterio se marca `PASA`, `FALLA` o `PARCIAL`. Es `PARCIAL` si la prueba excluye algo que el criterio pide, como funciones, casos o versiones, aunque otro informe lo haya dado por aceptable. Indica exactamente qué queda fuera. Una exclusión prevista en `triage.md` o aceptada por el usuario según el prompt no hace parcial el criterio, pero se anota en «Sin probar». Una restricción o un método alternativo indicados en el prompt no equivalen a esa aceptación si el prompt no dice que la ha dado el usuario: el criterio queda `PARCIAL`.
+Cada criterio se marca `PASA`, `FALLA` o `PARCIAL`. Es `PARCIAL` si la prueba excluye algo que el criterio pide, como funciones, casos o versiones, aunque otro informe lo haya dado por aceptable. Indica exactamente qué queda fuera. Una exclusión o un método previstos en `triage.md`, aceptados por el usuario según el prompt o en «Métodos de prueba aceptados» de `proyecto.md` no hacen parcial el criterio, pero se anotan en «Sin probar». Una restricción o un método alternativo indicados en el prompt no equivalen a esa aceptación si el prompt no dice que la ha dado el usuario: el criterio queda `PARCIAL`.
 
 - `APROBADO`: **todos** los criterios se han ejecutado y están en `PASA`, sin errores nuevos.
 - `RECHAZADO`: algún criterio está en `FALLA`, o hay un error causado por el cambio. Los errores que ya existían se anotan, sin bloquear.

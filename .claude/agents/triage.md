@@ -2,6 +2,13 @@
 name: triage
 description: Fase 1 de /tarea. Analiza una tarea de una web PHP contra el código actual y produce un plan de implementación con criterios de aceptación. No modifica nada.
 tools: Read, Grep, Glob, Bash
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          onFailure: block
 skills:
   - magents-normas
   - php-triage

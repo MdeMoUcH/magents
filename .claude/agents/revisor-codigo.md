@@ -2,6 +2,13 @@
 name: revisor-codigo
 description: Fase 3 de /tarea. Revisa el código PHP generado (corrección, plan cumplido, convenciones). Emite APROBADO o RECHAZADO. No modifica nada.
 tools: Read, Grep, Glob, Bash
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          onFailure: block
 skills:
   - magents-normas
   - php-revision-codigo

@@ -1,8 +1,15 @@
 ---
 name: tarea
-description: Ejecuta una tarea de desarrollo web PHP con el flujo completo de agentes: triage, desarrollo, revisión de código, revisión de seguridad, pruebas en Firefox y documentación.
+description: "Ejecuta una tarea de desarrollo web PHP con el flujo completo de agentes: triage, desarrollo, revisión de código, revisión de seguridad, pruebas en Firefox y documentación."
 argument-hint: "[descripción de la tarea | continuar <NNNN>]"
 disable-model-invocation: true
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          onFailure: block
 ---
 
 # Orquestador de tareas
@@ -17,7 +24,7 @@ Si no hay descripción de la tarea, pregúntala. Si la descripción es `continua
 
 Lee `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas valen también para ti, y los subagentes ya las cargan.
 
-Si tú o un subagente necesitáis salir de la raíz del proyecto, pide antes permiso al usuario con AskUserQuestion, indicando la ruta exacta y el motivo. Si lo concede, vale solo para esa ruta, ese fin y esta tarea: anótalo en `estado.md` y pásalo de forma explícita en el prompt del subagente. Si lo niega, sigue sin ello o informa de lo que no se ha podido hacer.
+Si tú o un subagente necesitáis salir de la raíz del proyecto, pide antes permiso al usuario con AskUserQuestion, indicando la ruta exacta y el motivo. Si lo concede, vale solo para esa ruta, ese fin y esta tarea: anótalo en `estado.md` y pásalo de forma explícita en el prompt del subagente. El hook de `magents-normas` lo seguirá bloqueando hasta que **el usuario** añada esa ruta a `.magents/rutas-autorizadas.txt`, una por línea, y la quite al terminar. Díselo: ningún agente puede editar ese archivo. Si lo niega, sigue sin ello o informa de lo que no se ha podido hacer.
 
 ## Flujo
 
@@ -27,7 +34,7 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
                         └──── RECHAZADO ──┴─────────────────┴───────────────┘
 ```
 
-`entorno` es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las tres verificaciones en orden**, porque un arreglo puede romper lo ya aprobado.
+`entorno` es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las tres verificaciones en orden**, porque un arreglo puede romper lo ya aprobado. Lanza cada verificación al terminar la anterior, nunca a la vez: si una rechaza, el trabajo de las siguientes se pierde.
 
 ## Preparación
 
@@ -75,7 +82,10 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 
 - **Discrepancias con `proyecto.md`**: si el triage señala alguna, enséñasela al usuario antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme y guarda su respuesta en `informes/preparacion-<n>.md`. Con `LISTO`, sigue con la comprobación de entorno. Con `BLOQUEADO`, aplica la regla de esa tabla, con un máximo de tres bloqueos seguidos.
 - **Fase interrumpida**: si un subagente se detiene sin veredicto, anótalo en el historial con lo que dejó a medias. Al relanzar esa fase, indícale qué se interrumpió y qué restos quedan. No cuenta como iteración.
-- **Relanzar `probador` en la misma iteración**: tras un corte o un `BLOQUEADO`, pásale en el prompt la carpeta de evidencia más reciente de esa iteración que tenga `progreso.md`, para que reutilice lo que siga valiendo. Tras un `RECHAZADO` hay iteración nueva y se prueba todo.
+- **Continuar o relanzar `probador` en la misma iteración**: tras un corte, si puedes, continúa el mismo subagente con SendMessage e indícale que siga «Si se retoma» de `php-pruebas-firefox`. Si no puedes, o tras un `BLOQUEADO`, relánzalo y pásale en el prompt la carpeta de evidencia más reciente de esa iteración que tenga `progreso.md`, para que reutilice lo que siga valiendo. Tras un `RECHAZADO` hay iteración nueva y se prueba todo.
+- **Métodos de prueba**: si la comprobación de entorno se bloquea solo por un método de prueba y el usuario lo acepta, no la repitas: anota la aceptación en el historial y pásala a `probador`. Pregúntale también si vale para futuras tareas; si dice que sí, añádela a «Métodos de prueba aceptados» de `.magents/proyecto.md`.
+- **Borrados del plan**: si `triage.md` incluye borrados, enséñaselos al usuario antes de desarrollar. Un borrado rechazado se le pregunta: no lo reintentes ni dejes que un subagente lo reintente.
+- **Observaciones de `documentador`**: enséñale siempre al usuario las que no se hayan contrastado, aunque el flujo haya terminado. Pueden ser un defecto que las pruebas no vieron.
 - **Criterios parciales**: si el probador termina con `BLOQUEADO` por un criterio `PARCIAL`, enseña al usuario qué queda fuera. Si acepta esa exclusión, anótalo en el historial y relanza `probador` solo para ese criterio, indicándole la exclusión aceptada.
 - **Decisiones del usuario**: si un informe deja un riesgo o una decisión para el usuario, pregúntale con AskUserQuestion antes de seguir, aunque el veredicto permita avanzar. No las tomes tú. Puedes prohibir de inmediato una acción peligrosa, pero no sustituir una prueba ni excluir nada de un criterio: lo que esa prohibición impida probar queda `PARCIAL` hasta que el usuario lo acepte. Anota su respuesta en el historial y, al pasarla a un subagente, indica que la ha aceptado el usuario.
 - **Límite**: como máximo **5 iteraciones** de desarrollo. Si la 5.ª se rechaza, para y presenta al usuario el historial y el problema pendiente.

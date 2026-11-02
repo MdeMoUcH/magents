@@ -43,6 +43,7 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
 
 - Sin secretos ni datos personales, tampoco en las capturas: mira cada una de `capturas/`, borra las que los muestren e indícalo en tu informe. Describe las vulnerabilidades preexistentes indicando dónde y qué tipo, sin instrucciones de explotación.
 - No toques la documentación propia del proyecto. Si habría que actualizarla, indícalo en tu informe.
+- Si en las capturas o en el diff ves algo que los informes no recogen o contradicen, como un posible defecto visual, anótalo en la ficha, en «Riesgos y deuda pendiente», como observación sin contrastar, y en el apartado «Observaciones sin contrastar» de tu informe. No lo descartes por tu cuenta.
 - Breve: la ficha es para quien dentro de un año pregunte por qué se hizo así.
 
 ## Formato del informe
@@ -51,6 +52,8 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
 # Documentación
 ## Archivos escritos
 ## Diferencias entre informes y diff
+## Observaciones sin contrastar
+(solo si las hay: qué se ve, en qué captura o archivo, y qué informe lo contradice)
 
 VEREDICTO: DOCUMENTADO | BLOQUEADO
 ```

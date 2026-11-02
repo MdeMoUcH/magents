@@ -43,6 +43,8 @@ for s in "${skills[@]}"; do
   rm -rf "${destino:?}/.claude/skills/$s"
   cp -r "$origen/skills/$s" "$destino/.claude/skills/$s"
 done
+# Solo sirve para desarrollar magents.
+rm -f "$destino/.claude/skills/magents-normas/limite-carpeta.test.cjs"
 
 # Ni magents ni lo que generan los agentes se versionan. El .htaccess protege .magents/ solo en Apache.
 gitignore="$destino/.gitignore"

@@ -41,7 +41,9 @@ Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la v
 Pasos concretos, archivo por archivo
 ## Criterios de aceptación
 - [ ] CA1: comportamiento observable y comprobable en el navegador
-(en la versión de PHP con la que arranca el entorno; pide otras solo si la tarea lo hace de forma expresa)
+(en la versión de PHP con la que arranca el entorno; pide otras solo si la tarea lo hace de forma expresa. Tampoco repitas tus experimentos en varias versiones sin ese motivo. Si un criterio usa un `confirm`, indica que se probará sustituyéndolo con clic real, y usa los «Métodos de prueba aceptados» de `proyecto.md`)
+## Borrados
+(solo si los hay: ruta exacta de cada archivo o carpeta del proyecto, y por qué; el usuario los verá antes de desarrollar)
 ## Casos límite y riesgos
 Incluye los puntos sensibles para seguridad: entradas, permisos, datos
 ## Supuestos
@@ -54,3 +56,5 @@ VEREDICTO: LISTO | DUDAS | BLOQUEADO
 ```
 
 Usa `DUDAS` solo si no se puede hacer un plan fiable sin la respuesta.
+
+Este informe lo leen todas las fases: mantenlo en lo que necesitan para trabajar. Si un inventario largo o los detalles de tus experimentos no caben en pocas líneas, déjalos en `informes/triage-anexo.md`, escrito con `Bash`, y resume aquí su conclusión y su ruta.

@@ -2,6 +2,13 @@
 name: preparar
 description: Detecta el stack de una web PHP, propone su configuración y, tras tu confirmación, genera en .magents/ un entorno Docker local con scripts para iniciarlo y pararlo. Si ya existe, lo revisa y repara.
 disable-model-invocation: true
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          onFailure: block
 ---
 
 # Preparación del proyecto

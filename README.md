@@ -122,7 +122,8 @@ Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de 
 
 ## Limitaciones
 
-- El límite de carpeta y la regla de git solo lectura son instrucciones, no bloqueos técnicos. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
+- El límite de carpeta lo refuerza un hook (`magents-normas/limite-carpeta.cjs`) en todos los agentes y en `/tarea` y `/preparar`: bloquea órdenes y archivos fuera de la raíz, `sudo` y los borrados globales de Docker, y necesita `node`. Es una barrera ante errores: no ve lo que haga el código PHP o JS al ejecutarse ni los scripts de `.magents/scripts/`. Para autorizar una ruta, añádela tú a `.magents/rutas-autorizadas.txt`; las rutas del sistema nunca se modifican. Sus pruebas: `node .claude/skills/magents-normas/limite-carpeta.test.cjs`.
+- La regla de git solo lectura es una instrucción, no un bloqueo técnico. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
 - Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
 - `.magents/.htaccess` no protege en Nginx. Excluye `.magents/` si despliegas por FTP o rsync: subirla publicaría informes con vulnerabilidades detalladas.
 - El aislamiento de producción se basa en sustituir la configuración y comprobarla: si queda en el código un destino que el preparador no detecte, el contenedor podría alcanzarlo, porque tiene salida a la red.

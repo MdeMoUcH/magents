@@ -22,6 +22,13 @@ mcpServers:
         - "screenshot"
         - "utilities"
         - "script"
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          onFailure: block
 skills:
   - magents-normas
   - php-pruebas-firefox

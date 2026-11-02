@@ -21,6 +21,10 @@ Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.mag
 - Framework o estructura:
 - Requisitos especiales: <!-- p. ej. short_open_tag=On -->
 
+## Métodos de prueba aceptados
+
+<!-- Métodos que el usuario acepta para todas las tareas, para no volver a preguntarlos -->
+
 ## Comprobaciones automáticas
 
 - Tests: <!-- p. ej. vendor/bin/phpunit, o "no hay" -->
