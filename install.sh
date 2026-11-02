@@ -3,25 +3,31 @@
 # Uso: ./install.sh /ruta/al/proyecto
 set -euo pipefail
 
+origen="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.claude"
+source "$origen/skills/php-preparacion/plantillas/scripts/confirmar.sh"
+
 if [ "$#" -ne 1 ] || [ ! -d "$1" ]; then
-  echo "Uso: $0 /ruta/al/proyecto" >&2
+  magents_error "Uso: $0 /ruta/al/proyecto"
   exit 1
 fi
 
-origen="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.claude"
 destino="$(cd "$1" && pwd)"
 
 if [ "$origen" = "$destino/.claude" ]; then
-  echo "El destino es el propio magents." >&2
+  magents_error "El destino es el propio magents."
   exit 1
 fi
 
+magents_cabecera
+
 # Reinstalar sustituye los archivos de magents. Sin terminal, como en una prueba, no se pregunta.
 if [ -t 0 ] && [ -e "$destino/.claude/skills/tarea/SKILL.md" ]; then
-  echo "ATENCIÓN: se sustituirán en $destino los agentes y skills de magents, y se perderán sus cambios propios. Los scripts modificados se guardan en .magents/scripts/anterior/."
+  magents_atencion "ATENCIÓN: se sustituirán en $destino los agentes y skills de magents, y se perderán sus cambios propios. Los scripts modificados se guardan en .magents/scripts/anterior/."
+  echo
   read -r -p "Escribe si para continuar: " respuesta || respuesta=""
+  echo
   if [ "$respuesta" != "si" ]; then
-    echo "Cancelado."
+    magents_atencion "Cancelado."
     exit 1
   fi
 fi
@@ -73,7 +79,7 @@ instalar_script() {
         copia="$copia.$(date +%Y%m%d-%H%M%S)"
       fi
       cp -p "$actual" "$copia"
-      echo "AVISO: .magents/scripts/$script tenía cambios propios o de una versión sin registro; queda en ${copia#"$destino"/}. Lo propio del proyecto va en antes-de-iniciar.sh." >&2
+      magents_aviso "AVISO: .magents/scripts/$script tenía cambios propios o de una versión sin registro; queda en ${copia#"$destino"/}. Lo propio del proyecto va en antes-de-iniciar.sh."
     fi
   fi
   cp "$nuevo" "$actual"
@@ -94,7 +100,7 @@ if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
     if [ -e "$entorno/$script" ]; then
       mkdir -p "$scripts/anterior"
       mv "$entorno/$script" "$scripts/anterior/$script"
-      echo "AVISO: $script se ha movido a .magents/scripts/; el antiguo queda en .magents/scripts/anterior/ por si tenía cambios propios." >&2
+      magents_aviso "AVISO: $script se ha movido a .magents/scripts/; el antiguo queda en .magents/scripts/anterior/ por si tenía cambios propios."
     fi
   done
   if [ -e "$entorno/antes-de-iniciar.sh" ] && [ ! -e "$scripts/antes-de-iniciar.sh" ]; then
@@ -113,40 +119,42 @@ fi
 # Registro de lo instalado, para distinguir en la próxima instalación los cambios propios.
 (cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh menu.sh $(ls iniciar.sh parar.sh reiniciar-bd.sh 2>/dev/null)) > "$instalados"
 
-echo "Instalado en $destino"
+magents_pintar "1;32" "Instalado en $destino"
+echo
+echo
 # Solo informa: un entorno con problemas no impide instalar.
 "$scripts/comprobar-entorno.sh" || true
 if ! command -v node >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra node (hace falta >= 20.19 para las pruebas en Firefox)." >&2
+  magents_aviso "AVISO: no se encuentra node (hace falta >= 20.19 para las pruebas en Firefox)."
 elif ! node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>20||(a===20&&b>=19)?0:1)'; then
-  echo "AVISO: node $(node -v) es antiguo (hace falta >= 20.19 para las pruebas en Firefox)." >&2
+  magents_aviso "AVISO: node $(node -v) es antiguo (hace falta >= 20.19 para las pruebas en Firefox)."
 fi
 if ! command -v npx >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra npx (hace falta para lanzar el MCP de Firefox)." >&2
+  magents_aviso "AVISO: no se encuentra npx (hace falta para lanzar el MCP de Firefox)."
 fi
 if ! command -v firefox >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra firefox." >&2
+  magents_aviso "AVISO: no se encuentra firefox."
 fi
 if ! command -v claude >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra claude (hace falta Claude Code para usar los agentes)." >&2
+  magents_aviso "AVISO: no se encuentra claude (hace falta Claude Code para usar los agentes)."
 fi
 if ! command -v docker >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra docker (/preparar lo necesita si el proyecto no tiene entorno propio; también sirve para php -l)." >&2
+  magents_aviso "AVISO: no se encuentra docker (/preparar lo necesita si el proyecto no tiene entorno propio; también sirve para php -l)."
 elif ! docker compose version >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra docker compose (/preparar lo necesita si el proyecto no tiene entorno propio)." >&2
+  magents_aviso "AVISO: no se encuentra docker compose (/preparar lo necesita si el proyecto no tiene entorno propio)."
 fi
 if ! command -v curl >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra curl (iniciar.sh y las pruebas lo usan para comprobar que la web responde)." >&2
+  magents_aviso "AVISO: no se encuentra curl (iniciar.sh y las pruebas lo usan para comprobar que la web responde)."
 fi
 if ! command -v rsync >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra rsync (copiar-revision.sh lo necesita)." >&2
+  magents_aviso "AVISO: no se encuentra rsync (copiar-revision.sh lo necesita)."
 fi
 if ! command -v git >/dev/null 2>&1; then
-  echo "AVISO: no se encuentra git (/tarea lo necesita para ver los cambios)." >&2
+  magents_aviso "AVISO: no se encuentra git (/tarea lo necesita para ver los cambios)."
 elif ! git -C "$destino" rev-parse --verify -q HEAD >/dev/null 2>&1; then
-  echo "AVISO: el destino no es un repositorio git con al menos un commit; /tarea lo necesita para ver los cambios." >&2
+  magents_aviso "AVISO: el destino no es un repositorio git con al menos un commit; /tarea lo necesita para ver los cambios."
 elif [ -n "$(git -C "$destino" ls-files -- .claude)" ]; then
-  echo "AVISO: .claude/ ya tiene archivos en git y .gitignore no los excluye; para dejar de versionarlos: git rm -r --cached .claude" >&2
+  magents_aviso "AVISO: .claude/ ya tiene archivos en git y .gitignore no los excluye; para dejar de versionarlos: git rm -r --cached .claude"
 fi
 echo "Abre Claude Code en el proyecto, acepta la confianza de la carpeta (sin ella no arranca el MCP de Firefox) y ejecuta: /preparar"
 echo "Después, para cada tarea: /tarea <descripción>"

@@ -7,7 +7,7 @@ magents_confirmar "${BASH_SOURCE[0]}"
 cd "$(dirname "${BASH_SOURCE[0]}")/../entorno"
 
 if ! docker compose config --services | grep -qx bd; then
-  echo "ERROR: este entorno no tiene servicio bd." >&2
+  magents_error "ERROR: este entorno no tiene servicio bd."
   exit 1
 fi
 

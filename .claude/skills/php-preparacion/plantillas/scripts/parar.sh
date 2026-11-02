@@ -7,4 +7,4 @@ magents_confirmar "${BASH_SOURCE[0]}"
 cd "$(dirname "${BASH_SOURCE[0]}")/../entorno"
 
 docker compose down --remove-orphans
-echo "Entorno parado."
+magents_ok "Entorno parado."

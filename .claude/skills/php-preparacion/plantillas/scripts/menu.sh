@@ -9,23 +9,23 @@ compose="$magents_dir/entorno/compose.yml"
 source "$scripts_dir/confirmar.sh"
 
 if [ ! -t 0 ]; then
-  echo "ERROR: menu.sh necesita una terminal." >&2
+  magents_error "ERROR: menu.sh necesita una terminal."
   exit 1
 fi
 
 mostrar_estado() {
   local direccion
   if [ ! -e "$magents_dir/proyecto.md" ]; then
-    echo "entorno: sin preparar; ejecuta /preparar en Claude Code"
+    magents_pintar 33 "entorno: sin preparar; ejecuta /preparar en Claude Code"
   elif [ ! -e "$compose" ]; then
     echo "entorno: propio del proyecto; consulta .magents/proyecto.md"
   elif ! command -v docker >/dev/null 2>&1; then
-    echo "entorno: desconocido, sin docker"
+    magents_pintar 33 "entorno: desconocido, sin docker"
   elif magents_en_marcha; then
     direccion="$(docker compose -f "$compose" port web 80 2>/dev/null)"
-    echo "entorno: en marcha${direccion:+ (http://$direccion)}"
+    magents_pintar 32 "entorno: en marcha${direccion:+ (http://$direccion)}"
   else
-    echo "entorno: parado"
+    magents_pintar 33 "entorno: parado"
   fi
 }
 
@@ -52,7 +52,7 @@ lanzar() {
   local script="$1" respuesta codigo
   local argumentos=()
   if ! magents_preguntar "$scripts_dir/$script"; then
-    echo "Cancelado."
+    magents_atencion "Cancelado."
     return
   fi
   if [ "$script" = "copiar-revision.sh" ]; then
@@ -62,13 +62,13 @@ lanzar() {
     esac
   fi
   # Ya confirmado aquí: el script no vuelve a preguntar.
-  MAGENTS_CONFIRMADO=1 "$scripts_dir/$script" ${argumentos[@]+"${argumentos[@]}"}
+  MAGENTS_CONFIRMADO=1 MAGENTS_CABECERA_MOSTRADA=1 "$scripts_dir/$script" ${argumentos[@]+"${argumentos[@]}"}
   codigo=$?
   echo
   if [ "$codigo" -eq 0 ]; then
-    echo "$script ha terminado bien."
+    magents_ok "$script ha terminado bien."
   else
-    echo "$script ha terminado con error (código $codigo)."
+    magents_error "$script ha terminado con error (código $codigo)."
   fi
 }
 
@@ -85,21 +85,26 @@ esperar_tecla() {
   while read -r -s -n 1 -t 0.05 tecla; do :; done
 }
 
+if [ -t 1 ] && [ -z "${CLAUDECODE:-}" ]; then
+  trap echo EXIT
+fi
+
 aviso=""
 while true; do
   limpiar
+  magents_banner
   mapfile -t lista < <(listar_scripts)
   if [ -n "$aviso" ]; then
-    echo "$aviso"
+    magents_atencion "$aviso"
     aviso=""
   fi
-  echo
-  echo "magents · $proyecto · $(mostrar_estado)"
+  echo "  magents · $proyecto · $(mostrar_estado)"
   echo
   for i in "${!lista[@]}"; do
-    printf '  %d) %-22s %s\n' "$((i + 1))" "${lista[$i]}" "$(descripcion "${lista[$i]}")"
+    # El relleno va dentro del color: los códigos invisibles descuadrarían %-22s.
+    printf '  %s %s %s\n\n' "$(magents_pintar 1 "$((i + 1)))")" "$(magents_pintar "1;32" "$(printf '%-22s' "${lista[$i]}")")" "$(magents_pintar "$magents_gris" "$(descripcion "${lista[$i]}")")"
   done
-  echo "  0) Salir"
+  echo "  $(magents_pintar 1 "0) Salir")"
   echo
   read -r -p "Opción: " opcion || break
   case "$opcion" in
@@ -108,6 +113,7 @@ while true; do
     *)
       if [ "$opcion" -ge 1 ] && [ "$opcion" -le "${#lista[@]}" ]; then
         limpiar
+        magents_banner
         lanzar "${lista[$((opcion - 1))]}"
         esperar_tecla
       else

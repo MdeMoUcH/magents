@@ -8,13 +8,13 @@ magents_confirmar "${BASH_SOURCE[0]}"
 cd "$(dirname "${BASH_SOURCE[0]}")/../entorno"
 
 if ! command -v curl >/dev/null 2>&1; then
-  echo "ERROR: hace falta curl para comprobar que la web responde." >&2
+  magents_error "ERROR: hace falta curl para comprobar que la web responde."
   exit 1
 fi
 
 # Con pull_policy: never Compose no construye ni descarga: sin esto se usaría una imagen antigua o ninguna.
 if grep -q 'pull_policy: *never' compose.yml && [ ! -e ../scripts/antes-de-iniciar.sh ]; then
-  echo "ERROR: compose.yml no construye su imagen y falta .magents/scripts/antes-de-iniciar.sh. Ejecuta /preparar en Claude Code y elige «Revisar», o crea ese script con el docker build." >&2
+  magents_error "ERROR: compose.yml no construye su imagen y falta .magents/scripts/antes-de-iniciar.sh. Ejecuta /preparar en Claude Code y elige «Revisar», o crea ese script con el docker build."
   exit 1
 fi
 
@@ -30,7 +30,7 @@ fi
 docker compose down --remove-orphans
 if ! docker compose up -d --build --wait --wait-timeout 900; then
   docker compose logs --tail 50 >&2 || true
-  echo "ERROR: el entorno no ha arrancado." >&2
+  magents_error "ERROR: el entorno no ha arrancado."
   exit 1
 fi
 
@@ -38,7 +38,7 @@ direccion="$(docker compose port web 80)"
 url="http://$direccion"
 url_localhost="http://localhost:${direccion##*:}"
 if ! respuesta="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 30 "$url/")"; then
-  echo "ERROR: $url no responde." >&2
+  magents_error "ERROR: $url no responde."
   exit 1
 fi
 codigo="${respuesta%% *}"
@@ -48,15 +48,15 @@ destino="${respuesta#* }"
 case "$destino" in
   "" | "$url" | "$url"/* | "$url_localhost" | "$url_localhost"/*) ;;
   *)
-    echo "ERROR: $url redirige fuera del entorno local: $destino" >&2
+    magents_error "ERROR: $url redirige fuera del entorno local: $destino"
     exit 1
     ;;
 esac
 
 if [ "$codigo" -ge 500 ]; then
   docker compose logs --tail 50 web >&2 || true
-  echo "ERROR: $url devuelve HTTP $codigo." >&2
+  magents_error "ERROR: $url devuelve HTTP $codigo."
   exit 1
 fi
 
-echo "Entorno en marcha: $url (HTTP $codigo)"
+magents_ok "Entorno en marcha: $url (HTTP $codigo)"

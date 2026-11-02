@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Detecta fallos de estructura del entorno sin arrancarlo. No cambia nada. Sale con 1 si hay problemas.
 set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/confirmar.sh"
+magents_cabecera
 
 magents_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 raiz="$(dirname "$magents_dir")"
@@ -10,7 +12,7 @@ scripts="$magents_dir/scripts"
 problemas=0
 
 problema() {
-  echo "PROBLEMA: $1" >&2
+  magents_error "PROBLEMA: $1"
   problemas=$((problemas + 1))
 }
 
@@ -61,7 +63,7 @@ if [ -e "$entorno/compose.yml" ]; then
       problema "compose.yml no es válido: $error"
     fi
   else
-    echo "AVISO: sin docker compose; no se ha validado compose.yml." >&2
+    magents_aviso "AVISO: sin docker compose; no se ha validado compose.yml."
   fi
 fi
 
@@ -69,4 +71,4 @@ if [ "$problemas" -gt 0 ]; then
   echo "Ejecuta /preparar en Claude Code y elige «Revisar» para arreglarlo." >&2
   exit 1
 fi
-echo "Estructura del entorno correcta."
+magents_ok "Estructura del entorno correcta."
