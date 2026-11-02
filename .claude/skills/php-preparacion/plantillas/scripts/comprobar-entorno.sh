@@ -53,8 +53,12 @@ comprobar_nombres_fijos() {
   for nombre in "${servicios[@]}"; do
     if [ -z "${ips[$nombre]:-}" ]; then
       problema "el servicio $nombre no tiene IP fija (ipv4_address)."
-    elif [ "$nombre" != "web" ] && [ "${hosts[$nombre]:-}" != "${ips[$nombre]}" ]; then
-      problema "web no tiene $nombre en extra_hosts con la IP ${ips[$nombre]}: con $nombre parado, su nombre podría resolverse fuera de Docker."
+    fi
+    [ "$nombre" != "web" ] || continue
+    if [ -z "${hosts[$nombre]:-}" ]; then
+      problema "web no tiene $nombre en extra_hosts: con $nombre parado, su nombre podría resolverse fuera de Docker."
+    elif [ -n "${ips[$nombre]:-}" ] && [ "${hosts[$nombre]}" != "${ips[$nombre]}" ]; then
+      problema "web tiene $nombre en extra_hosts con ${hosts[$nombre]}, pero su IP es ${ips[$nombre]}."
     fi
   done
 }

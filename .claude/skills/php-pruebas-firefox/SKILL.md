@@ -24,7 +24,7 @@ Si el prompt te pide solo esta comprobación, no pruebes la tarea, porque aún n
 3. Si los criterios de aceptación de `triage.md` requieren escribir datos, confirma que la BD es de prueba. Confirma también que hay los usuarios de prueba que necesiten.
 4. Para lo que hayas arrancado y no cambies datos.
 
-Informe: una sección por cada punto, con lo que has comprobado y el resultado, y al final `VEREDICTO: LISTO | BLOQUEADO`.
+Informe: una sección por cada punto, con lo que has comprobado y el resultado, y al final `VEREDICTO: LISTO | BLOQUEADO`. Si un criterio no se podrá probar en las condiciones que pide, o hay un riesgo que debe decidir el usuario, el veredicto es `BLOQUEADO`.
 
 ## Preparar el entorno
 
@@ -33,6 +33,7 @@ Informe: una sección por cada punto, con lo que has comprobado y el resultado, 
 3. Si no responde, arráncalo como allí se indique y vuelve a comprobarlo.
 4. Si el entorno no está definido o no arranca, no improvises otro: `BLOQUEADO`, y explica que hay que ejecutar `/preparar` o qué falla.
 5. Aplica los pasos adicionales del informe de desarrollo.
+6. Si los criterios dependen de la versión de PHP, confirma con `php -v` dentro del contenedor antes de cada tanda, también después de cada reinicio o restablecimiento de la BD: una variable como `PHP_VERSION` se pierde si no se repite en cada comando.
 
 **Evidencia anterior:** nunca borres ni sobrescribas evidencia de otra ejecución, aunque vayas a repetir esas pruebas o el prompt te pida sustituirla. Si el prompt indica una ejecución interrumpida, antes de reiniciar el entorno o restablecer la BD guarda en tu carpeta de evidencia el log de PHP y el estado que no se pueda recuperar.
 
@@ -79,7 +80,7 @@ En cada paso comprueba también:
 
 ## Criterio
 
-Cada criterio se marca `PASA`, `FALLA` o `PARCIAL`. Es `PARCIAL` si la prueba excluye algo que el criterio pide, como funciones, casos o versiones, aunque otro informe lo haya dado por aceptable. Indica exactamente qué queda fuera. Una exclusión prevista en `triage.md` o aceptada por el usuario según el prompt no hace parcial el criterio, pero se anota en «Sin probar».
+Cada criterio se marca `PASA`, `FALLA` o `PARCIAL`. Es `PARCIAL` si la prueba excluye algo que el criterio pide, como funciones, casos o versiones, aunque otro informe lo haya dado por aceptable. Indica exactamente qué queda fuera. Una exclusión prevista en `triage.md` o aceptada por el usuario según el prompt no hace parcial el criterio, pero se anota en «Sin probar». Una restricción o un método alternativo indicados en el prompt no equivalen a esa aceptación si el prompt no dice que la ha dado el usuario: el criterio queda `PARCIAL`.
 
 - `APROBADO`: **todos** los criterios se han ejecutado y están en `PASA`, sin errores nuevos.
 - `RECHAZADO`: algún criterio está en `FALLA`, o hay un error causado por el cambio. Los errores que ya existían se anotan, sin bloquear.

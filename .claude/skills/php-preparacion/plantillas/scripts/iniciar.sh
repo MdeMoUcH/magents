@@ -59,4 +59,6 @@ if [ "$codigo" -ge 500 ]; then
   exit 1
 fi
 
-magents_ok "Entorno en marcha: $url (HTTP $codigo)"
+# La versión a la vista: una variable como PHP_VERSION se pierde si no se repite en cada arranque.
+version_php="$(docker compose exec -T web php -r 'echo PHP_VERSION;' 2>/dev/null || true)"
+magents_ok "Entorno en marcha: $url (HTTP $codigo${version_php:+, PHP $version_php})"

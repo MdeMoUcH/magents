@@ -14,7 +14,7 @@ El prompt indica el modo: `propuesta`, `generar`, `revisar` o `reparar`. Las pla
 - **Secretos**: no copies a informes, `proyecto.md` ni `.magents/entorno/` ninguna contraseña, clave o token del proyecto. Nombra el archivo y la variable, nunca el valor.
 - **Datos**: no te conectes a producción ni descargues un volcado. Usa el esquema del repositorio o el volcado anonimizado que el usuario deje en `.magents/entorno/bd-inicial/`.
 - **Red**: publica los puertos solo en `127.0.0.1`.
-- **Nombres de servicio**: el DNS de Docker solo resuelve un servicio mientras está en marcha. Parado, el nombre se consulta en el DNS del equipo y puede acabar en una IP pública, y la web intentaría autenticarse allí. Por eso, si hay más servicios que `web`, todos llevan IP fija en una subred propia y `web` los tiene en `extra_hosts`, también con un entorno propio del proyecto. Cambiar solo el nombre no lo evita.
+- **Nombres de servicio**: el DNS de Docker solo resuelve un servicio mientras está en marcha. Parado, el nombre se consulta en el DNS del equipo y puede acabar en una IP pública, y la web intentaría autenticarse allí. Por eso, si hay más servicios que `web`, todos llevan IP fija en una subred propia y `web` los tiene en `extra_hosts`, también con un entorno propio del proyecto. Cambiar solo el nombre no lo evita. Esta norma no explica por qué el nombre acaba en una IP concreta: depende del equipo. No des esa causa por sabida.
 - **Redirecciones**: la web local no debe redirigir fuera de la URL local. Las de `https`, `www` o URL base fija se neutralizan desde `compose.yml`, sin tocar el proyecto: variables de entorno o un archivo montado encima, también `.htaccess`.
 
 ## Modo `propuesta`
@@ -55,7 +55,7 @@ Aplica solo lo que el prompt indica como confirmado. Antes de empezar, guarda la
 
 1. Si se ha confirmado regenerar y ya existe `.magents/entorno/`, para el entorno con `.magents/scripts/parar.sh` y mueve esa carpeta a `.magents/entorno.anterior-<fecha y hora>/`. Nunca la sobrescribas. Copia su `bd-inicial/` a la carpeta nueva para no perder el volcado. El volumen de la BD se conserva, así que `bd-inicial/` no se vuelve a cargar: indícalo si ha cambiado.
 2. Crea `.magents/proyecto.md` desde `plantillas/proyecto.md`, o actualiza solo los valores confirmados.
-3. Si se genera el entorno, copia de `plantillas/scripts/` a `.magents/scripts/` `iniciar.sh` y `parar.sh` sin alterarlos, también `reiniciar-bd.sh` si hay BD, y a `.magents/entorno/` `php.ini`, `magents.conf`, `Dockerfile` y `compose.yml` adaptados: rellena cada `__VALOR__` y borra lo que no aplique. `__PROYECTO__` va en minúsculas, con letras, números y guiones. Si `.git` es un archivo (worktree o submódulo), cambia su línea de `tmpfs` por un volumen `/dev/null:/var/www/html/.git:ro`. Crea también los archivos de configuración sustitutos en `.magents/entorno/config/`, solo con valores de prueba. Si hay BD, crea `.magents/entorno/bd-inicial/` aunque quede vacía, porque si no la crearía Docker como root.
+3. Si se genera el entorno, copia de `plantillas/scripts/` a `.magents/scripts/` `iniciar.sh` y `parar.sh` sin alterarlos, también `reiniciar-bd.sh` si hay BD, y a `.magents/entorno/` `php.ini`, `magents.conf`, `Dockerfile` y `compose.yml` adaptados: rellena cada `__VALOR__` y borra lo que no aplique. `__PROYECTO__` va en minúsculas, con letras, números y guiones. Si `.git` es un archivo (worktree o submódulo), cambia su línea de `tmpfs` por un volumen `/dev/null:/var/www/html/.git:ro`. Crea también los archivos de configuración sustitutos en `.magents/entorno/config/`, solo con valores de prueba. Si hay BD, crea `.magents/entorno/bd-inicial/` aunque quede vacía, porque si no la crearía Docker como root. No montes una copia idéntica de un archivo del proyecto: los cambios del original no se probarían.
 4. Si una versión antigua de PHP no se puede construir, no la cambies por otra más nueva: `BLOQUEADO`, y explica el error.
 5. Nunca modifiques los scripts fijos, porque `install.sh` los sobrescribe. Si el arranque necesita algo propio del proyecto, ponlo en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta desde `.magents/entorno/` si existe y `install.sh` no toca. Todo script del entorno va en `.magents/scripts/`.
 7. En lo que escribas, usa tabuladores salvo en formatos que no los admitan, como YAML, o donde el archivo ya use espacios. Los comentarios son breves, solo donde aporten algo, y nunca ocupan más que lo que acompañan.
@@ -96,7 +96,7 @@ No cambies ningún archivo salvo la sonda temporal de las comprobaciones, que de
 2. Compara `.magents/entorno/` y `proyecto.md` con las plantillas y normas actuales de esta skill. Por ejemplo, un `LogLevel` que falta en `magents.conf`, un `proyecto.md` que describe un comportamiento que los scripts ya no tienen, o un paso de construcción que quedó solo en `.magents/scripts/anterior/`.
 3. Ejecuta las comprobaciones de «Modo `generar`» con el entorno tal como está. Omite solo las que no se puedan repetir sin cambiar datos, e indícalo.
 
-Separa lo que está mal de lo que solo es distinto. Una adaptación del proyecto, como otra versión de PHP, más extensiones o un `--network=host`, no es un problema si funciona. No propongas igualarla a la plantilla.
+Separa lo que está mal de lo que solo es distinto. Una adaptación del proyecto, como otra versión de PHP, más extensiones o un `--network=host`, no es un problema si funciona. No propongas igualarla a la plantilla. Un archivo montado idéntico a su original sí es un problema, porque sus cambios no se probarían: propón quitar el montaje si la copia no sustituye nada.
 
 ```markdown
 # Revisión del entorno
@@ -115,9 +115,10 @@ VEREDICTO: CORRECTO | PROBLEMAS | BLOQUEADO
 Aplica solo los arreglos que el prompt indica como confirmados.
 
 1. Si el entorno está en marcha, anótalo. Copia `.magents/entorno/` a `.magents/entorno.anterior-<fecha y hora>/` y `proyecto.md` dentro de esa copia. Copia también `antes-de-iniciar.sh`, si vas a cambiarlo.
-2. Escribe solo dentro de `.magents/`. No modifiques los scripts fijos, y pon lo propio del proyecto en `.magents/scripts/antes-de-iniciar.sh`, con las normas de estilo de «Modo `generar`».
+2. Escribe solo dentro de `.magents/`, salvo la sonda temporal de las comprobaciones, que debes borrar. No modifiques los scripts fijos, y pon lo propio del proyecto en `.magents/scripts/antes-de-iniciar.sh`, con las normas de estilo de «Modo `generar`».
 3. No borres el volumen de la BD ni cambies `bd-inicial/`. Si un arreglo lo exigiera, termina con `BLOQUEADO`. Al añadir la subred propia, conserva `name:` y la clave del volumen, de los que depende su nombre, y aplícala con `.magents/scripts/iniciar.sh`, que borra la red antigua sin tocar los volúmenes.
-4. Ejecuta `.magents/scripts/comprobar-entorno.sh` y todas las comprobaciones de «Modo `generar`», con el mismo criterio de `BLOQUEADO` y el mismo estado final del entorno.
+4. Al actualizar `proyecto.md`, no borres lo que siga sin averiguar, como una causa sin investigar. Si un arreglo deja obsoleto un riesgo citado en `.magents/CHANGELOG.md`, añade arriba una línea con la fecha y lo que cambia, sin reescribir las anteriores.
+5. Ejecuta `.magents/scripts/comprobar-entorno.sh` y todas las comprobaciones de «Modo `generar`», con el mismo criterio de `BLOQUEADO` y el mismo estado final del entorno. Una comprobación sin hacer o a medias da `BLOQUEADO`.
 
 ```markdown
 # Reparación del entorno

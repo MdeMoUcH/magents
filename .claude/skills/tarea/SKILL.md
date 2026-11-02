@@ -60,7 +60,7 @@ Los subagentes no ven esta conversación. Pasa siempre en el prompt: el texto í
 | 5 | `probador` | `pruebas-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; carpeta de evidencia `capturas/<n>/` |
 | 6 | `documentador` | `documentacion.md` | ruta de la carpeta de la tarea |
 
-Crea la carpeta de evidencia antes de lanzar `probador`. Si ya tiene contenido de una ejecución anterior, usa una nueva con sufijo (`capturas/<n>-2/`).
+Antes de lanzar `documentador`, borra `.magents/tareas/<id>/tmp/`, salvo lo que un informe pida conservar, para que la ficha describa lo que queda de verdad. Crea la carpeta de evidencia antes de lanzar `probador`. Si ya tiene contenido de una ejecución anterior, usa una nueva con sufijo (`capturas/<n>-2/`).
 
 ## Reglas de decisión
 
@@ -76,6 +76,7 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 - **Discrepancias con `proyecto.md`**: si el triage señala alguna, enséñasela al usuario antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme y guarda su respuesta en `informes/preparacion-<n>.md`. Con `LISTO`, sigue con la comprobación de entorno. Con `BLOQUEADO`, aplica la regla de esa tabla, con un máximo de tres bloqueos seguidos.
 - **Fase interrumpida**: si un subagente se detiene sin veredicto, anótalo en el historial con lo que dejó a medias. Al relanzar esa fase, indícale qué se interrumpió y qué restos quedan. No cuenta como iteración.
 - **Criterios parciales**: si el probador termina con `BLOQUEADO` por un criterio `PARCIAL`, enseña al usuario qué queda fuera. Si acepta esa exclusión, anótalo en el historial y relanza `probador` solo para ese criterio, indicándole la exclusión aceptada.
+- **Decisiones del usuario**: si un informe deja un riesgo o una decisión para el usuario, pregúntale con AskUserQuestion antes de seguir, aunque el veredicto permita avanzar. No las tomes tú. Puedes prohibir de inmediato una acción peligrosa, pero no sustituir una prueba ni excluir nada de un criterio: lo que esa prohibición impida probar queda `PARCIAL` hasta que el usuario lo acepte. Anota su respuesta en el historial y, al pasarla a un subagente, indica que la ha aceptado el usuario.
 - **Límite**: como máximo **5 iteraciones** de desarrollo. Si la 5.ª se rechaza, para y presenta al usuario el historial y el problema pendiente.
 - **Ciclo sin avance**: si el mismo problema vuelve a aparecer en dos rechazos seguidos, para antes del límite y pregunta.
 - **Desacuerdo**: si el desarrollador responde que un hallazgo es erróneo, no lo decides tú: la siguiente revisión lo reevalúa con ese argumento, y si se mantiene preguntas al usuario.
