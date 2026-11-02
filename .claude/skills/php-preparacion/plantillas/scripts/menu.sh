@@ -61,7 +61,6 @@ lanzar() {
       n | N | no | NO) argumentos=(--sin-diff) ;;
     esac
   fi
-  echo
   # Ya confirmado aquí: el script no vuelve a preguntar.
   MAGENTS_CONFIRMADO=1 "$scripts_dir/$script" ${argumentos[@]+"${argumentos[@]}"}
   codigo=$?
@@ -73,8 +72,27 @@ lanzar() {
   fi
 }
 
+limpiar() {
+  clear 2>/dev/null || true
+}
+
+# Espera una tecla y descarta el resto de lo pulsado, porque una flecha envía varios caracteres.
+esperar_tecla() {
+  local tecla
+  echo
+  echo
+  read -r -s -n 1 -p "Toca cualquier tecla para continuar..." tecla || exit 0
+  while read -r -s -n 1 -t 0.05 tecla; do :; done
+}
+
+aviso=""
 while true; do
+  limpiar
   mapfile -t lista < <(listar_scripts)
+  if [ -n "$aviso" ]; then
+    echo "$aviso"
+    aviso=""
+  fi
   echo
   echo "magents · $proyecto · $(mostrar_estado)"
   echo
@@ -86,12 +104,14 @@ while true; do
   read -r -p "Opción: " opcion || break
   case "$opcion" in
     0) break ;;
-    '' | *[!0-9]*) echo "Opción no válida." ;;
+    '' | *[!0-9]*) aviso="Opción no válida." ;;
     *)
       if [ "$opcion" -ge 1 ] && [ "$opcion" -le "${#lista[@]}" ]; then
+        limpiar
         lanzar "${lista[$((opcion - 1))]}"
+        esperar_tecla
       else
-        echo "Opción no válida."
+        aviso="Opción no válida."
       fi
       ;;
   esac
