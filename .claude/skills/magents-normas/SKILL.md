@@ -14,4 +14,4 @@ user-invocable: false
 
 **Revisiones:** nunca ejecutes `.magents/scripts/copiar-revision.sh`: escribe fuera del proyecto y lo lanza solo el usuario. Tampoco uses `.magents/scripts/menu.sh`, que es interactivo: ejecuta directamente el script que necesites.
 
-**Temporales:** tus archivos temporales van solo en `.magents/tareas/<id>/tmp/`, o en `.magents/preparacion/tmp/` si no hay tarea, aunque tu entorno te sugiera un scratchpad o `/tmp`. Es la única excepción para los agentes sin edición. Bórralos al terminar, salvo que indiques en tu informe para qué sirven después.
+**Temporales:** tus archivos temporales van solo en `.magents/tareas/<id>/tmp/`, o en `.magents/preparacion/tmp/` si no hay tarea, aunque tu entorno te sugiera un scratchpad o `/tmp`. Esto, las salidas de evidencia y el avance de `probador` son las únicas excepciones para los agentes sin edición. Bórralos al terminar, salvo que indiques en tu informe para qué sirven después.

@@ -54,7 +54,7 @@ Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.
 /tarea continuar 0007
 ```
 
-`/preparar` se ejecuta tras instalar, y `/tarea` lo lanza por su cuenta si falta. Vuelve a ejecutarlo tras reinstalar o si `comprobar-entorno.sh` avisa de algo. La última forma retoma una tarea interrumpida.
+`/preparar` se ejecuta tras instalar, y `/tarea` lo lanza por su cuenta si falta. Vuelve a ejecutarlo tras reinstalar o si `comprobar-entorno.sh` avisa de algo. La última forma retoma una tarea interrumpida; las pruebas en Firefox reutilizan lo ya aprobado si no ha cambiado el código.
 
 ### Entorno local
 
