@@ -17,7 +17,7 @@ Coordinas al subagente `preparador`: **tú no detectas ni generas nada**, lanzas
 
 Si te ejecutas de forma independiente, lee antes `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas valen también para ti.
 
-Si tú o el preparador necesitáis salir de la raíz del proyecto, pide antes permiso al usuario con AskUserQuestion, indicando la ruta exacta y el motivo. Si lo concede, vale solo para esa ruta, ese fin y esta ejecución: pásalo de forma explícita en el prompt. Si lo niega, sigue sin ello o informa de lo que no se ha podido hacer.
+Si tú o el preparador necesitáis salir de la raíz del proyecto, pide antes permiso al usuario con AskUserQuestion, indicando la ruta exacta y el motivo. Si lo concede, vale solo para esa ruta, ese fin y esta ejecución: pásalo de forma explícita en el prompt. El hook de `magents-normas` lo seguirá bloqueando hasta que **el usuario** añada esa ruta a `.magents/rutas-autorizadas.txt` y la quite al terminar. Díselo: ningún agente puede editar ese archivo. Si lo niega, sigue sin ello o informa de lo que no se ha podido hacer.
 
 Si no es un repositorio git o no tiene ningún commit, para y pide al usuario que lo inicialice y haga un commit inicial por su cuenta: el preparador lo necesita para comprobar que el entorno no ensucia el proyecto.
 

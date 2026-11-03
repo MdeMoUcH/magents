@@ -76,6 +76,11 @@ const permitidos = [
   'sleep 60',
   '# comentario con /etc/passwd\ngit log -1',
   'find cfw -name "*.php"',
+  'cp .claude/skills/php-preparacion/plantillas/scripts/iniciar.sh .magents/scripts/',
+  'cp -t .magents/tareas/1/tmp .claude/skills/php-preparacion/plantillas/php.ini cfw/a.php',
+  'rsync -a .claude/skills/php-preparacion/plantillas/ .magents/tareas/1/tmp/p/',
+  'mv .magents/entorno .magents/entorno.anterior/20261103-1000',
+  'find .magents/entorno .magents/scripts -type f -newer .magents/tareas/1/informes/triage.md',
 ];
 for (const c of permitidos) caso('permite', c, bash(c));
 
@@ -127,6 +132,10 @@ const bloqueados = [
   'grep -r clave /home/m',
   'cp /etc/passwd cfw/',
   'cp cfw/a /tmp/a',
+  'cp cfw/a .claude/skills/x',
+  'cp -t .claude cfw/a',
+  'cp cfw/a "$D"',
+  'rsync -a cfw/ otra:/srv/',
   'mv cfw /tmp/',
   'chmod -R 777 /',
   'chown m /etc/hosts',

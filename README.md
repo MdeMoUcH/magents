@@ -26,14 +26,15 @@ Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen
 
 ## Estilo del código
 
-Se respeta la forma de programar de cada proyecto. La indentación es con tabuladores, salvo en archivos existentes indentados con espacios, que los conservan, y en formatos que no los admiten, como YAML. En archivos que ya mezclan ambos, lo nuevo va con tabuladores. Los comentarios son breves y nunca ocupan más que el código. La revisión de código rechaza lo que incumpla estas normas de indentación y comentarios.
+Se respeta la forma de programar de cada proyecto. La indentación es con tabuladores, salvo en archivos existentes indentados con espacios, que los conservan, y en formatos que no los admiten, como YAML. En archivos que ya mezclan ambos, lo nuevo sigue el estilo de las líneas de alrededor. Los comentarios son breves y nunca ocupan más que el código. La revisión de código rechaza lo que incumpla la norma de comentarios; la indentación, por sí sola, solo es una sugerencia.
 
 ## Requisitos
 
 - [Claude Code](https://code.claude.com)
 - Firefox
 - Git, con un repositorio que tenga al menos un commit
-- Node.js 20.19 o superior, para el MCP de Firefox
+- Node.js 20.19 o superior, para el MCP de Firefox y para el hook de límite de carpeta, que sin `node` bloquea todas las órdenes de los agentes
+- Claude Code 2.1.295 o superior, para que un fallo del hook bloquee en vez de dejar pasar
 - Docker con Compose, si el proyecto no tiene entorno propio; también sirve para `php -l` si no hay PHP en el equipo
 - curl
 - rsync, para `copiar-revision.sh`
@@ -90,7 +91,7 @@ Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP
 
 Copia el contenido de `.magents/` a `.magents/revision/<proyecto>/` de este repositorio, que git ignora, junto con `git log` y `git status`. Sirve para revisar desde aquí cómo han trabajado los agentes sin dar acceso a otras carpetas. Deja fuera `entorno/config`, `entorno/bd-inicial`, las copias de entornos anteriores, los temporales y los enlaces simbólicos. No incluye el código. Las capturas sí se copian, así que borra de la copia las que muestren datos reales. Cada ejecución deja la copia igual que el origen, así que también recupera lo borrado de ella. Lo ejecutas tú, nunca los agentes. Se instala siempre y necesita `rsync`.
 
-Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de la tarea siguiente, o al estado actual si es la última, incluidos sus archivos nuevos aún sin seguimiento. Excluye `.env`, `.env.*`, `*.pem` y `*.key`, pero puede contener contraseñas en otros archivos versionados, como un `config.ini`, así que revísalos antes de avisar. Los archivos nuevos sin seguimiento no entran y solo aparecen en `git-status.txt`. Con `--sin-diff` no los genera y borra los de una copia anterior.
+Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de la tarea siguiente, o al estado actual si es la última, incluidos sus archivos nuevos aún sin seguimiento. Excluye `.env`, `.env.*`, `*.pem` y `*.key`, pero puede contener contraseñas en otros archivos versionados, como un `config.ini`, así que revísalos antes de avisar. Con `--sin-diff` no los genera y borra los de una copia anterior.
 
 ## Dónde queda cada cosa
 

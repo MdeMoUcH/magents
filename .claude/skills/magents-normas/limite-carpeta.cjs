@@ -405,6 +405,30 @@ class Analizador {
   }
 
   modifica(verbo, argumentos) {
+    // cp, rsync, install y ln solo escriben en el destino: el resto de rutas se leen.
+    if (/^(cp|rsync|install|ln)$/.test(verbo)) {
+      let destino = null;
+      const resto = [];
+      for (let i = 0; i < argumentos.length; i += 1) {
+        const a = argumentos[i];
+        const pegado = a.texto.match(/^--target-directory=(.+)$/);
+        if (pegado) destino = { ...a, texto: pegado[1] };
+        else if (a.texto === '-t' && argumentos[i + 1]) destino = argumentos[(i += 1)];
+        else resto.push(a);
+      }
+      const lista = this.posicionales(resto);
+      if (!destino) destino = lista.pop();
+      for (const a of lista) {
+        if (verbo === 'rsync' && /^[^/]*:/.test(a.texto)) bloquea('rsync a otra máquina no está permitido');
+        if (!a.dinamica) this.comprobarLectura(a.texto);
+      }
+      if (destino) {
+        this.comprobarDinamica(destino, verbo);
+        if (verbo === 'rsync' && /^[^/]*:/.test(destino.texto)) bloquea('rsync a otra máquina no está permitido');
+        this.comprobarEscritura(destino.texto, verbo === 'cp');
+      }
+      return;
+    }
     const lista = this.posicionales(argumentos);
     const destinoInofensivo = verbo === 'tee' || verbo === 'cp';
     // El primer argumento de chmod, chown y chgrp es el modo o el dueño.
