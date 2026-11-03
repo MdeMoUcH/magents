@@ -90,7 +90,7 @@ Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP
 
 Copia el contenido de `.magents/` a `.magents/revision/<proyecto>/` de este repositorio, que git ignora, junto con `git log` y `git status`. Sirve para revisar desde aquí cómo han trabajado los agentes sin dar acceso a otras carpetas. Deja fuera `entorno/config`, `entorno/bd-inicial`, las copias de entornos anteriores, los temporales y los enlaces simbólicos. No incluye el código. Las capturas sí se copian, así que borra de la copia las que muestren datos reales. Cada ejecución deja la copia igual que el origen, así que también recupera lo borrado de ella. Lo ejecutas tú, nunca los agentes. Se instala siempre y necesita `rsync`.
 
-Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de la tarea siguiente, o al estado actual si es la última. Excluye `.env`, `.env.*`, `*.pem` y `*.key`, pero puede contener contraseñas en otros archivos versionados, como un `config.ini`, así que revísalos antes de avisar. Los archivos nuevos sin seguimiento no entran y solo aparecen en `git-status.txt`. Con `--sin-diff` no los genera y borra los de una copia anterior.
+Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de la tarea siguiente, o al estado actual si es la última, incluidos sus archivos nuevos aún sin seguimiento. Excluye `.env`, `.env.*`, `*.pem` y `*.key`, pero puede contener contraseñas en otros archivos versionados, como un `config.ini`, así que revísalos antes de avisar. Los archivos nuevos sin seguimiento no entran y solo aparecen en `git-status.txt`. Con `--sin-diff` no los genera y borra los de una copia anterior.
 
 ## Dónde queda cada cosa
 

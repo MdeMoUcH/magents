@@ -48,14 +48,28 @@ generar_diffs() {
     git -C "$proyecto" diff "${bases[$i]}" ${siguiente:+"$siguiente"} -- . \
       ':(exclude,glob)**/.env' ':(exclude,glob)**/.env.*' ':(exclude,glob)**/*.pem' ':(exclude,glob)**/*.key' \
       > "$archivo"
+    # La última tarea puede tener archivos nuevos aún sin seguimiento: se añaden sin tocar el índice.
+    if [ -z "$siguiente" ]; then
+      incluir_sin_seguimiento "$archivo"
+    fi
     if [ ! -s "$archivo" ]; then
       magents_aviso "AVISO: diff vacío en ${ids[$i]}."
     fi
   done
-  if [ -n "$(git -C "$proyecto" ls-files --others --exclude-standard)" ]; then
-    magents_aviso "AVISO: los archivos nuevos sin seguimiento no están en los diffs; aparecen en git-status.txt."
-  fi
 }
+
+# Añade al diff los archivos sin seguimiento que git no ignora, con las mismas exclusiones.
+incluir_sin_seguimiento() {
+  local archivo="$1" ruta
+  while IFS= read -r -d '' ruta; do
+    case "/$ruta" in
+      */.env | */.env.* | *.pem | *.key) continue ;;
+    esac
+    # Con --no-index, git sale con 1 cuando hay diferencias.
+    (cd "$proyecto" && git diff --no-index -- /dev/null "$ruta" >> "$archivo") || [ "$?" -eq 1 ]
+  done < <(git -C "$proyecto" ls-files -z --others --exclude-standard)
+}
+
 scripts="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 origen="$(dirname "$scripts")"
 proyecto="$(dirname "$origen")"
