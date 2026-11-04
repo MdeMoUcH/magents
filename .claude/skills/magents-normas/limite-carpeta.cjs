@@ -495,6 +495,8 @@ class Analizador {
       const a = argumentos[i];
       if (conRuta.test(a.texto) && argumentos[i + 1]) {
         const siguiente = argumentos[i + 1];
+        // Con un "=" literal, curl toma -b como cookie y no como archivo: no hay ruta que verificar.
+        if (/^(-b|--cookie)$/.test(a.texto) && siguiente.texto.includes('=')) continue;
         this.comprobarDinamica(siguiente, verbo);
         if (/^(-T|--upload-file)$/.test(a.texto)) this.comprobarLectura(siguiente.texto);
         else if (/^(-b|--cookie)$/.test(a.texto) && !siguiente.texto.includes('=')) this.comprobarLectura(siguiente.texto);

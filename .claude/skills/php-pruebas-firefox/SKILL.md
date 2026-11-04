@@ -34,7 +34,7 @@ Informe: una sección por cada punto, con lo que has comprobado y el resultado, 
 3. Si no responde, arráncalo como allí se indique y vuelve a comprobarlo.
 4. Si el entorno no está definido o no arranca, no improvises otro: `BLOQUEADO`, y explica que hay que ejecutar `/preparar` o qué falla.
 5. Aplica los pasos adicionales del informe de desarrollo.
-6. Prueba solo en la versión de PHP con la que arranca el entorno, salvo que la tarea o `triage.md` pidan otras de forma expresa. Indícala en el informe y, si no coincide con la de producción de `proyecto.md`, añade el aviso.
+6. Prueba solo en la versión de PHP con la que arranca el entorno, salvo que la tarea o `triage.md` pidan otras de forma expresa, y entonces solo en los criterios que lo indiquen. Indícala en el informe y, si no coincide con la de producción de `proyecto.md`, añade el aviso.
 7. Si se piden varias versiones, confirma con `php -v` dentro del contenedor antes de cada tanda, también después de cada reinicio o restablecimiento de la BD: una variable como `PHP_VERSION` se pierde si no se repite en cada comando.
 
 **Evidencia anterior:** nunca borres ni sobrescribas evidencia de otra ejecución, aunque vayas a repetir esas pruebas o el prompt te pida sustituirla. Si el prompt indica una ejecución interrumpida, antes de reiniciar el entorno o restablecer la BD guarda en tu carpeta de evidencia el log de PHP y el estado que no se pueda recuperar.
@@ -61,7 +61,7 @@ En el informe, marca lo reutilizado con la carpeta de la que procede. Un resulta
 
 Ejecuta antes `.magents/scripts/comprobar-entorno.sh`. Si no pasa, no pares el servicio, porque su nombre podría resolverse fuera de Docker: el criterio queda en `BLOQUEADO`, y hay que ejecutar `/preparar` con «Revisar».
 
-- **Para**: `docker compose -f .magents/entorno/compose.yml stop <servicio>`, solo ese servicio, sin borrar nada. Espera 60 s antes de probar: hasta que caduca la caché ARP, la conexión puede tardar todo su tiempo de espera (60 s en `mysqli`). Después falla con `No route to host`: la primera vez hasta en unos 15 s, y luego en unos 3 s.
+- **Para**: `docker compose -f .magents/entorno/compose.yml stop <servicio>`, solo ese servicio, sin borrar nada. Espera 60 s antes de probar: hasta que caduca la caché ARP, la conexión puede tardar todo su tiempo de espera (60 s en `mysqli`). Después falla con `No route to host`: la primera vez hasta en unos 15 s, y luego en unos 3 s. Claude Code bloquea `sleep` largos en primer plano: lanza `sleep 60` en segundo plano (`run_in_background`) y sigue cuando te avise de que ha terminado.
 - **Restablece**: `docker compose -f .magents/entorno/compose.yml up -d --wait <servicio>`, también si la prueba falla. Conserva los datos.
 - **No uses `docker compose pause`**: la conexión se queda colgada en lugar de fallar, y no prueba lo mismo que una caída.
 - Con un entorno propio del proyecto, comprueba lo mismo a mano: el nombre debe estar en `/etc/hosts` de la web. Si no, `BLOQUEADO`. No uses `getent hosts`, que consulta `AAAA` fuera de Docker aunque esté; usa `getent ahosts`.

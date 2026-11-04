@@ -41,7 +41,7 @@ Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la v
 Pasos concretos, archivo por archivo
 ## Criterios de aceptación
 - [ ] CA1: comportamiento observable y comprobable en el navegador
-(en la versión de PHP con la que arranca el entorno; pide otras solo si la tarea lo hace de forma expresa. Tampoco repitas tus experimentos en varias versiones sin ese motivo. Si un criterio usa un `confirm`, indica que se probará sustituyéndolo con clic real, y usa los «Métodos de prueba aceptados» de `proyecto.md`)
+(en la versión de PHP con la que arranca el entorno; pide otras solo si la tarea lo hace de forma expresa o si el cambio usa funciones cuyo comportamiento o firma cambian entre la versión mínima de producción y la del entorno; en ese caso, solo para los criterios afectados y con el motivo escrito junto al criterio. Tampoco repitas tus experimentos en varias versiones sin uno de esos motivos. Si un criterio usa un `confirm`, indica que se probará sustituyéndolo con clic real, y usa los «Métodos de prueba aceptados» de `proyecto.md`)
 ## Borrados
 (solo si los hay: ruta exacta de cada archivo o carpeta del proyecto, y por qué; el usuario los verá antes de desarrollar)
 ## Casos límite y riesgos

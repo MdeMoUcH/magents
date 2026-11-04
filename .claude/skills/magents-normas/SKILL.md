@@ -12,6 +12,8 @@ user-invocable: false
 
 **Comandos con cuidado:** nunca ejecutes nada que no sea necesario para tu trabajo, tampoco como relleno al final de un comando (`; true`, `rm -f ...`). Un hook bloquea lo que detecta fuera de la raíz, pero es una barrera ante errores: no sustituye a esta norma. Si te bloquea, no busques otra vía: si la ruta es del proyecto, reescribe el comando; si no, aplica el límite de carpeta y decláralo en tu informe. Cualquier comando que no debías ejecutar se declara en tu informe, aunque no haya tenido efecto.
 
+**Rutas literales:** escribe las rutas tal cual desde el principio. El hook no puede verificar, y bloquea, una ruta que venga de una variable que no se asigne en esa misma orden o de `$(...)` cuando el comando escribe (redirecciones, `mkdir`, `cp`, `mv`, `rm`, `curl -o`/`-c`, montajes de `docker run`), ni un comando que salga de una variable. Lo mismo dentro de los scripts que escribas en tus temporales. Para comprobar si se puede escribir en una ruta usa `test -w` o `stat`, nunca `touch`.
+
 **Datos de la web:** no lances peticiones que puedan borrar, crear o modificar datos si no forman parte de tu trabajo, tampoco por GET o «para comprobar si existe». Léelo en el código.
 
 **Borrados:** cada `rm` va en una orden simple, con la ruta exacta y sin variables, sin `xargs` ni scripts. Si Claude Code o el hook rechazan un borrado, no lo reintentes: indícalo en tu informe.
