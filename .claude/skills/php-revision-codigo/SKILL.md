@@ -17,7 +17,7 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 1. **Plan**: cada paso y criterio de aceptación de `triage.md` está implementado, no hay nada ajeno a la tarea y no se ha tocado ninguna ruta prohibida en `.magents/proyecto.md`.
 2. **Lógica**: condiciones invertidas, casos límite, `null`, comparaciones `==` problemáticas (`0 == "a"`, `in_array` sin modo estricto), datos vacíos, errores de BD sin tratar.
 3. **Integración**: llamadas con la firma correcta, rutas y `.htaccess`, nombres de campos que coinciden entre el formulario, el PHP y el SQL, plantillas, traducciones, migración incluida.
-4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host).
+4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm --name <prefijo>-tmp-lint -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host; el prefijo, en «Docker» de `magents-normas`).
 5. **Rendimiento evidente**: N+1, consultas sin límite sobre tablas grandes.
 6. **Convenciones**: encaja con el código de alrededor, reutiliza lo existente, sin depuración ni código muerto.
    - Indentación con tabuladores en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear; en uno que ya mezcla ambos, lo nuevo sigue el estilo de las líneas de alrededor y no se sugiere reformatear.

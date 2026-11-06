@@ -54,6 +54,12 @@ function dentroDe(ruta, base) {
 }
 
 // Parte un comando en órdenes simples. No es un intérprete completo: lo que no entiende se marca como dinámico.
+// NOMBRE=valor solo es asignación si NOMBRE= está escrito sin comillas ni partes calculadas; el valor puede llevarlas.
+function esAsignacion(palabra) {
+  const m = palabra.texto.match(/^[A-Za-z_][A-Za-z0-9_]*=/);
+  return Boolean(m) && m[0].length <= palabra.literal;
+}
+
 function analizarSintaxis(texto, variables) {
   const ordenes = [];
   const internos = [];
@@ -63,7 +69,9 @@ function analizarSintaxis(texto, variables) {
   const heredocs = [];
   let i = 0;
 
-  const nueva = () => { if (!palabra) palabra = { texto: '', dinamica: false, entrecomillada: false }; };
+  // literal: hasta dónde el texto de la palabra es literal, sin comillas ni partes calculadas (para reconocer NOMBRE=valor).
+  const nueva = () => { if (!palabra) palabra = { texto: '', dinamica: false, entrecomillada: false, literal: Infinity }; };
+  const finLiteral = () => { if (palabra.literal === Infinity) palabra.literal = palabra.texto.length; };
   const cerrarPalabra = () => {
     if (!palabra) return;
     if (redireccion) {
@@ -96,12 +104,14 @@ function analizarSintaxis(texto, variables) {
     if (texto[i + 1] === '(' && texto[i + 2] !== '(') {
       const fin = leerAnidado('(', ')', i + 2);
       internos.push(texto.slice(i + 2, fin - 1));
+      finLiteral();
       palabra.dinamica = true;
       i = fin;
       return;
     }
     if (texto[i + 1] === '(') {
       i = leerAnidado('(', ')', i + 2);
+      finLiteral();
       palabra.texto += '0';
       return;
     }
@@ -109,6 +119,7 @@ function analizarSintaxis(texto, variables) {
     const simple = texto.slice(i).match(/^\$([A-Za-z_][A-Za-z0-9_]*)/);
     const coincide = llaves || simple;
     if (coincide) {
+      finLiteral();
       if (Object.prototype.hasOwnProperty.call(variables, coincide[1])) palabra.texto += variables[coincide[1]];
       else palabra.dinamica = true;
       i += coincide[0].length;
@@ -116,11 +127,13 @@ function analizarSintaxis(texto, variables) {
     }
     if (texto[i + 1] === '{') {
       const fin = leerAnidado('{', '}', i + 2);
+      finLiteral();
       palabra.dinamica = true;
       i = fin;
       return;
     }
     if (/[?#@*!$0-9-]/.test(texto[i + 1] || '')) {
+      finLiteral();
       palabra.dinamica = true;
       i += 2;
       return;
@@ -133,6 +146,7 @@ function analizarSintaxis(texto, variables) {
     const fin = texto.indexOf('`', i + 1);
     if (fin < 0) bloquea('no se puede interpretar el comando: comilla invertida sin cerrar');
     internos.push(texto.slice(i + 1, fin));
+    finLiteral();
     palabra.dinamica = true;
     i = fin + 1;
   };
@@ -162,6 +176,7 @@ function analizarSintaxis(texto, variables) {
         i += 2;
       } else {
         nueva();
+        finLiteral();
         palabra.texto += texto[i + 1] || '';
         palabra.entrecomillada = true;
         i += 2;
@@ -170,11 +185,13 @@ function analizarSintaxis(texto, variables) {
       nueva();
       const fin = texto.indexOf("'", i + 1);
       if (fin < 0) bloquea('no se puede interpretar el comando: comilla sin cerrar');
+      finLiteral();
       palabra.texto += texto.slice(i + 1, fin);
       palabra.entrecomillada = true;
       i = fin + 1;
     } else if (c === '"') {
       nueva();
+      finLiteral();
       palabra.entrecomillada = true;
       i += 1;
       while (i < texto.length && texto[i] !== '"') {
@@ -311,13 +328,12 @@ class Analizador {
 
   orden(orden) {
     let palabras = orden.palabras.slice();
-    while (palabras.length && !palabras[0].entrecomillada
-      && (/^[A-Za-z_][A-Za-z0-9_]*=/.test(palabras[0].texto) || CLAVES.has(palabras[0].texto))) {
+    while (palabras.length && (esAsignacion(palabras[0]) || (!palabras[0].entrecomillada && CLAVES.has(palabras[0].texto)))) {
       palabras.shift();
     }
     if (palabras.length && ENVOLTORIOS.has(palabras[0].texto)) {
       const envoltorio = palabras.shift().texto;
-      while (palabras.length && (/^-/.test(palabras[0].texto) || /^[A-Za-z_][A-Za-z0-9_]*=/.test(palabras[0].texto)
+      while (palabras.length && (/^-/.test(palabras[0].texto) || esAsignacion(palabras[0])
         || (envoltorio === 'timeout' && /^\d/.test(palabras[0].texto)))) palabras.shift();
       this.orden({ palabras, redirecciones: orden.redirecciones });
       return;
@@ -473,6 +489,9 @@ class Analizador {
   // No puede seguir lo que el código haga al ejecutarse; solo mira las rutas absolutas que aparezcan en él.
   codigoEnLinea(codigo) {
     for (const m of codigo.matchAll(/['"](\/[^'"\s]*)['"]/g)) {
+      // "/" suelto (separador) o algo cuya primera carpeta no existe, como "/admin/login" de una URL, no es una ruta del equipo.
+      const primera = m[1].split('/')[1];
+      if (!primera || !fs.existsSync(`/${primera}`)) continue;
       const ruta = this.resolver(m[1]);
       if (!this.lecturaPermitida(ruta) && !SALIDAS_INOFENSIVAS.has(ruta)) bloquea(`el código menciona ${ruta}, fuera de la raíz del proyecto`);
     }
@@ -541,11 +560,19 @@ class Analizador {
     if (textos[0] === 'compose') return this.dockerCompose(argumentos.slice(1));
     const sub = textos[0] || '';
     const accion = textos[1] || '';
-    if (/^(rm|rmi|kill)$/.test(sub)
+    if (/^(rm|rmi)$/.test(sub)
       || (/^(system|image|volume|container|network|builder|buildx)$/.test(sub) && /^(prune|rm|remove)$/.test(accion))) {
       bloquea(`docker ${sub} ${accion} no está permitido a los agentes: usa docker compose sobre este entorno`);
     }
-    if (sub === 'run' || sub === 'create') return this.dockerRun(argumentos.slice(1));
+    const enContenedor = sub === 'container' ? accion : sub;
+    const resto = argumentos.slice(sub === 'container' ? 2 : 1);
+    if (/^(stop|kill|restart|pause|unpause|update|rename|start|exec|attach|wait)$/.test(enContenedor)) {
+      return this.contenedoresPropios(enContenedor, resto);
+    }
+    if (enContenedor === 'run' || enContenedor === 'create') {
+      this.nombrePropio(resto);
+      return this.dockerRun(resto);
+    }
     if (sub === 'build') {
       for (let i = 1; i < argumentos.length; i += 1) {
         if (/^(-f|--file)$/.test(textos[i]) && argumentos[i + 1] && !argumentos[i + 1].dinamica) this.comprobarLectura(textos[i + 1]);
@@ -561,6 +588,59 @@ class Analizador {
       }
     }
     return undefined;
+  }
+
+  // Prefijo de los contenedores de este proyecto: el name: del compose de magents, o magents-<carpeta>.
+  prefijoContenedores() {
+    if (this.prefijo) return this.prefijo;
+    let nombre = '';
+    try {
+      const compose = fs.readFileSync(path.join(this.raiz, '.magents/entorno/compose.yml'), 'utf8');
+      nombre = (compose.match(/^name:\s*["']?([a-z0-9][a-z0-9_-]*)["']?\s*$/m) || [])[1] || '';
+    } catch (e) {
+      nombre = '';
+    }
+    if (!nombre) nombre = `magents-${path.basename(this.raiz).toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`;
+    this.prefijo = `${nombre}-`;
+    return this.prefijo;
+  }
+
+  // Solo se actúa sobre contenedores de este proyecto, nombrados por su nombre completo (no por id).
+  contenedoresPropios(accion, argumentos) {
+    const prefijo = this.prefijoContenedores();
+    const conValor = /^(-t|--time|-s|--signal|-e|--env|--env-file|-u|--user|-w|--workdir|--detach-keys|--condition|--cpus|--memory|-m|--restart|--cpu-shares|-c)$/;
+    const objetivos = [];
+    for (let i = 0; i < argumentos.length; i += 1) {
+      const a = argumentos[i];
+      if (conValor.test(a.texto)) { i += 1; continue; }
+      if (a.texto.startsWith('-')) continue;
+      objetivos.push(a);
+      // exec y rename: tras el contenedor vienen el comando o el nombre nuevo.
+      if (accion === 'exec' || accion === 'rename' || accion === 'attach') break;
+    }
+    if (accion === 'rename' && argumentos.length) objetivos.push(argumentos[argumentos.length - 1]);
+    if (!objetivos.length) bloquea(`docker ${accion} sin contenedor no se puede verificar`);
+    for (const a of objetivos) {
+      if (a.dinamica || !a.texto.startsWith(prefijo)) {
+        bloquea(`docker ${accion} solo se permite sobre contenedores de este proyecto, por su nombre completo, que empieza por ${prefijo}; ${a.texto || 'una variable'} no lo cumple. Si es tuyo y está colgado, indícalo en tu informe para que lo pare el usuario`);
+      }
+    }
+  }
+
+  // Los contenedores que crea un agente llevan un nombre de este proyecto, para poder pararlos si se cuelgan.
+  nombrePropio(argumentos) {
+    const prefijo = this.prefijoContenedores();
+    for (let i = 0; i < argumentos.length; i += 1) {
+      const a = argumentos[i];
+      const pegado = a.texto.match(/^--name=(.*)$/);
+      const valor = pegado ? { ...a, texto: pegado[1] } : (a.texto === '--name' ? argumentos[i + 1] : null);
+      if (valor) {
+        if (!valor.dinamica && valor.texto.startsWith(prefijo)) return;
+        break;
+      }
+      if (!a.texto.startsWith('-') && !argumentos[i - 1]?.texto.startsWith('-')) break;
+    }
+    bloquea(`docker run necesita --name con un nombre que empiece por ${prefijo}tmp- (por ejemplo ${prefijo}tmp-lint), para poder pararlo si se cuelga`);
   }
 
   dockerCompose(argumentos) {

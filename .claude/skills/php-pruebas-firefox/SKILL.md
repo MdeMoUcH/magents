@@ -84,7 +84,7 @@ Guarda las capturas y las salidas que sirvan de evidencia en la carpeta que indi
 - **`take_snapshot`**: solo si vas a interactuar, porque los `uid` caducan al cambiar la página. Para leerla, usa `get_page_text` o `evaluate_script`.
 - **`screenshot_page`**: una captura por criterio como máximo, salvo para mostrar un fallo.
 
-El navegador es headless y efímero; no tiene las sesiones del usuario.
+El navegador es headless y efímero; no tiene las sesiones del usuario. Sí guarda caché HTTP mientras dura tu ejecución: si la tarea cambia estáticos (CSS, JS, imágenes) o cabeceras, desactívala con `set_network_cache` antes de probar, o verás respuestas de antes del cambio.
 
 Si las herramientas `mcp__firefox-devtools__*` no están disponibles, **no sustituyas la prueba por curl**: `BLOQUEADO`, con el error exacto. Las causas habituales, que debes indicar al usuario, son dos: la carpeta del proyecto no está aceptada como confiable (hay que abrir Claude Code en ella de forma interactiva y aceptar el diálogo) o no hay Node 20.19 o superior en el `PATH` (compruébalo con `node -v`).
 

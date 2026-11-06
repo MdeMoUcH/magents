@@ -78,7 +78,7 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 | `LISTO` (triage o entorno), `IMPLEMENTADO` (desarrollo), `DOCUMENTADO` | Siguiente fase |
 | `APROBADO` | Siguiente fase |
 | `RECHAZADO` | `n += 1` y volver a `desarrollador` |
-| `DUDAS` / `BLOQUEADO` | Pregunta al usuario con AskUserQuestion, incluyendo el contexto, y relanza esa misma fase con la respuesta. Un `BLOQUEADO` del probador no es un rechazo: no gastes una iteración de desarrollo en él |
+| `DUDAS` / `BLOQUEADO` | Pregunta al usuario con AskUserQuestion, incluyendo el contexto, y pasa la respuesta a esa misma fase: si puedes, continúa el mismo subagente con SendMessage, que ya tiene el análisis hecho; si no, relánzala con la respuesta. Antes de guardar su nueva respuesta, renombra el informe anterior con un número (`triage-1.md`, `triage-2.md`…). Un `BLOQUEADO` del probador no es un rechazo: no gastes una iteración de desarrollo en él |
 
 - **Discrepancias con `proyecto.md`**: si el triage señala alguna, enséñasela al usuario antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme y guarda su respuesta en `informes/preparacion-<n>.md`. Con `LISTO`, sigue con la comprobación de entorno. Con `BLOQUEADO`, aplica la regla de esa tabla, con un máximo de tres bloqueos seguidos.
 - **Fase interrumpida**: si un subagente se detiene sin veredicto, anótalo en el historial con lo que dejó a medias. Al relanzar esa fase, indícale qué se interrumpió y qué restos quedan. No cuenta como iteración.
