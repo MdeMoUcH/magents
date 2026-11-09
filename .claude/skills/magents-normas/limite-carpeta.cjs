@@ -24,6 +24,8 @@ const LEEN = new Set(['cat', 'less', 'more', 'head', 'tail', 'ls', 'du', 'stat',
   'base64', 'realpath', 'readlink', 'tree', 'xxd', 'od', 'nl', 'tac', 'strings', 'source', '.', 'cd', 'pushd', 'bash', 'sh', 'zsh', 'dash',
   'php', 'python', 'python3', 'node', 'perl', 'ruby']);
 const ENVOLTORIOS = new Set(['env', 'command', 'exec', 'nohup', 'nice', 'timeout', 'stdbuf', 'time', 'ionice', 'builtin']);
+// Cambian el daemon, el proyecto o el archivo sobre el que actúan docker y docker compose.
+const VARIABLES_DOCKER = /^(DOCKER_HOST|DOCKER_CONTEXT|DOCKER_CONFIG|COMPOSE_PROJECT_NAME|COMPOSE_FILE|COMPOSE_PATH_SEPARATOR)=/;
 const CLAVES = new Set(['if', 'then', 'elif', 'else', 'fi', 'for', 'while', 'until', 'do', 'done', 'case', 'esac', '!', '{', '}', 'function']);
 const CON_PATRON = new Set(['grep', 'egrep', 'fgrep', 'rg', 'sed', 'awk']);
 const CON_CODIGO = { php: '-r', node: '-e', python: '-c', python3: '-c', perl: '-e', ruby: '-e' };
@@ -329,10 +331,12 @@ class Analizador {
   orden(orden) {
     let palabras = orden.palabras.slice();
     while (palabras.length && (esAsignacion(palabras[0]) || (!palabras[0].entrecomillada && CLAVES.has(palabras[0].texto)))) {
+      if (VARIABLES_DOCKER.test(palabras[0].texto)) bloquea(`${palabras[0].texto.split('=')[0]} cambia el destino de docker y no está permitido`);
       palabras.shift();
     }
     if (palabras.length && ENVOLTORIOS.has(palabras[0].texto)) {
       const envoltorio = palabras.shift().texto;
+      if (palabras.some((p) => VARIABLES_DOCKER.test(p.texto))) bloquea('esa variable cambia el destino de docker y no está permitido');
       while (palabras.length && (/^-/.test(palabras[0].texto) || esAsignacion(palabras[0])
         || (envoltorio === 'timeout' && /^\d/.test(palabras[0].texto)))) palabras.shift();
       this.orden({ palabras, redirecciones: orden.redirecciones });
@@ -560,6 +564,27 @@ class Analizador {
     if (textos[0] === 'compose') return this.dockerCompose(argumentos.slice(1));
     const sub = textos[0] || '';
     const accion = textos[1] || '';
+    if (sub.startsWith('-') && !/^(-v|--version|-h|--help)$/.test(sub)) {
+      bloquea(`docker ${sub}: las opciones globales pueden cambiar de daemon o de configuración y no están permitidas`);
+    }
+    if (/^(swarm|stack|service|node|plugin|secret|config|login|logout|push|trust|manifest|commit|load|import)$/.test(sub)
+      || (sub === 'context' && !/^(ls|show|inspect)$/.test(accion))
+      || (sub === 'network' && /^(create|connect|disconnect)$/.test(accion))
+      || (sub === 'volume' && accion === 'create')
+      || (sub === 'image' && /^(push|load|import)$/.test(accion))) {
+      bloquea(`docker ${sub}${accion && !accion.startsWith('-') ? ` ${accion}` : ''} no está permitido a los agentes`);
+    }
+    if (sub === 'tag' || (sub === 'image' && accion === 'tag')) {
+      const nombres = argumentos.slice(sub === 'tag' ? 1 : 2).filter((a) => !a.texto.startsWith('-'));
+      if (nombres.length) this.imagenPropia(nombres[nombres.length - 1]);
+    }
+    if (sub === 'save' || sub === 'export' || (/^(image|container)$/.test(sub) && /^(save|export)$/.test(accion))) {
+      for (let i = 0; i < argumentos.length; i += 1) {
+        const pegado = argumentos[i].texto.match(/^--output=(.+)$/);
+        const destino = pegado ? { ...argumentos[i], texto: pegado[1] } : (/^(-o|--output)$/.test(argumentos[i].texto) ? argumentos[i + 1] : null);
+        if (destino) { this.comprobarDinamica(destino, `docker ${sub}`); this.comprobarEscritura(destino.texto, true); }
+      }
+    }
     if (/^(rm|rmi)$/.test(sub)
       || (/^(system|image|volume|container|network|builder|buildx)$/.test(sub) && /^(prune|rm|remove)$/.test(accion))) {
       bloquea(`docker ${sub} ${accion} no está permitido a los agentes: usa docker compose sobre este entorno`);
@@ -573,8 +598,11 @@ class Analizador {
       this.nombrePropio(resto);
       return this.dockerRun(resto);
     }
-    if (sub === 'build') {
+    if (sub === 'build' || ((sub === 'buildx' || sub === 'image') && accion === 'build')) {
       for (let i = 1; i < argumentos.length; i += 1) {
+        const etiqueta = argumentos[i].texto.match(/^--tag=(.+)$/);
+        if (etiqueta) this.imagenPropia({ ...argumentos[i], texto: etiqueta[1] });
+        else if (/^(-t|--tag)$/.test(textos[i]) && argumentos[i + 1]) this.imagenPropia(argumentos[i + 1]);
         if (/^(-f|--file)$/.test(textos[i]) && argumentos[i + 1] && !argumentos[i + 1].dinamica) this.comprobarLectura(textos[i + 1]);
         if (!textos[i].startsWith('-') && i === argumentos.length - 1 && !argumentos[i].dinamica) this.comprobarLectura(textos[i]);
       }
@@ -590,24 +618,45 @@ class Analizador {
     return undefined;
   }
 
-  // Prefijo de los contenedores de este proyecto: el name: del compose de magents, o magents-<carpeta>.
-  prefijoContenedores() {
-    if (this.prefijo) return this.prefijo;
+  // Contenedores de este proyecto: los del compose de magents (<name>-<servicio>-<n> o <name>-<servicio>-run-<id>)
+  // y los desechables de los agentes (<name>_tmp-<algo>). El "_" no puede aparecer en el nombre de otro proyecto de magents,
+  // así que magents-cfw_tmp-x nunca es de magents-cfw-test.
+  contenedores() {
+    if (this.propios) return this.propios;
     let nombre = '';
+    const servicios = [];
     try {
       const compose = fs.readFileSync(path.join(this.raiz, '.magents/entorno/compose.yml'), 'utf8');
-      nombre = (compose.match(/^name:\s*["']?([a-z0-9][a-z0-9_-]*)["']?\s*$/m) || [])[1] || '';
+      nombre = (compose.match(/^name:\s*["']?([a-z0-9][a-z0-9-]*)["']?\s*$/m) || [])[1] || '';
+      const bloque = (compose.match(/^services:\s*\n((?:[ \t]+.*\n|\s*\n)*)/m) || [])[1] || '';
+      for (const m of bloque.matchAll(/^ {2}([a-zA-Z0-9][a-zA-Z0-9_.-]*):\s*$/gm)) servicios.push(m[1]);
     } catch (e) {
       nombre = '';
     }
-    if (!nombre) nombre = `magents-${path.basename(this.raiz).toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`;
-    this.prefijo = `${nombre}-`;
-    return this.prefijo;
+    if (!nombre) nombre = `magents-${path.basename(this.raiz).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
+    const escapar = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const deCompose = servicios.length
+      ? new RegExp(`^${escapar(nombre)}-(${servicios.map(escapar).join('|')})-(\\d+|run-[a-f0-9]+)$`)
+      : null;
+    const desechable = new RegExp(`^${escapar(nombre)}_tmp-[a-z0-9][a-z0-9.-]*$`);
+    this.propios = { nombre, servicios, conCompose: servicios.length > 0, desechable, es: (t) => desechable.test(t) || Boolean(deCompose && deCompose.test(t)) };
+    return this.propios;
+  }
+
+  // Una etiqueta de imagen solo puede ser de este proyecto: así no se pisa la imagen de otro.
+  imagenPropia(a) {
+    const { nombre, servicios } = this.contenedores();
+    const escapar = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const de = servicios.length ? `|-(${servicios.map(escapar).join('|')})` : '';
+    const valida = new RegExp(`^${escapar(nombre)}(_tmp-[a-z0-9][a-z0-9.-]*${de})(:[A-Za-z0-9_][A-Za-z0-9_.-]*)?$`);
+    if (a.dinamica || !valida.test(a.texto)) {
+      bloquea(`la imagen ${a.texto || 'calculada'} no es de este proyecto: usa ${nombre}-<servicio>:<etiqueta> o ${nombre}_tmp-<algo>, para no pisar imágenes de otros proyectos`);
+    }
   }
 
   // Solo se actúa sobre contenedores de este proyecto, nombrados por su nombre completo (no por id).
   contenedoresPropios(accion, argumentos) {
-    const prefijo = this.prefijoContenedores();
+    const propios = this.contenedores();
     const conValor = /^(-t|--time|-s|--signal|-e|--env|--env-file|-u|--user|-w|--workdir|--detach-keys|--condition|--cpus|--memory|-m|--restart|--cpu-shares|-c)$/;
     const objetivos = [];
     for (let i = 0; i < argumentos.length; i += 1) {
@@ -621,26 +670,26 @@ class Analizador {
     if (accion === 'rename' && argumentos.length) objetivos.push(argumentos[argumentos.length - 1]);
     if (!objetivos.length) bloquea(`docker ${accion} sin contenedor no se puede verificar`);
     for (const a of objetivos) {
-      if (a.dinamica || !a.texto.startsWith(prefijo)) {
-        bloquea(`docker ${accion} solo se permite sobre contenedores de este proyecto, por su nombre completo, que empieza por ${prefijo}; ${a.texto || 'una variable'} no lo cumple. Si es tuyo y está colgado, indícalo en tu informe para que lo pare el usuario`);
+      if (a.dinamica || !propios.es(a.texto)) {
+        bloquea(`docker ${accion} solo se permite sobre contenedores de este proyecto, por su nombre completo: los tuyos se llaman ${propios.nombre}_tmp-<algo> y los del entorno ${propios.nombre}-<servicio>-<n>; ${a.texto || 'una variable'} no lo es. Si es tuyo y está colgado, indícalo en tu informe para que lo pare el usuario`);
       }
     }
   }
 
   // Los contenedores que crea un agente llevan un nombre de este proyecto, para poder pararlos si se cuelgan.
   nombrePropio(argumentos) {
-    const prefijo = this.prefijoContenedores();
+    const propios = this.contenedores();
     for (let i = 0; i < argumentos.length; i += 1) {
       const a = argumentos[i];
       const pegado = a.texto.match(/^--name=(.*)$/);
       const valor = pegado ? { ...a, texto: pegado[1] } : (a.texto === '--name' ? argumentos[i + 1] : null);
       if (valor) {
-        if (!valor.dinamica && valor.texto.startsWith(prefijo)) return;
+        if (!valor.dinamica && propios.desechable.test(valor.texto)) return;
         break;
       }
       if (!a.texto.startsWith('-') && !argumentos[i - 1]?.texto.startsWith('-')) break;
     }
-    bloquea(`docker run necesita --name con un nombre que empiece por ${prefijo}tmp- (por ejemplo ${prefijo}tmp-lint), para poder pararlo si se cuelga`);
+    bloquea(`docker run necesita --name ${propios.nombre}_tmp-<algo> (minúsculas, números, puntos o guiones; por ejemplo ${propios.nombre}_tmp-lint), para poder pararlo si se cuelga`);
   }
 
   dockerCompose(argumentos) {
@@ -650,7 +699,14 @@ class Analizador {
       if (/^(-f|--file|--project-directory|--env-file)$/.test(a.texto)) {
         i += 1;
         if (argumentos[i] && !argumentos[i].dinamica) this.comprobarLectura(argumentos[i].texto);
-      } else if (/^(-p|--project-name|--profile|--ansi|--parallel|--progress)$/.test(a.texto)) {
+      } else if (/^(-p|--project-name)$/.test(a.texto) || /^--project-name=/.test(a.texto)) {
+        const valor = a.texto.includes('=') ? { ...a, texto: a.texto.split('=').slice(1).join('=') } : argumentos[i + 1];
+        if (!a.texto.includes('=')) i += 1;
+        const { nombre, conCompose } = this.contenedores();
+        if (!valor || valor.dinamica || !conCompose || valor.texto !== nombre) {
+          bloquea(`docker compose -p solo se permite con el proyecto de este entorno (${conCompose ? nombre : 'sin compose de magents'}); otro nombre actuaría sobre los contenedores de otro proyecto`);
+        }
+      } else if (/^(--profile|--ansi|--parallel|--progress)$/.test(a.texto)) {
         i += 1;
       } else if (!a.texto.startsWith('-')) {
         break;

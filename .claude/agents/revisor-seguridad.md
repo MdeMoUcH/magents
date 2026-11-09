@@ -1,6 +1,6 @@
 ---
 name: revisor-seguridad
-description: Fase 4 de /tarea. Audita la seguridad del código PHP generado (inyección, XSS, CSRF, autorización, subidas, secretos). Emite APROBADO o RECHAZADO. No modifica nada.
+description: Fase 4 de /tarea. Audita la seguridad del código PHP generado (inyección, XSS, CSRF, autorización, subidas, secretos). Emite APROBADO, RECHAZADO o BLOQUEADO. No modifica nada.
 tools: Read, Grep, Glob, Bash
 hooks:
   PreToolUse:

@@ -42,7 +42,7 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
 ## Reglas
 
 - Sin secretos ni datos personales, tampoco en las capturas: mira cada una de `capturas/`, borra las que los muestren e indícalo en tu informe. Describe las vulnerabilidades preexistentes indicando dónde y qué tipo, sin instrucciones de explotación.
-- No toques la documentación propia del proyecto. Si habría que actualizarla, indícalo en tu informe.
+- No toques la documentación propia del proyecto: sus cambios forman parte del plan y los revisa la revisión de código. Compara cada archivo de «Documentación del proyecto» de `proyecto.md`, y los que describan lo cambiado, con el diff y el código actual. Lo que falte o contradiga va en «Documentación del proyecto pendiente» de tu informe, aunque una revisión ya lo haya sugerido, y también en «Riesgos y deuda pendiente» de la ficha.
 - Si en las capturas o en el diff ves algo que los informes no recogen o contradicen, como un posible defecto visual, anótalo en la ficha, en «Riesgos y deuda pendiente», como observación sin contrastar, y en el apartado «Observaciones sin contrastar» de tu informe. No lo descartes por tu cuenta.
 - Breve: la ficha es para quien dentro de un año pregunte por qué se hizo así.
 
@@ -52,8 +52,12 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
 # Documentación
 ## Archivos escritos
 ## Diferencias entre informes y diff
+## Documentación del proyecto pendiente
+(«Nada» si no falta nada; si falta: archivo y línea, qué dice o qué falta, y el texto propuesto)
 ## Observaciones sin contrastar
 (solo si las hay: qué se ve, en qué captura o archivo, y qué informe lo contradice)
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: DOCUMENTADO | BLOQUEADO
 ```

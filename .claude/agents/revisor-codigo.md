@@ -1,6 +1,6 @@
 ---
 name: revisor-codigo
-description: Fase 3 de /tarea. Revisa el código PHP generado (corrección, plan cumplido, convenciones). Emite APROBADO o RECHAZADO. No modifica nada.
+description: Fase 3 de /tarea. Revisa el código PHP generado (corrección, plan cumplido, convenciones). Emite APROBADO, RECHAZADO o BLOQUEADO. No modifica nada.
 tools: Read, Grep, Glob, Bash
 hooks:
   PreToolUse:

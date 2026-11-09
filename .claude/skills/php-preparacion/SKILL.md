@@ -29,6 +29,7 @@ No escribas nada. Averigua:
 6. **Puerto**: elige uno libre al azar entre 8100 y 8899 (`ss -ltn`), para reducir choques con otros proyectos.
    **Subred**, si hay más servicios que `web`: con `n` = puerto − 8100, `__SUBRED__` es `10.<213 + n / 256, sin decimales>.<n % 256>`, y la red es `__SUBRED__.0/28`. Al salir del puerto, dos entornos de magents con puertos distintos no chocan. Compruébala con `ip -4 route show table all to match __SUBRED__.1 | grep -v '^default'`: si sale alguna ruta, esa red ya está en uso (VPN o red local), así que elige otra `/28` de `10.0.0.0/8` e indícalo. No uses `ip route get`, porque con una VPN da su interfaz para cualquier IP. Con el puerto fuera de ese intervalo, elige también una al azar.
 7. **Comprobaciones y rutas**: tests, análisis estático y rutas que no se deben tocar.
+8. **Documentación del proyecto**: archivos versionados que explican la web a quien la usa, la instala o la actualiza (`README`, guías de instalación o de migración, `docs/`, y textos de la propia web que listen requisitos o medidas), con qué cubre cada uno, para la sección «Documentación del proyecto» de `proyecto.md`. No incluyas nada de `.magents/`.
 
 Si no hay entorno propio y Docker no está disponible: `BLOQUEADO`.
 
@@ -45,6 +46,8 @@ Reutilizar el existente o generar uno: imagen, extensiones, raíz web, servicios
 ## Valores para .magents/proyecto.md
 ## Preguntas para el usuario
 Solo lo que no se puede deducir: pregunta, por qué importa y tu recomendación
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: PROPUESTA | BLOQUEADO
 ```
@@ -58,7 +61,7 @@ Aplica solo lo que el prompt indica como confirmado. Antes de empezar, guarda la
 3. Si se genera el entorno, copia de `plantillas/scripts/` a `.magents/scripts/` `iniciar.sh` y `parar.sh` sin alterarlos, también `reiniciar-bd.sh` si hay BD, y a `.magents/entorno/` `php.ini`, `magents.conf`, `Dockerfile` y `compose.yml` adaptados: rellena cada `__VALOR__` y borra lo que no aplique. `__PROYECTO__` va en minúsculas, con letras, números y guiones. Si `.git` es un archivo (worktree o submódulo), cambia su línea de `tmpfs` por un volumen `/dev/null:/var/www/html/.git:ro`. Crea también los archivos de configuración sustitutos en `.magents/entorno/config/`, solo con valores de prueba. Si hay BD, crea `.magents/entorno/bd-inicial/` aunque quede vacía, porque si no la crearía Docker como root. No montes una copia idéntica de un archivo del proyecto: los cambios del original no se probarían.
 4. Si una versión antigua de PHP no se puede construir, no la cambies por otra más nueva: `BLOQUEADO`, y explica el error.
 5. Nunca modifiques los scripts fijos, porque `install.sh` los sobrescribe. Si el arranque necesita algo propio del proyecto, ponlo en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta desde `.magents/entorno/` si existe y `install.sh` no toca. Todo script del entorno va en `.magents/scripts/`.
-6. Si `apt-get` no descarga dentro de la red de Docker, por ejemplo con una VPN, construye desde ese script con `docker build --network=host -t <imagen> .`, y en `compose.yml` cambia `build: .` por `image: <imagen>` y `pull_policy: never`. Compose no sirve para esto, porque construir con `network: host` le exige permisos adicionales.
+6. Si `apt-get` no descarga dentro de la red de Docker, por ejemplo con una VPN, construye desde ese script con `docker build --network=host -t <imagen> .`, donde `<imagen>` es `<name>-web:<versión de PHP>` con el `name:` de `compose.yml` (por ejemplo `magents-cfw-web:8.5`), porque el hook solo deja etiquetar imágenes de este proyecto, y en `compose.yml` cambia `build: .` por `image: <imagen>` y `pull_policy: never`. Compose no sirve para esto, porque construir con `network: host` le exige permisos adicionales.
 7. En lo que escribas, usa tabuladores salvo en formatos que no los admitan, como YAML, o donde el archivo ya use espacios. Los comentarios son breves, solo donde aporten algo, y nunca ocupan más que lo que acompañan.
 
 ### Comprobaciones
@@ -68,7 +71,7 @@ Ejecuta todas y anota el comando y el resultado real:
 1. `.magents/scripts/iniciar.sh`, o el comando del entorno propio, termina sin error y la URL responde.
 2. `php -v` dentro del contenedor coincide con la versión confirmada.
 3. Desde dentro del contenedor, cada conexión de la tabla de aislamiento apunta al sustituto, sin mostrar secretos. Si hay BD, la web se conecta a la de prueba.
-4. Si hay más servicios que `web`: `.magents/scripts/comprobar-entorno.sh` pasa y cada nombre que usa la configuración de la web, también un alias, está en `/etc/hosts` del contenedor. Después, solo si pasa, para cada servicio con `docker compose stop <servicio>`: `getent ahosts <nombre>` dentro de `web` sigue dando su IP privada; no uses `getent hosts`, que consulta `AAAA` fuera de Docker aunque el nombre esté en `/etc/hosts`. Espera 60 s, porque antes de que caduque la caché ARP la conexión puede tardar todo su tiempo de espera, y la web debe dar su error en menos de 20 s. Vuelve a levantarlo con `docker compose up -d --wait <servicio>`. Si no pasa, no pares el servicio y anótalo.
+4. Si hay más servicios que `web`: `.magents/scripts/comprobar-entorno.sh` pasa y cada nombre que usa la configuración de la web, también un alias, está en `/etc/hosts` del contenedor. Después, solo si pasa, para cada servicio con `docker compose stop <servicio>`: `getent ahosts <nombre>` dentro de `web` sigue dando su IP privada; no uses `getent hosts`, que consulta `AAAA` fuera de Docker aunque el nombre esté en `/etc/hosts`. Espera 60 s, con `sleep 60` en segundo plano porque Claude Code bloquea los `sleep` largos en primer plano, ya que antes de que caduque la caché ARP la conexión puede tardar todo su tiempo de espera, y la web debe dar su error en menos de 20 s. Vuelve a levantarlo con `docker compose up -d --wait <servicio>`. Si no pasa, no pares el servicio y anótalo.
 5. `/.git/HEAD` y `/.magents/proyecto.md` no se sirven por la URL local.
 6. Las páginas principales, como la de inicio y la de acceso, no redirigen fuera de la URL local (`curl -sI`).
 7. Un `Warning`, un `Notice` y un `Deprecated` provocados con una sonda temporal llegan al log indicado en `proyecto.md` y no se muestran en la página. Borra la sonda.
@@ -84,6 +87,8 @@ Si alguna falla y no lo puedes arreglar dentro de `.magents/`, termina con `BLOQ
 | Comprobación | Comando | Resultado |
 ## Supuestos pendientes de confirmar
 ## Pendiente del usuario
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: LISTO | BLOQUEADO
 ```
@@ -93,7 +98,7 @@ VEREDICTO: LISTO | BLOQUEADO
 No cambies ningún archivo salvo la sonda temporal de las comprobaciones, que debes borrar. Reiniciar el entorno recrea el contenedor y pierde sus logs: si `git status` u otra señal indica una tarea en curso, no lo hagas y termina con `BLOQUEADO`, para que el usuario decida. Anota si estaba en marcha y déjalo igual al terminar. Si no está en marcha, arráncalo solo para las comprobaciones.
 
 1. Ejecuta `.magents/scripts/comprobar-entorno.sh`, si existe, y parte de su salida.
-2. Compara `.magents/entorno/` y `proyecto.md` con las plantillas y normas actuales de esta skill. Por ejemplo, un `LogLevel` que falta en `magents.conf`, un `proyecto.md` que describe un comportamiento que los scripts ya no tienen, o un paso de construcción que quedó solo en `.magents/scripts/anterior/`.
+2. Compara `.magents/entorno/` y `proyecto.md` con las plantillas y normas actuales de esta skill, también las secciones de `plantillas/proyecto.md` que falten en `proyecto.md`, como «Documentación del proyecto», que propones rellenar según el punto 8 de «Modo `propuesta`». Por ejemplo, un `LogLevel` que falta en `magents.conf`, un `proyecto.md` que describe un comportamiento que los scripts ya no tienen, o un paso de construcción que quedó solo en `.magents/scripts/anterior/`.
 3. Ejecuta las comprobaciones de «Modo `generar`» con el entorno tal como está. Omite solo las que no se puedan repetir sin cambiar datos, e indícalo.
 
 Separa lo que está mal de lo que solo es distinto. Una adaptación del proyecto, como otra versión de PHP, más extensiones o un `--network=host`, no es un problema si funciona. No propongas igualarla a la plantilla. Un archivo montado idéntico a su original sí es un problema, porque sus cambios no se probarían: propón quitar el montaje si la copia no sustituye nada.
@@ -106,6 +111,8 @@ Separa lo que está mal de lo que solo es distinto. Una adaptación del proyecto
 | Problema | Evidencia | Consecuencia | Arreglo propuesto, con los archivos que cambia |
 ## Adaptaciones que se conservan
 ## Sin comprobar
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: CORRECTO | PROBLEMAS | BLOQUEADO
 ```
@@ -127,6 +134,8 @@ Aplica solo los arreglos que el prompt indica como confirmados.
 ## Comprobaciones
 | Comprobación | Comando | Resultado |
 ## Pendiente
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: LISTO | BLOQUEADO
 ```

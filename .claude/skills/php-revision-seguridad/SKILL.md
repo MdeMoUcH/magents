@@ -52,6 +52,8 @@ Entradas y rutas seguidas
 ## Preexistentes
 ## Endurecimiento
 ## Lo que no se pudo verificar
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: APROBADO | RECHAZADO | BLOQUEADO
 ```

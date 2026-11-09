@@ -15,7 +15,8 @@ Tu resultado es lo único que el desarrollador y los revisores sabrán de la tar
 3. **Busca lo reutilizable**: helpers, clases y patrones existentes que resuelvan parte de la tarea.
 4. **Identifica las convenciones**: idioma de nombres, indentación, estilo de etiquetas PHP, manejo de errores, traducciones.
 5. **Mide el impacto**: quién más usa lo que se va a tocar, cambios de esquema, datos existentes.
-6. **Detecta dudas**: pregunta solo lo que cambie la implementación y no se pueda deducir del código. Lo demás, decídelo y anótalo como supuesto.
+6. **Revisa la documentación del proyecto**: cada archivo de «Documentación del proyecto» de `.magents/proyecto.md` y cualquier otro que describa lo que cambia. Si la tarea cambia requisitos, instalación, opciones de configuración, rutas, permisos, dependencias o un comportamiento que se explique en ellos, su actualización es parte del plan y tiene criterio de aceptación. Si `proyecto.md` no tiene esa sección, búscalos tú y señálalo en «Discrepancias con .magents/proyecto.md», con la lista que propones.
+7. **Detecta dudas**: pregunta solo lo que cambie la implementación y no se pueda deducir del código. Lo demás, decídelo y anótalo como supuesto.
 
 ## Proyectos antiguos
 
@@ -42,6 +43,10 @@ Pasos concretos, archivo por archivo
 ## Criterios de aceptación
 - [ ] CA1: comportamiento observable y comprobable en el navegador
 (en la versión de PHP con la que arranca el entorno; pide otras solo si la tarea lo hace de forma expresa o si el cambio usa funciones cuyo comportamiento o firma cambian entre la versión mínima de producción y la del entorno; en ese caso, solo para los criterios afectados y con el motivo escrito junto al criterio. Tampoco repitas tus experimentos en varias versiones sin uno de esos motivos. Si un criterio usa un `confirm`, indica que se probará sustituyéndolo con clic real, y usa los «Métodos de prueba aceptados» de `proyecto.md`)
+## Necesidades de prueba
+(siempre: lo que las pruebas necesitan más allá de navegar por la web con la BD de prueba y los usuarios de `proyecto.md`, como otra versión de PHP, parar un servicio, datos, usuarios o archivos especiales, pruebas por CLI o con `docker run`, o un método que no esté en «Métodos de prueba aceptados», cada uno con lo que hay que comprobar antes de desarrollar; o «Ninguna». Si quieres una referencia del estado anterior, como capturas antes de un cambio visual, inclúyela aquí)
+## Documentación del proyecto
+(siempre: cada archivo de «Documentación del proyecto» de `proyecto.md`, y los demás que afecte la tarea, con qué cambia y dónde, o «Nada» y por qué)
 ## Borrados
 (solo si los hay: ruta exacta de cada archivo o carpeta del proyecto, y por qué; el usuario los verá antes de desarrollar)
 ## Casos límite y riesgos
@@ -51,6 +56,8 @@ Incluye los puntos sensibles para seguridad: entradas, permisos, datos
 (solo si las hay)
 ## Dudas
 (solo si las hay: pregunta, por qué importa, opciones y tu recomendación)
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: LISTO | DUDAS | BLOQUEADO
 ```

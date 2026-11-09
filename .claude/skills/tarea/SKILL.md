@@ -34,7 +34,7 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
                         └──── RECHAZADO ──┴─────────────────┴───────────────┘
 ```
 
-`entorno` es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las tres verificaciones en orden**, porque un arreglo puede romper lo ya aprobado. Lanza cada verificación al terminar la anterior, nunca a la vez: si una rechaza, el trabajo de las siguientes se pierde.
+`entorno` es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Sáltala solo si se cumple todo esto: «Necesidades de prueba» de `triage.md` dice «Ninguna», no ha habido corrección de entorno en esta tarea, `.magents/scripts/comprobar-entorno.sh` pasa justo antes y la URL base de `proyecto.md` responde con `curl`. Anótalo en el historial («Entorno: omitida, sin necesidades de prueba») y pasa a `desarrollador`. Si `probador` se bloquea después por el entorno o el MCP, resuélvelo como cualquier `BLOQUEADO` y no cuenta como iteración. Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las tres verificaciones en orden**, porque un arreglo puede romper lo ya aprobado. Lanza cada verificación al terminar la anterior, nunca a la vez: si una rechaza, el trabajo de las siguientes se pierde.
 
 ## Preparación
 
@@ -54,13 +54,13 @@ Con `continuar <NNNN>`, busca `.magents/tareas/<NNNN>-*/` y lee su `informes/est
 
 ## Cómo lanzar cada fase
 
-Los subagentes no ven esta conversación. Pasa siempre en el prompt: el texto íntegro de la tarea, el id, la ruta `.magents/tareas/<id>/`, el commit base y lo específico de la fase. Guarda la respuesta final de cada uno, íntegra y sin resumir, en el archivo indicado dentro de `informes/`, donde también va `estado.md`.
+No indiques `model` al lanzarlos: cada uno usa el de su definición. Los subagentes no ven esta conversación. Pasa siempre en el prompt: el texto íntegro de la tarea, el id, la ruta `.magents/tareas/<id>/`, el commit base y lo específico de la fase. Guarda la respuesta final de cada uno, íntegra y sin resumir, en el archivo indicado dentro de `informes/`, donde también va `estado.md`.
 
 | Fase | Subagente | Guardar en | Le pasas además |
 |---|---|---|---|
 | 1 | `triage` | `triage.md` | ruta de `.magents/proyecto.md`; respuestas previas del usuario, si las hay |
 | Corrección de entorno | `preparador` | `preparacion-<n>.md` | modo `generar`; lo que haya confirmado el usuario |
-| Entorno | `probador` | `entorno.md` | indicación de hacer solo la comprobación de entorno; rutas de `triage.md` y `.magents/proyecto.md`; carpeta de evidencia `capturas/entorno/` |
+| Entorno | `probador` | `entorno.md` | indicación de hacer solo la comprobación de entorno, salvo si se omite (ver arriba); rutas de `triage.md` y `.magents/proyecto.md`; carpeta de evidencia `capturas/entorno/` |
 | 2 | `desarrollador` | `desarrollo-<n>.md` | rutas de `triage.md` y `.magents/proyecto.md`; desde `n=2`, ruta del informe que rechazó |
 | 3 | `revisor-codigo` | `revision-codigo-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md` |
 | 4 | `revisor-seguridad` | `revision-seguridad-<n>.md` | rutas de `triage.md` y `desarrollo-<n>.md` |
@@ -78,20 +78,22 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 | `LISTO` (triage o entorno), `IMPLEMENTADO` (desarrollo), `DOCUMENTADO` | Siguiente fase |
 | `APROBADO` | Siguiente fase |
 | `RECHAZADO` | `n += 1` y volver a `desarrollador` |
-| `DUDAS` / `BLOQUEADO` | Pregunta al usuario con AskUserQuestion, incluyendo el contexto, y pasa la respuesta a esa misma fase: si puedes, continúa el mismo subagente con SendMessage, que ya tiene el análisis hecho; si no, relánzala con la respuesta. Antes de guardar su nueva respuesta, renombra el informe anterior con un número (`triage-1.md`, `triage-2.md`…). Un `BLOQUEADO` del probador no es un rechazo: no gastes una iteración de desarrollo en él |
+| `DUDAS` / `BLOQUEADO` | Pregunta al usuario con AskUserQuestion, incluyendo el contexto, y pasa la respuesta a esa misma fase: si puedes, continúa el mismo subagente con SendMessage, que ya tiene el análisis hecho; si no, relánzala con la respuesta. Antes de guardar su nueva respuesta, renombra el informe anterior añadiendo un número (`triage-1.md`, `entorno-1.md`, `pruebas-1-1.md`…); haz lo mismo con cualquier informe que se vaya a sobrescribir, como `documentacion.md`. Un `BLOQUEADO` del probador no es un rechazo: no gastes una iteración de desarrollo en él |
 
 - **Discrepancias con `proyecto.md`**: si el triage señala alguna, enséñasela al usuario antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme y guarda su respuesta en `informes/preparacion-<n>.md`. Con `LISTO`, sigue con la comprobación de entorno. Con `BLOQUEADO`, aplica la regla de esa tabla, con un máximo de tres bloqueos seguidos.
 - **Fase interrumpida**: si un subagente se detiene sin veredicto, anótalo en el historial con lo que dejó a medias. Al relanzar esa fase, indícale qué se interrumpió y qué restos quedan. No cuenta como iteración.
-- **Continuar o relanzar `probador` en la misma iteración**: tras un corte, si puedes, continúa el mismo subagente con SendMessage e indícale que siga «Si se retoma» de `php-pruebas-firefox`. Si no puedes, o tras un `BLOQUEADO`, relánzalo y pásale en el prompt la carpeta de evidencia más reciente de esa iteración que tenga `progreso.md`, para que reutilice lo que siga valiendo. Tras un `RECHAZADO` hay iteración nueva y se prueba todo.
+- **Continuar o relanzar `probador` en la misma iteración**: tras un corte, si puedes, continúa el mismo subagente con SendMessage e indícale que siga «Si se retoma» de `php-pruebas-firefox`. Tras un `BLOQUEADO`, continúalo igual con la respuesta del usuario. Si no puedes continuarlo, relánzalo y pásale en el prompt la carpeta de evidencia más reciente de esa iteración que tenga `progreso.md`, para que reutilice lo que siga valiendo. Tras un `RECHAZADO` hay iteración nueva y se prueba todo.
 - **Métodos de prueba**: si la comprobación de entorno se bloquea solo por un método de prueba y el usuario lo acepta, no la repitas: anota la aceptación en el historial y pásala a `probador`. Pregúntale también si vale para futuras tareas; si dice que sí, añádela a «Métodos de prueba aceptados» de `.magents/proyecto.md`. Haz lo mismo si la comprobación termina en `LISTO` pero propone un método de prueba o un cambio de datos o de archivos que no estén en `triage.md` ni en esos métodos aceptados, como crear un archivo de configuración temporal: pregúntaselo al usuario antes de pasarlo a `desarrollador` o `probador`, y pásalo solo si lo acepta, indicando que lo ha aceptado él.
 - **Borrados del plan**: si `triage.md` incluye borrados, enséñaselos al usuario antes de desarrollar. Un borrado rechazado se le pregunta: no lo reintentes ni dejes que un subagente lo reintente.
+- **Comandos declarados**: lee el apartado «Comandos que declarar» de cada informe. Si algo tuvo efecto fuera de lo previsto o deja algo pendiente, como un contenedor colgado, un archivo fuera de `tmp/` o datos cambiados, díselo al usuario en la línea de esa fase y anótalo en el historial. Lo que no tuvo efecto basta con que quede en el informe.
 - **Observaciones de `documentador`**: enséñale siempre al usuario las que no se hayan contrastado, aunque el flujo haya terminado. Pueden ser un defecto que las pruebas no vieron.
+- **Documentación del proyecto pendiente**: si el informe de `documentador` la tiene, enséñasela al usuario con el texto propuesto y pregúntale con AskUserQuestion si se aplica ahora o queda como deuda. Si se aplica, anótalo en el historial, lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios, y repite revisión de código, revisión de seguridad y documentación; las pruebas solo si los cambios afectan a lo que ve la web, como un texto de una página. Si queda como deuda, anótalo en el historial.
 - **Criterios parciales**: si el probador termina con `BLOQUEADO` por un criterio `PARCIAL`, enseña al usuario qué queda fuera. Si acepta esa exclusión, anótalo en el historial y relanza `probador` solo para ese criterio, indicándole la exclusión aceptada.
 - **Decisiones del usuario**: si un informe deja un riesgo o una decisión para el usuario, pregúntale con AskUserQuestion antes de seguir, aunque el veredicto permita avanzar. No las tomes tú. Puedes prohibir de inmediato una acción peligrosa, pero no sustituir una prueba ni excluir nada de un criterio: lo que esa prohibición impida probar queda `PARCIAL` hasta que el usuario lo acepte. Anota su respuesta en el historial y, al pasarla a un subagente, indica que la ha aceptado el usuario.
 - **Límite**: como máximo **5 iteraciones** de desarrollo. Si la 5.ª se rechaza, para y presenta al usuario el historial y el problema pendiente.
 - **Ciclo sin avance**: si el mismo problema vuelve a aparecer en dos rechazos seguidos, para antes del límite y pregunta.
 - **Desacuerdo**: si el desarrollador responde que un hallazgo es erróneo, no lo decides tú: la siguiente revisión lo reevalúa con ese argumento, y si se mantiene preguntas al usuario.
-- **Nunca** te saltes una fase, ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.
+- **Nunca** te saltes una fase, salvo la comprobación de entorno en el caso que indica «Flujo», ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.
 - Las acciones de producción están fuera del flujo salvo que el usuario las pida.
 
 ## Al terminar

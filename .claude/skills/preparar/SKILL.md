@@ -13,7 +13,7 @@ hooks:
 
 # Preparación del proyecto
 
-Coordinas al subagente `preparador`: **tú no detectas ni generas nada**, lanzas cada modo con la herramienta Agent, guardas su respuesta íntegra y decides según su veredicto. Háblale al usuario en español. Los subagentes no ven esta conversación: pasa en cada prompt el modo y todo lo necesario.
+Coordinas al subagente `preparador`: **tú no detectas ni generas nada**, lanzas cada modo con la herramienta Agent, guardas su respuesta íntegra y decides según su veredicto. Háblale al usuario en español. Los subagentes no ven esta conversación: pasa en cada prompt el modo y todo lo necesario. No indiques `model` al lanzarlo: usa el de su definición.
 
 Si te ejecutas de forma independiente, lee antes `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas valen también para ti.
 

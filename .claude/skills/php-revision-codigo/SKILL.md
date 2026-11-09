@@ -17,18 +17,19 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 1. **Plan**: cada paso y criterio de aceptación de `triage.md` está implementado, no hay nada ajeno a la tarea y no se ha tocado ninguna ruta prohibida en `.magents/proyecto.md`.
 2. **Lógica**: condiciones invertidas, casos límite, `null`, comparaciones `==` problemáticas (`0 == "a"`, `in_array` sin modo estricto), datos vacíos, errores de BD sin tratar.
 3. **Integración**: llamadas con la firma correcta, rutas y `.htaccess`, nombres de campos que coinciden entre el formulario, el PHP y el SQL, plantillas, traducciones, migración incluida.
-4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados (con `docker run --rm --name <prefijo>-tmp-lint -v "$PWD":/app:ro -w /app php:<versión>-cli` si no hay PHP en el host; el prefijo, en «Docker» de `magents-normas`).
+4. **Compatibilidad**: sintaxis y funciones disponibles en la versión de PHP de producción; `php -l` en los archivos cambiados, con `docker compose -f .magents/entorno/compose.yml exec -T web php -l <archivo>` si el entorno está en esa versión, o si no con `docker run --rm --name <nombre>_tmp-lint --network none -v "$PWD":/app:ro -w /app <imagen> timeout 120 php -l <archivo>`, con la imagen del entorno de esa versión o `php:<versión>-cli` (el nombre, en «Docker» de `magents-normas`).
 5. **Rendimiento evidente**: N+1, consultas sin límite sobre tablas grandes.
 6. **Convenciones**: encaja con el código de alrededor, reutiliza lo existente, sin depuración ni código muerto.
    - Indentación con tabuladores en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML; en un archivo existente con espacios se mantienen los espacios, sin mezclar ni reformatear; en uno que ya mezcla ambos, lo nuevo sigue el estilo de las líneas de alrededor y no se sugiere reformatear.
    - Comentarios breves, que nunca ocupen más que el código al que acompañan y normalmente mucho menos.
-7. **Tests**: ejecuta los definidos en `.magents/proyecto.md`, si los hay. Si necesitas confirmar un bloqueante con escrituras, puedes hacerlo en el entorno local y restablecer la BD al terminar con el comando de `proyecto.md`, volviendo a aplicar los pasos adicionales de desarrollo.
+7. **Documentación del proyecto**: están hechos los cambios de «Documentación del proyecto» de `triage.md`, y ningún archivo de esa lista, ni otro que lo explique, contradice lo que hace ahora el código (requisitos, opciones, rutas, permisos, comportamiento). Un cambio de documentación del plan sin hacer, o un documento que queda contradiciendo al código, es bloqueante. Lo que solo mejoraría la redacción es sugerencia.
+8. **Tests**: ejecuta los definidos en `.magents/proyecto.md`, si los hay. Si necesitas confirmar un bloqueante con escrituras, puedes hacerlo en el entorno local y restablecer la BD al terminar con el comando de `proyecto.md`, volviendo a aplicar los pasos adicionales de desarrollo.
 
 La seguridad la audita la fase siguiente; si ves algo evidente, anótalo igualmente.
 
 ## Criterio
 
-- **Bloqueante**: fallo real con un escenario concreto, criterio de aceptación incumplido, rotura de código existente, o incumplimiento de la norma de comentarios. → `RECHAZADO`
+- **Bloqueante**: fallo real con un escenario concreto, criterio de aceptación incumplido, rotura de código existente, documentación del proyecto que contradice al código, o incumplimiento de la norma de comentarios. → `RECHAZADO`
 - **Sugerencia**: mejora opcional, incluida la indentación, que por sí sola no merece una iteración. No bloquea; si hay otra iteración, el desarrollador la corrige.
 - **Preexistente**: problema que ya estaba y que el cambio no empeora. Se anota, no bloquea.
 
@@ -44,6 +45,8 @@ No bloquees por gustos. Verifica cada hallazgo en el código antes de incluirlo.
 ## Preexistentes
 ## Comprobaciones ejecutadas
 Comando y resultado real
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: APROBADO | RECHAZADO | BLOQUEADO
 ```

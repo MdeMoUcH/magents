@@ -18,14 +18,33 @@ user-invocable: false
 
 ## Comprobación de entorno
 
-Si el prompt te pide solo esta comprobación, no pruebes la tarea, porque aún no está desarrollada. Se hace antes del desarrollo para no gastarlo si no se va a poder probar:
+Si el prompt te pide solo esta comprobación, no pruebes la tarea, porque aún no está desarrollada. Se hace antes del desarrollo para no gastarlo si no se va a poder probar, y debe ser rápida: comprueba solo esto.
 
-1. Arranca el entorno como se indica en «Preparar el entorno» y comprueba que responde.
-2. Confirma que las herramientas `mcp__firefox-devtools__*` están disponibles y abre la URL local con `new_page`.
-3. Si los criterios de aceptación de `triage.md` requieren escribir datos, confirma que la BD es de prueba. Confirma también que hay los usuarios de prueba que necesiten.
-4. Para lo que hayas arrancado y no cambies datos.
+1. **Entorno**: como en «Preparar el entorno», que responde y es este entorno, y su versión de PHP. Si no está en marcha, arráncalo. No lo reinicies ni restablezcas la BD.
+2. **Firefox**: que las herramientas `mcp__firefox-devtools__*` funcionan, abriendo la URL local con `new_page`. Cierra la pestaña.
+3. **BD**: si los criterios escriben datos, que la BD es de prueba y están los usuarios que necesitan, solo con consultas de lectura.
+4. **Necesidades de prueba** de `triage.md`: cada punto, con la comprobación mínima que demuestre que se podrá hacer (que existe la imagen, que el montaje funciona, que el método da el resultado esperado en un caso). Si ahí no hay nada, no hagas nada más.
 
-Informe: una sección por cada punto, con lo que has comprobado y el resultado, y al final `VEREDICTO: LISTO | BLOQUEADO`. Si un criterio no se podrá probar en las condiciones que pide, o hay un riesgo que debe decidir el usuario, el veredicto es `BLOQUEADO`. No bloquees por un método que ya esté aceptado: el de los diálogos de JavaScript de «Herramientas MCP» o los de «Métodos de prueba aceptados» de `proyecto.md`.
+No ensayes los criterios uno a uno ni hagas capturas, salvo que «Necesidades de prueba» pida una referencia del estado anterior. Usa `docker run` solo si un punto de «Necesidades de prueba» lo exige. No cambies datos; si un punto lo exige, devuélvelo todo a como estaba. Para lo que hayas arrancado.
+
+Informe, sin más apartados que estos y en pocas líneas cada uno:
+
+```markdown
+# Comprobación de entorno
+## Entorno
+## Firefox
+## BD
+## Necesidades de prueba
+(una línea por punto: comprobado y resultado; «Ninguna» si no hay)
+## Métodos o cambios fuera de lo aceptado
+(solo si los hay)
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
+
+VEREDICTO: LISTO | BLOQUEADO
+```
+
+Si un criterio no se podrá probar en las condiciones que pide, o hay un riesgo que debe decidir el usuario, el veredicto es `BLOQUEADO`. No bloquees por un método que ya esté aceptado: el de los diálogos de JavaScript de «Herramientas MCP» o los de «Métodos de prueba aceptados» de `proyecto.md`.
 
 ## Preparar el entorno
 
@@ -135,6 +154,8 @@ Rutas de las capturas y salidas, todas en tu carpeta de evidencia
 (solo si lo hay: bloques, carpeta de origen y resultado de comparar la huella)
 ## Sin probar
 Lo que no se ha ejecutado y por qué
+## Comandos que declarar
+(«Ninguno», o cada uno según «Comandos que declarar» de `magents-normas`)
 
 VEREDICTO: APROBADO | RECHAZADO | BLOQUEADO
 ```

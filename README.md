@@ -8,7 +8,7 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
                         └──── RECHAZADO ──┴─────────────────┴───────────────┘
 ```
 
-`entorno` es `probador` comprobando, antes de desarrollar, que se va a poder probar. Antes de la primera tarea, `/preparar` genera el entorno local con el agente `preparador`.
+`entorno` es `probador` comprobando, antes de desarrollar, que se va a poder probar: lo básico y las «Necesidades de prueba» que señale el triage. Si no hay ninguna y el entorno responde, se omite. Antes de la primera tarea, `/preparar` genera el entorno local con el agente `preparador`.
 
 | Fase | Subagente | Skill | Permisos |
 |---|---|---|---|
@@ -20,9 +20,15 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 | Pruebas en Firefox | `probador` | `php-pruebas-firefox` | Sin edición + MCP de Firefox |
 | Documentación | `documentador` | `php-documentacion` | Edición, solo en `.magents/` por instrucción |
 
+`probador` y `documentador` usan Sonnet (`model: sonnet` en su definición), porque son las fases más largas y siguen un método muy pautado; el resto usa el modelo de la sesión. Para cambiarlo, edita o quita esa línea en `.claude/agents/`; una reinstalación la vuelve a poner.
+
 La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git, carpeta y Docker. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas).
 
 Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen y un mensaje de commit recomendado. Los commits los haces tú: los agentes solo usan git para consultar y no hacen despliegues.
+
+## Documentación del proyecto
+
+Los archivos que explican la web, como el `README.md` o una guía de instalación, se listan en «Documentación del proyecto» de `.magents/proyecto.md`. El triage incluye en el plan lo que cambia en ellos, la revisión de código rechaza si falta o si un documento contradice al código, y `documentador`, que no los toca, te enseña al final lo que haya quedado pendiente para que decidas si se aplica en otra iteración o queda como deuda.
 
 ## Estilo del código
 
@@ -123,7 +129,7 @@ Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de 
 
 ## Limitaciones
 
-- El límite de carpeta lo refuerza un hook (`magents-normas/limite-carpeta.cjs`) en todos los agentes y en `/tarea` y `/preparar`: bloquea órdenes y archivos fuera de la raíz, `sudo` y los borrados globales de Docker, y necesita `node`. En Docker, solo deja parar, matar, reiniciar o entrar con `exec` en contenedores cuyo nombre empiece por el `name:` del entorno (por ejemplo `magents-cfw-`), y exige que cada `docker run` lleve un nombre así (`magents-cfw-tmp-<algo>`), para que un agente pueda parar sus contenedores desechables si se cuelgan. Es una barrera ante errores: no ve lo que haga el código PHP o JS al ejecutarse ni los scripts de `.magents/scripts/`. Para autorizar una ruta, añádela tú a `.magents/rutas-autorizadas.txt`; las rutas del sistema nunca se modifican. Sus pruebas: `node .claude/skills/magents-normas/limite-carpeta.test.cjs`.
+- El límite de carpeta lo refuerza un hook (`magents-normas/limite-carpeta.cjs`) en todos los agentes y en `/tarea` y `/preparar`: bloquea órdenes y archivos fuera de la raíz, `sudo` y los borrados globales de Docker, y necesita `node`. En Docker, solo deja parar, matar, reiniciar o entrar con `exec`, por su nombre completo, en los contenedores del entorno (`magents-cfw-<servicio>-<n>`) y en los desechables de los agentes, y exige que cada `docker run` lleve un nombre de desechable (`magents-cfw_tmp-<algo>`). Así un agente puede parar los suyos si se cuelgan, sin poder tocar los de otro proyecto: el `_` no puede aparecer en el nombre de otro proyecto de magents, así que `magents-cfw_tmp-x` nunca es de `magents-cfw-test`. Tampoco deja usar `docker compose -p` con otro proyecto, cambiar de daemon (`-H`, `--context`, `DOCKER_HOST`), etiquetar imágenes que no sean del proyecto, ni `push`, `login`, `swarm`, `stack` o conectar redes. Es una barrera ante errores: no ve lo que haga el código PHP o JS al ejecutarse ni los scripts de `.magents/scripts/`. Para autorizar una ruta, añádela tú a `.magents/rutas-autorizadas.txt`; las rutas del sistema nunca se modifican. Sus pruebas: `node .claude/skills/magents-normas/limite-carpeta.test.cjs`.
 - La regla de git solo lectura es una instrucción, no un bloqueo técnico. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
 - Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
 - `.magents/.htaccess` no protege en Nginx. Excluye `.magents/` si despliegas por FTP o rsync: subirla publicaría informes con vulnerabilidades detalladas.

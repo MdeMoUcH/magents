@@ -21,6 +21,14 @@ Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.mag
 - Framework o estructura:
 - Requisitos especiales: <!-- p. ej. short_open_tag=On -->
 
+## Documentación del proyecto
+
+<!-- Archivos versionados que explican la web a quien la usa, instala o actualiza, y qué cubre cada uno. P. ej.:
+- README.md: qué es y cómo funciona
+- INSTALACION.md: requisitos y puesta en marcha
+- Textos de la web que listan requisitos o medidas: ruta del archivo
+Las tareas que cambien lo que describen deben actualizarlos. -->
+
 ## Métodos de prueba aceptados
 
 <!-- Métodos que el usuario acepta para todas las tareas, para no volver a preguntarlos -->
