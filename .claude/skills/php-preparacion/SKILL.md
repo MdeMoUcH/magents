@@ -99,7 +99,8 @@ No cambies ningún archivo salvo la sonda temporal de las comprobaciones, que de
 
 1. Ejecuta `.magents/scripts/comprobar-entorno.sh`, si existe, y parte de su salida.
 2. Compara `.magents/entorno/` y `proyecto.md` con las plantillas y normas actuales de esta skill, también las secciones de `plantillas/proyecto.md` que falten en `proyecto.md`, como «Documentación del proyecto», que propones rellenar según el punto 8 de «Modo `propuesta`». Por ejemplo, un `LogLevel` que falta en `magents.conf`, un `proyecto.md` que describe un comportamiento que los scripts ya no tienen, o un paso de construcción que quedó solo en `.magents/scripts/anterior/`.
-3. Ejecuta las comprobaciones de «Modo `generar`» con el entorno tal como está. Omite solo las que no se puedan repetir sin cambiar datos, e indícalo.
+3. Revisa cada comando de `proyecto.md` (recetas, `php -l`, pruebas por consola) contra «Docker» y «Rutas literales» de `magents-normas`, porque los agentes los copian tal cual y el hook bloquea los que no cumplen. Por ejemplo, un `docker run` sin `--name <nombre>_tmp-<algo>`, sin `timeout` delante del comando, que monta algo distinto de la raíz en `:ro` y la carpeta de temporales, o con rutas en variables. Cada uno que no cumpla es un problema: el arreglo propuesto es el comando completo corregido, con su línea de `proyecto.md`. No ejecutes los comandos para comprobarlo.
+4. Ejecuta las comprobaciones de «Modo `generar`» con el entorno tal como está. Omite solo las que no se puedan repetir sin cambiar datos, e indícalo.
 
 Separa lo que está mal de lo que solo es distinto. Una adaptación del proyecto, como otra versión de PHP, más extensiones o un `--network=host`, no es un problema si funciona. No propongas igualarla a la plantilla. Un archivo montado idéntico a su original sí es un problema, porque sus cambios no se probarían: propón quitar el montaje si la copia no sustituye nada.
 
