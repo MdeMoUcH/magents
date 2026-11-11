@@ -2,6 +2,7 @@
 // Hook PreToolUse de los agentes de magents: bloquea lo que salga de la raíz del proyecto.
 // Es una barrera ante errores, no un aislamiento: no ve lo que haga el código PHP o JS al ejecutarse,
 // ni lo que hagan los scripts de .magents/scripts/. Ante la duda, bloquea.
+// Con el argumento solo-magents (agentes que no programan), además solo deja escribir en .magents/ y en sondas magents-sonda-*.
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -16,7 +17,7 @@ const SALIDAS_INOFENSIVAS = new Set(['/dev/null', '/dev/stdout', '/dev/stderr', 
 
 const PROHIBIDOS = new Set(['sudo', 'su', 'doas', 'pkexec', 'fdisk', 'parted', 'shutdown', 'reboot', 'halt', 'poweroff',
   'systemctl', 'service', 'mount', 'umount', 'pkill', 'killall', 'crontab', 'useradd', 'userdel', 'usermod', 'passwd',
-  'iptables', 'nft', 'chroot', 'eval']);
+  'iptables', 'nft', 'chroot', 'eval', 'ssh', 'scp', 'sftp', 'ftp']);
 const MODIFICAN = new Set(['rm', 'rmdir', 'unlink', 'shred', 'mv', 'cp', 'ln', 'chmod', 'chown', 'chgrp', 'touch', 'mkdir',
   'tee', 'truncate', 'dd', 'rsync', 'install', 'mkfifo']);
 const LEEN = new Set(['cat', 'less', 'more', 'head', 'tail', 'ls', 'du', 'stat', 'file', 'wc', 'grep', 'egrep', 'fgrep', 'rg',
@@ -30,10 +31,31 @@ const CLAVES = new Set(['if', 'then', 'elif', 'else', 'fi', 'for', 'while', 'unt
 const CON_PATRON = new Set(['grep', 'egrep', 'fgrep', 'rg', 'sed', 'awk']);
 const CON_CODIGO = { php: '-r', node: '-e', python: '-c', python3: '-c', perl: '-e', ruby: '-e' };
 const INTERPRETES = new Set(['bash', 'sh', 'zsh', 'dash']);
+const SONDA = /^magents-sonda-[A-Za-z0-9._-]+$/;
+// Git es solo de lectura: lo que no esté aquí o en GIT_SOLO_CONSULTA se bloquea.
+const GIT_LECTURA = new Set(['status', 'diff', 'log', 'show', 'rev-parse', 'grep', 'ls-files', 'ls-tree', 'cat-file', 'blame', 'annotate',
+  'describe', 'rev-list', 'merge-base', 'shortlog', 'name-rev', 'for-each-ref', 'show-ref', 'check-ignore', 'check-attr', 'diff-tree',
+  'diff-index', 'diff-files', 'whatchanged', 'count-objects', 'var', 'version', 'help', 'archive', 'range-diff', 'show-branch', 'cherry']);
+const GIT_LISTAR = /^(-l|--list|--show-current|--contains|--no-contains|--merged|--no-merged|--points-at)$/;
+const GIT_SOLO_CONSULTA = {
+  branch: (opciones, sueltos) => !opciones.some((o) => /^(-[dDmMcCfut]|--(delete|move|copy|force|set-upstream-to|unset-upstream|edit-description|track|create-reflog))/.test(o))
+    && (!sueltos.length || opciones.some((o) => GIT_LISTAR.test(o))),
+  tag: (opciones, sueltos) => !opciones.some((o) => /^(-[dfasumFe]|--(delete|force|annotate|sign|message|file|edit))/.test(o))
+    && (!sueltos.length || opciones.some((o) => GIT_LISTAR.test(o))),
+  remote: (opciones, sueltos) => !sueltos.length || sueltos[0] === 'get-url',
+  config: (opciones, sueltos) => opciones.some((o) => /^(--get|--get-all|--get-regexp|--get-urlmatch|--list|-l)$/.test(o)) || /^(get|list)$/.test(sueltos[0] || ''),
+  stash: (opciones, sueltos) => /^(list|show)$/.test(sueltos[0] || ''),
+  worktree: (opciones, sueltos) => sueltos[0] === 'list',
+  reflog: (opciones, sueltos) => !sueltos.length || /^(show|exists)$/.test(sueltos[0]),
+  submodule: (opciones, sueltos) => sueltos[0] === 'status',
+};
 
 class Bloqueo extends Error {}
-function bloquea(motivo) {
-  throw new Bloqueo(motivo);
+// sinAlternativa: lo bloqueado no se arregla reescribiendo el comando.
+function bloquea(motivo, sinAlternativa = false) {
+  const error = new Bloqueo(motivo);
+  error.sinAlternativa = sinAlternativa;
+  throw error;
 }
 
 function real(ruta) {
@@ -65,6 +87,8 @@ function esAsignacion(palabra) {
 function analizarSintaxis(texto, variables) {
   const ordenes = [];
   const internos = [];
+  // Lo que un comando recibe por la entrada: cuerpos de heredoc y cadenas de <<<.
+  const entradas = [];
   let orden = { palabras: [], redirecciones: [] };
   let palabra = null;
   let redireccion = null;
@@ -77,7 +101,8 @@ function analizarSintaxis(texto, variables) {
   const cerrarPalabra = () => {
     if (!palabra) return;
     if (redireccion) {
-      if (redireccion !== 'cadena') orden.redirecciones.push({ tipo: redireccion, destino: palabra });
+      if (redireccion === 'cadena') entradas.push({ texto: palabra.texto, dinamica: palabra.dinamica });
+      else orden.redirecciones.push({ tipo: redireccion, destino: palabra });
       redireccion = null;
     } else {
       orden.palabras.push(palabra);
@@ -159,6 +184,7 @@ function analizarSintaxis(texto, variables) {
       cerrarOrden();
       i += 1;
       for (const h of heredocs.splice(0)) {
+        const cuerpo = [];
         for (;;) {
           if (i >= texto.length) break;
           let fin = texto.indexOf('\n', i);
@@ -166,7 +192,9 @@ function analizarSintaxis(texto, variables) {
           const linea = texto.slice(i, fin);
           i = fin + 1;
           if ((h.quitarTabs ? linea.replace(/^\t+/, '') : linea) === h.fin) break;
+          cuerpo.push(linea);
         }
+        entradas.push({ texto: cuerpo.join('\n'), dinamica: false });
       }
     } else if (c === ' ' || c === '\t') {
       cerrarPalabra();
@@ -258,16 +286,19 @@ function analizarSintaxis(texto, variables) {
     }
   }
   cerrarOrden();
-  return { ordenes, internos };
+  return { ordenes, internos, entradas };
 }
 
 class Analizador {
-  constructor(raiz, cwd, autorizadas) {
+  constructor(raiz, cwd, autorizadas, soloMagents = false) {
     this.raiz = raiz;
     this.cwd = cwd;
     this.cwdConocido = true;
     this.autorizadas = autorizadas;
+    this.soloMagents = soloMagents;
     this.profundidad = 0;
+    this.shellDeEntrada = false;
+    this.codigoDeEntrada = false;
   }
 
   resolver(ruta, cwd = this.cwd) {
@@ -303,6 +334,10 @@ class Analizador {
       if (dentroDe(ruta, path.join(this.raiz, protegida))) bloquea(`no se puede modificar ${protegida}/`);
     }
     if (ruta === path.join(this.raiz, ARCHIVO_RUTAS)) bloquea(`${ARCHIVO_RUTAS} solo lo edita el usuario`);
+    if (this.soloMagents && !dentroDe(ruta, path.join(this.raiz, '.magents')) && !SONDA.test(path.basename(ruta))
+      && !this.autorizadas.some((base) => dentroDe(ruta, base))) {
+      bloquea(`este agente solo escribe en .magents/ (los temporales, en la carpeta tmp/ de la tarea) y en sondas llamadas magents-sonda-<algo>; ${ruta} no lo es`);
+    }
   }
 
   comprobarDinamica(palabra, verbo) {
@@ -318,12 +353,26 @@ class Analizador {
     this.profundidad += 1;
     if (this.profundidad > 8) bloquea('comando demasiado anidado para verificarlo');
     if (texto.includes('rutas-autorizadas')) bloquea(`${ARCHIVO_RUTAS} solo lo edita el usuario`);
-    const { ordenes, internos } = analizarSintaxis(texto, {
+    const { ordenes, internos, entradas } = analizarSintaxis(texto, {
       PWD: this.cwd,
       CLAUDE_PROJECT_DIR: this.raiz,
       HOME,
     });
+    const previo = [this.shellDeEntrada, this.codigoDeEntrada];
+    this.shellDeEntrada = false;
+    this.codigoDeEntrada = false;
     for (const orden of ordenes) this.orden(orden);
+    const [shell, codigo] = [this.shellDeEntrada, this.codigoDeEntrada];
+    [this.shellDeEntrada, this.codigoDeEntrada] = previo;
+    // Un intérprete sin script ejecuta lo que le llegue por la entrada: solo se puede verificar si está escrito aquí.
+    if (shell) {
+      if (!entradas.length) bloquea('un intérprete de órdenes que las lee de la entrada (como ... | sh) no se puede verificar; escribe las órdenes directamente');
+      for (const e of entradas) {
+        if (e.dinamica) bloquea('un intérprete de órdenes con una entrada calculada no se puede verificar');
+        this.analizar(e.texto);
+      }
+    }
+    if (codigo) for (const e of entradas) this.codigoEnLinea(e.texto);
     for (const interno of internos) this.analizar(interno);
     this.profundidad -= 1;
   }
@@ -364,7 +413,7 @@ class Analizador {
       this.revisarScript(ruta);
       nombre = path.basename(nombre);
     }
-    if (PROHIBIDOS.has(nombre) || /^mkfs/.test(nombre)) bloquea(`${nombre} no está permitido`);
+    if (PROHIBIDOS.has(nombre) || /^mkfs/.test(nombre)) bloquea(`${nombre} no está permitido`, true);
     if (enDocker) return this.docker(argumentos);
     if (nombre === 'git') return this.git(argumentos);
     if (nombre === 'curl' || nombre === 'wget') return this.descarga(nombre, argumentos);
@@ -400,7 +449,7 @@ class Analizador {
       return;
     }
     if (/^#!.*\b(ba|z|da)?sh\b/.test(contenido) || /\.sh$/.test(ruta)) {
-      const copia = new Analizador(this.raiz, this.cwd, this.autorizadas);
+      const copia = new Analizador(this.raiz, this.cwd, this.autorizadas, this.soloMagents);
       copia.profundidad = this.profundidad;
       copia.analizar(contenido);
     }
@@ -468,6 +517,10 @@ class Analizador {
         if (argumentos[indice + 1]) this.analizar(argumentos[indice + 1].texto);
         return;
       }
+      // Sin script (o con -s), las órdenes le llegan por la entrada. El valor de -o no es un script.
+      const sinValores = argumentos.filter((a, n) => !/^[-+][oO]$/.test(argumentos[n - 1]?.texto || ''));
+      const soloInforma = argumentos.some((a) => /^--(version|help)$/.test(a.texto));
+      if (!soloInforma && (!this.posicionales(sinValores).length || argumentos.some((a) => /^-[a-z]*s$/.test(a.texto)))) this.shellDeEntrada = true;
     }
     const opcionCodigo = CON_CODIGO[verbo];
     if (opcionCodigo) {
@@ -476,6 +529,9 @@ class Analizador {
         this.codigoEnLinea(argumentos[indice + 1]?.texto || '');
         return;
       }
+      // Sin script, o con "-", el código le llega por la entrada.
+      const sueltos = this.posicionales(argumentos);
+      if (!sueltos.length || sueltos.some((a) => a.texto === '-')) this.codigoDeEntrada = true;
     }
     let lista = this.posicionales(argumentos);
     if (CON_PATRON.has(verbo) && !argumentos.some((a) => /^(-e|-f|--regexp|--file)/.test(a.texto))) lista = lista.slice(1);
@@ -502,11 +558,45 @@ class Analizador {
   }
 
   git(argumentos) {
-    for (let i = 0; i < argumentos.length; i += 1) {
-      if (/^(-C|--git-dir|--work-tree)$/.test(argumentos[i].texto) && argumentos[i + 1]) {
+    let i = 0;
+    for (; i < argumentos.length; i += 1) {
+      const t = argumentos[i].texto;
+      const pegado = t.match(/^--(?:git-dir|work-tree)=(.*)$/);
+      if (/^(-C|--git-dir|--work-tree)$/.test(t) && argumentos[i + 1]) {
         if (argumentos[i + 1].dinamica) bloquea('git -C con una ruta calculada no se puede verificar');
         this.comprobarLectura(argumentos[i + 1].texto);
+        i += 1;
+      } else if (pegado) {
+        if (argumentos[i].dinamica) bloquea('git con una ruta calculada no se puede verificar');
+        this.comprobarLectura(pegado[1]);
+      } else if (/^(-c|--config-env|--namespace)$/.test(t)) {
+        i += 1;
+      } else if (argumentos[i].dinamica || !t.startsWith('-')) {
+        break;
       }
+    }
+    if (i >= argumentos.length) return;
+    const sub = argumentos[i].texto;
+    const resto = argumentos.slice(i + 1);
+    const opciones = resto.filter((a) => a.texto.startsWith('-')).map((a) => a.texto);
+    const sueltos = resto.filter((a) => !a.texto.startsWith('-')).map((a) => a.texto);
+    const consulta = Object.prototype.hasOwnProperty.call(GIT_SOLO_CONSULTA, sub) ? GIT_SOLO_CONSULTA[sub] : null;
+    if (argumentos[i].dinamica || !(GIT_LECTURA.has(sub) || (consulta && consulta(opciones, sueltos)))) {
+      bloquea(`git ${argumentos[i].dinamica ? 'con un subcomando calculado' : sub} no está permitido: git es solo para consultar y los commits los hace el usuario. Si hace falta, indícalo en tu informe sin ejecutarlo`, true);
+    }
+    if (opciones.some((o) => /^--remote(=|$)/.test(o))) bloquea('git con --remote no está permitido', true);
+    // Las únicas escrituras de un git de consulta: --output y, en archive, -o.
+    for (let n = 0; n < resto.length; n += 1) {
+      const salida = resto[n].texto.match(/^--output=(.*)$/);
+      const destino = salida ? { ...resto[n], texto: salida[1] }
+        : (resto[n].texto === '--output' || (sub === 'archive' && resto[n].texto === '-o') ? resto[n + 1] : null);
+      if (destino) {
+        this.comprobarDinamica(destino, `git ${sub}`);
+        this.comprobarEscritura(destino.texto, true);
+      }
+    }
+    if (sub === 'diff' && opciones.includes('--no-index')) {
+      for (const a of resto) if (!a.texto.startsWith('-') && !a.dinamica) this.comprobarLectura(a.texto);
     }
   }
 
@@ -553,10 +643,28 @@ class Analizador {
   }
 
   xargs(argumentos) {
-    const verbo = argumentos.find((a) => !a.texto.startsWith('-'));
-    if (verbo && (MODIFICAN.has(path.basename(verbo.texto)) || PROHIBIDOS.has(path.basename(verbo.texto)))) {
+    let i = 0;
+    // Con -I o -i, xargs pone lo que le llega donde aparezca esta marca.
+    let marca = '';
+    for (; i < argumentos.length && argumentos[i].texto.startsWith('-') && !argumentos[i].dinamica; i += 1) {
+      const t = argumentos[i].texto;
+      if (/^-(i|-replace)$/.test(t)) marca = '{}';
+      else if (/^-[Ii]./.test(t)) marca = t.slice(2);
+      else if (/^--replace=./.test(t)) marca = t.slice(10);
+      if (/^-[adEILnPs]$/.test(t)) {
+        if (t === '-a' && argumentos[i + 1] && !argumentos[i + 1].dinamica) this.comprobarLectura(argumentos[i + 1].texto);
+        if (t === '-I' && argumentos[i + 1]) marca = argumentos[i + 1].texto;
+        i += 1;
+      }
+    }
+    const verbo = argumentos[i];
+    if (!verbo) return;
+    if (MODIFICAN.has(path.basename(verbo.texto)) || PROHIBIDOS.has(path.basename(verbo.texto))) {
       bloquea(`xargs ${verbo.texto} no se puede verificar; escribe cada ruta exacta`);
     }
+    // Lo que xargs ejecuta se revisa como una orden más, sin las rutas que le lleguen por la entrada.
+    const palabras = argumentos.slice(i).map((a) => (marca && a.texto.includes(marca) ? { ...a, dinamica: true } : a));
+    this.orden({ palabras, redirecciones: [] });
   }
 
   docker(argumentos) {
@@ -776,17 +884,23 @@ function leerAutorizadas(raiz) {
   return contenido.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#') && path.isAbsolute(l)).map(real);
 }
 
-function revisarHerramienta(entrada, raiz) {
+function revisarHerramienta(entrada, raiz, soloMagents) {
   const cwd = real(entrada.cwd || raiz);
-  const analizador = new Analizador(raiz, cwd, leerAutorizadas(raiz));
+  const analizador = new Analizador(raiz, cwd, leerAutorizadas(raiz), soloMagents);
   const datos = entrada.tool_input || {};
   const herramienta = entrada.tool_name || '';
   if (herramienta === 'Bash') {
     analizador.analizar(String(datos.command || ''));
   } else if (herramienta === 'Edit' || herramienta === 'Write' || herramienta === 'NotebookEdit') {
     analizador.comprobarEscritura(String(datos.file_path || datos.notebook_path || ''));
-  } else if (herramienta === 'Glob' && path.isAbsolute(String(datos.pattern || ''))) {
-    analizador.comprobarLectura(String(datos.pattern));
+  } else if (herramienta === 'Glob') {
+    // El patrón se resuelve desde path, o desde el directorio actual: lo anterior al primer comodín dice dónde busca.
+    const base = path.resolve(cwd, String(datos.path || '.'));
+    const patron = String(datos.pattern || '');
+    const fijo = patron.replace(/[*?[{].*$/, '');
+    analizador.comprobarLectura(base);
+    analizador.comprobarLectura(path.resolve(real(base), fijo || '.'));
+    if (patron.slice(fijo.length).includes('..')) bloquea('un patrón con .. después de un comodín no se puede verificar');
   } else {
     for (const [clave, valor] of Object.entries(datos)) {
       if (typeof valor === 'string' && /path|file|saveTo/i.test(clave) && valor !== '') {
@@ -803,15 +917,20 @@ function principal() {
   const entrada = JSON.parse(crudo);
   const raizTexto = process.env.CLAUDE_PROJECT_DIR;
   if (!raizTexto) throw new Error('falta CLAUDE_PROJECT_DIR');
+  const modo = process.argv[2] || '';
+  if (modo && modo !== 'solo-magents') throw new Error(`modo desconocido: ${modo}`);
   try {
-    revisarHerramienta(entrada, real(raizTexto));
+    revisarHerramienta(entrada, real(raizTexto), modo === 'solo-magents');
   } catch (error) {
     if (!(error instanceof Bloqueo)) throw error;
+    const salida = error.sinAlternativa
+      ? 'No lo intentes por otra vía: si de verdad hace falta, indícalo en tu informe sin ejecutarlo.'
+      : 'No lo intentes por otra vía. Si de verdad hace falta, termina con VEREDICTO: BLOQUEADO indicando la ruta y el motivo, o si es un comando dentro del proyecto, reescríbelo con rutas exactas.';
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: 'PreToolUse',
         permissionDecision: 'deny',
-        permissionDecisionReason: `magents: ${error.message}. No lo intentes por otra vía. Si de verdad hace falta, termina con VEREDICTO: BLOQUEADO indicando la ruta y el motivo, o si es un comando dentro del proyecto, reescríbelo con rutas exactas.`,
+        permissionDecisionReason: `magents: ${error.message}. ${salida}`,
       },
     }));
   }

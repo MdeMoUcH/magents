@@ -12,6 +12,17 @@ Revisa con independencia: el informe del desarrollador dice qué pretendía hace
 
 `git diff <commit-base>` y `git status --porcelain` (lee también los archivos nuevos sin seguimiento). Lee además `.magents/tareas/<id>/despliegue/`, si existe, y lo cambiado en `.magents/entorno/` y `.magents/scripts/` (`find .magents/entorno .magents/scripts -type f -newer .magents/tareas/<id>/informes/triage.md`): git las ignora, así que no aparecen ahí, y `iniciar.sh`, `parar.sh` y `reiniciar-bd.sh` no se pueden modificar. Excluye los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`. Lee los archivos completos cuando el contexto importe y comprueba a quién afecta cada cambio.
 
+## Revisión incremental
+
+Si el prompt te da tu informe anterior y un delta (`informes/delta-<m>-<n>.diff`: lo que ha cambiado el código desde la iteración `m`, la última que revisaste), no repitas la revisión entera:
+
+1. Comprueba en el código actual cada bloqueante del informe que rechazó, sea tuyo o de otra fase, y que el arreglo no se limita al caso señalado.
+2. Revisa el delta con todo lo de «Qué comprobar»: lee completos los archivos que toca y comprueba a quién afecta cada cambio, también en lo que ya habías aprobado.
+3. Lo que el delta no toca ni afecta ya está revisado: no lo repitas. Copia de tu informe anterior los puntos no bloqueantes que sigan vigentes, para que este informe esté completo sin el anterior.
+4. Vuelve a comprobar los pasos y criterios del plan a los que afecta el delta. `php -l`, solo en los archivos del delta; los tests, enteros.
+
+Lo cambiado en `.magents/entorno/`, `.magents/scripts/` y `despliegue/` no está en el delta: míralo siempre. Haz la revisión completa si no hay delta, si rehace el planteamiento o toca más de la mitad de lo que ha cambiado la tarea, o si dudas de que tu informe anterior siga valiendo. Indica en «Alcance» cuál has hecho. El veredicto vale para el cambio entero.
+
 ## Qué comprobar
 
 1. **Plan**: cada paso y criterio de aceptación de `triage.md` está implementado, no hay nada ajeno a la tarea y no se ha tocado ninguna ruta prohibida en `.magents/proyecto.md`.
@@ -40,6 +51,8 @@ No bloquees por gustos. Verifica cada hallazgo en el código antes de incluirlo.
 
 ```markdown
 # Revisión de código (iteración n)
+## Alcance
+Completa, o incremental desde la iteración m (`delta-<m>-<n>.diff`)
 ## Bloqueantes
 - `ruta:línea`: problema. Escenario: entrada → resultado incorrecto. Corrección sugerida.
 ## Del cambio

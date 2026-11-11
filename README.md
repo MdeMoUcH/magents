@@ -12,19 +12,19 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 
 | Fase | Subagente | Skill | Permisos |
 |---|---|---|---|
-| Preparación (`/preparar`): detecta el stack y genera el entorno | `preparador` | `php-preparacion` | Edición, solo en `.magents/` por instrucción |
+| Preparación (`/preparar`): detecta el stack y genera el entorno | `preparador` | `php-preparacion` | Edición, solo en `.magents/` |
 | Triage: analiza la tarea contra el código actual | `triage` | `php-triage` | Sin herramientas de edición |
 | Desarrollo | `desarrollador` | `php-desarrollo` | Edición |
 | Revisión de código | `revisor-codigo` | `php-revision-codigo` | Sin herramientas de edición |
 | Revisión de seguridad | `revisor-seguridad` | `php-revision-seguridad` | Sin herramientas de edición |
 | Pruebas en Firefox | `probador` | `php-pruebas-firefox` | Sin edición + MCP de Firefox |
-| Documentación | `documentador` | `php-documentacion` | Edición, solo en `.magents/` por instrucción |
+| Documentación | `documentador` | `php-documentacion` | Edición, solo en `.magents/` |
 
-Todos los agentes usan el modelo de la sesión. Para fijar otro en uno, añade `model:` a su definición en `.claude/agents/`; una reinstalación la vuelve a quitar.
+Salvo a `desarrollador`, el hook solo deja escribir a los agentes dentro de `.magents/`, también desde Bash, y en archivos de sonda llamados `magents-sonda-<algo>`, que borran al terminar. Todos los agentes usan el modelo de la sesión. Para fijar otro en uno, añade `model:` a su definición en `.claude/agents/`; una reinstalación la vuelve a quitar.
 
-La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git, carpeta y Docker. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas). Las iteraciones que abres tú para aplicar sugerencias de las revisiones no cuentan para ese límite.
+La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git, carpeta y Docker. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden: las pruebas, completas; las dos revisiones, solo sobre lo que ha cambiado desde la iteración que ya revisaron y lo que eso afecta, con el delta que deja `guardar-iteracion.sh` en `informes/`. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas). Las iteraciones que abres tú para aplicar sugerencias de las revisiones no cuentan para ese límite.
 
-Para que una tarea no deje deuda que obligue a lanzar otra, el triage busca el mismo problema en otros sitios y las consecuencias del cambio, y lo incluye en el plan o te lo enseña antes de desarrollar como «Fuera de alcance». Las revisiones separan lo no bloqueante en tres grupos:
+Para que una tarea no deje deuda que obligue a lanzar otra, el triage busca el mismo problema en otros sitios y las consecuencias del cambio, y lo incluye en el plan o te lo enseña antes de desarrollar como «Fuera de alcance». Todo lo que el triage deja para ti, sean dudas, fuera de alcance, borrados, discrepancias con `proyecto.md` o métodos de prueba nuevos, llega en una sola consulta. Las revisiones separan lo no bloqueante en tres grupos:
 - «Del cambio»: lo que la tarea deja a medias. `/tarea` recomienda hacerlo en la misma tarea.
 - Notas: sugerencias y endurecimientos sin escenario de fallo. No se recomiendan ni pasan a la deuda.
 - Preexistentes.
@@ -66,9 +66,14 @@ Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.
 /preparar
 /tarea Añadir un formulario de contacto que guarde los mensajes en la base de datos
 /tarea continuar 0007
+/calibrar
 ```
 
-`/preparar` se ejecuta tras instalar, y `/tarea` lo lanza por su cuenta si falta. Vuelve a ejecutarlo tras reinstalar o si `comprobar-entorno.sh` avisa de algo. La última forma retoma una tarea interrumpida; las pruebas en Firefox reutilizan lo ya aprobado si no ha cambiado el código.
+`/preparar` se ejecuta tras instalar, y `/tarea` lo lanza por su cuenta si falta. Vuelve a ejecutarlo tras reinstalar o si `comprobar-entorno.sh` avisa de algo. `/tarea continuar` retoma una tarea interrumpida; las pruebas en Firefox reutilizan lo ya aprobado si no ha cambiado el código.
+
+### Calibrar las pruebas
+
+`/calibrar [NNNN]` comprueba que un `APROBADO` de las pruebas significa algo. Sobre una tarea ya terminada, la última si no indicas otra, y con el código sin cambios pendientes, `desarrollador` siembra un defecto de una o dos líneas que incumple uno de sus criterios, `probador` la prueba sin saberlo y el defecto se deshace. Eliges si es evidente o sutil, y el resultado queda en `.magents/calibracion/<fecha y hora>/resultado.md`: `DETECTADO`, `A MEDIAS`, `NO DETECTADO` o `SIN RESULTADO`. Al terminar comprueba con `git status` que el código queda como estaba; si se interrumpe, `/tarea` no arranca hasta que vuelvas a ejecutar `/calibrar`, que deshace lo pendiente. Conviene pasarla tras cambiar `php-pruebas-firefox` o de modelo.
 
 ### Entorno local
 
@@ -81,6 +86,8 @@ Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.
 .magents/scripts/reiniciar-bd.sh   # Si hay BD: borra sus datos y la recarga desde bd-inicial/
 .magents/scripts/comprobar-entorno.sh   # Busca fallos de estructura y muestra el estado, sin arrancar ni cambiar nada
 ```
+
+`guardar-iteracion.sh` es de uso interno de `/tarea` y no aparece en el menú.
 
 Lo que puede perder algo pide confirmación, tanto desde `menu.sh` como lanzado a mano: `reiniciar-bd.sh` y `copiar-revision.sh` siempre, e `iniciar.sh` y `parar.sh` si el entorno está en marcha, porque se pierden los logs y temporales de los contenedores. Sin terminal o dentro de Claude Code no pregunta, para que los agentes no se queden esperando; esto incluye los comandos `!` de Claude Code. Para no preguntar en un uso propio, define `MAGENTS_CONFIRMADO=1`. Un script añade esa confirmación con una línea `# menu: confirmar: <motivo>` o `# menu: confirmar-si-en-marcha: <motivo>` y cargando `confirmar.sh`, y su descripción sale de la línea 2. En una terminal, los scripts e `install.sh` muestran una cabecera, que se omite para agentes y tuberías. El color sigue la misma regla: morado para el logo, verde para lo correcto, rojo para los errores y amarillo para lo que requiere atención. `NO_COLOR=1` lo desactiva.
 
@@ -102,7 +109,7 @@ Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP
 .magents/scripts/copiar-revision.sh [--sin-diff]
 ```
 
-Copia el contenido de `.magents/` a `.magents/revision/<proyecto>/` de este repositorio, que git ignora, junto con `git log` y `git status`. Sirve para revisar desde aquí cómo han trabajado los agentes sin dar acceso a otras carpetas. Deja fuera `entorno/config`, `entorno/bd-inicial`, las copias de entornos anteriores, los temporales y los enlaces simbólicos. No incluye el código. Las capturas sí se copian, así que borra de la copia las que muestren datos reales. Cada ejecución deja la copia igual que el origen, así que también recupera lo borrado de ella. Lo ejecutas tú, nunca los agentes. Se instala siempre y necesita `rsync`.
+Copia el contenido de `.magents/` a `.magents/revision/<proyecto>/` de este repositorio, que git ignora, junto con `git log` y `git status`. Sirve para revisar desde aquí cómo han trabajado los agentes sin dar acceso a otras carpetas. Deja fuera `entorno/config`, `entorno/bd-inicial`, las copias de entornos anteriores, los temporales, las copias del código de cada iteración y los enlaces simbólicos. No incluye el código, salvo los cambios que muestran los diffs y los `delta-*.diff` de los informes. Las capturas sí se copian, así que borra de la copia las que muestren datos reales. Cada ejecución deja la copia igual que el origen, así que también recupera lo borrado de ella. Lo ejecutas tú, nunca los agentes. Se instala siempre y necesita `rsync`.
 
 Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de la tarea siguiente, o al estado actual si es la última, incluidos sus archivos nuevos aún sin seguimiento. Excluye `.env`, `.env.*`, `*.pem` y `*.key`, pero puede contener contraseñas en otros archivos versionados, como un `config.ini`, así que revísalos antes de avisar. Con `--sin-diff` no los genera y borra los de una copia anterior.
 
@@ -111,7 +118,8 @@ Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de l
 | Ruta | Contenido | ¿En git? |
 |---|---|---|
 | `.magents/tareas/<id>/README.md` | Cambios y decisiones de la tarea | No |
-| `.magents/tareas/<id>/informes/` | Estado e informes de cada fase e iteración | No |
+| `.magents/tareas/<id>/informes/` | Estado e informes de cada fase e iteración, y `delta-<m>-<n>.diff` con lo que cambia el código entre dos iteraciones | No |
+| `.magents/tareas/<id>/iteraciones/` | Copia de los archivos cambiados en cada iteración, para calcular los deltas. Se borra al terminar la tarea | No |
 | `.magents/tareas/<id>/despliegue/` | Scripts y SQL de un solo uso, revisados en las dos revisiones | No |
 | `.magents/tareas/<id>/capturas/` | Evidencia de las pruebas, con una carpeta por ejecución: `entorno/`, `<n>/` y, si se repite, `<n>-2/` | No |
 | `.magents/tareas/<id>/anexos/` | Cualquier otra información | No |
@@ -122,6 +130,7 @@ Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de l
 | `.magents/entorno/` | Configuración de Docker local | No |
 | `.magents/scripts/` | Scripts para iniciar, parar, comprobar y restablecer el entorno, y para copiar lo necesario para una revisión | No |
 | `.magents/preparacion/` | Propuesta, informe, revisiones y reparaciones de `/preparar` | No |
+| `.magents/calibracion/` | Defecto sembrado, informe de las pruebas y resultado de cada `/calibrar` | No |
 
 El `<id>` es un número correlativo por proyecto seguido del slug de la tarea, por ejemplo `0007-exportar-pedidos`.
 
@@ -137,9 +146,9 @@ Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de 
 
 ## Limitaciones
 
-- El límite de carpeta lo refuerza un hook (`magents-normas/limite-carpeta.cjs`) en todos los agentes y en `/tarea` y `/preparar`: bloquea órdenes y archivos fuera de la raíz, `sudo` y los borrados globales de Docker, y necesita `node`. En Docker, solo deja parar, matar, reiniciar o entrar con `exec`, por su nombre completo, en los contenedores del entorno (`magents-cfw-<servicio>-<n>`) y en los desechables de los agentes, y exige que cada `docker run` lleve un nombre de desechable (`magents-cfw_tmp-<algo>`) y `--pull never`, para que ninguna imagen se descargue sin un `docker pull` a la vista. Así un agente puede parar los suyos si se cuelgan, sin poder tocar los de otro proyecto: el `_` no puede aparecer en el nombre de otro proyecto de magents, así que `magents-cfw_tmp-x` nunca es de `magents-cfw-test`. Tampoco deja usar `docker compose -p` con otro proyecto, cambiar de daemon (`-H`, `--context`, `DOCKER_HOST`), etiquetar imágenes que no sean del proyecto, ni `push`, `login`, `swarm`, `stack` o conectar redes. Es una barrera ante errores: no ve lo que haga el código PHP o JS al ejecutarse ni los scripts de `.magents/scripts/`. Para autorizar una ruta, añádela tú a `.magents/rutas-autorizadas.txt`; las rutas del sistema nunca se modifican. Sus pruebas: `node .claude/skills/magents-normas/limite-carpeta.test.cjs`.
-- La regla de git solo lectura es una instrucción, no un bloqueo técnico. Además, el MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
-- Los permisos de solo lectura retiran las herramientas de edición, pero estos agentes conservan Bash: que no escriban con él depende de sus instrucciones, no de un bloqueo técnico.
+- El límite de carpeta lo refuerza un hook (`magents-normas/limite-carpeta.cjs`) en todos los agentes y en `/tarea`, `/preparar` y `/calibrar`: bloquea órdenes y archivos fuera de la raíz, `sudo`, `ssh`, `scp`, los borrados globales de Docker y las órdenes que le lleguen a un intérprete por una tubería, y revisa las de un heredoc. Necesita `node`. Deja git solo para consultar: `commit`, `add`, `push`, `reset`, `clean`, `checkout`, `stash` y los demás que escriben se bloquean, también en el resto de una sesión en la que hayas usado `/tarea`, así que los commits los haces tú en tu terminal o con `!`. En Docker, solo deja parar, matar, reiniciar o entrar con `exec`, por su nombre completo, en los contenedores del entorno (`magents-cfw-<servicio>-<n>`) y en los desechables de los agentes, y exige que cada `docker run` lleve un nombre de desechable (`magents-cfw_tmp-<algo>`) y `--pull never`, para que ninguna imagen se descargue sin un `docker pull` a la vista. Así un agente puede parar los suyos si se cuelgan, sin poder tocar los de otro proyecto: el `_` no puede aparecer en el nombre de otro proyecto de magents, así que `magents-cfw_tmp-x` nunca es de `magents-cfw-test`. Tampoco deja usar `docker compose -p` con otro proyecto, cambiar de daemon (`-H`, `--context`, `DOCKER_HOST`), etiquetar imágenes que no sean del proyecto, ni `push`, `login`, `swarm`, `stack` o conectar redes. Es una barrera ante errores: no ve lo que haga el código PHP o JS al ejecutarse ni los scripts de `.magents/scripts/`. Para autorizar una ruta, añádela tú a `.magents/rutas-autorizadas.txt`; las rutas del sistema nunca se modifican. Sus pruebas: `node .claude/skills/magents-normas/limite-carpeta.test.cjs`.
+- El MCP de Firefox y `npx` escriben por su cuenta sus registros, perfiles y caché en la carpeta personal (`~/.firefox-devtools-mcp/`, `~/.npm/`).
+- Los agentes sin edición conservan Bash. El hook les bloquea las escrituras fuera de `.magents/` que ve en la orden (redirecciones, `cp`, `mv`, `rm`, `sed -i`…), pero no lo que escriba un programa al ejecutarse, como un script de PHP o una orden dentro de un contenedor: eso sigue dependiendo de sus instrucciones.
 - `.magents/.htaccess` no protege en Nginx. Excluye `.magents/` si despliegas por FTP o rsync: subirla publicaría informes con vulnerabilidades detalladas.
 - El aislamiento de producción se basa en sustituir la configuración y comprobarla: si queda en el código un destino que el preparador no detecte, el contenedor podría alcanzarlo, porque tiene salida a la red.
 - Usar Docker equivale en la práctica a tener permisos de root en el equipo, y limitar los agentes a sus comandos es una instrucción, no un bloqueo técnico.

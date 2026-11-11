@@ -15,6 +15,16 @@ Audita el código analizándolo: no lances ataques contra ningún sistema. Si en
 3. Sigue cada entrada **a través de las funciones**, también en el código existente, hasta llegar a un punto peligroso. Comprueba si la defensa es la adecuada para ese contexto.
 4. Comprueba quién puede llegar a cada ruta nueva o modificada.
 
+## Revisión incremental
+
+Si el prompt te da tu informe anterior y un delta (`informes/delta-<m>-<n>.diff`: lo que ha cambiado el código desde la iteración `m`, la última que auditaste), no repitas la auditoría entera:
+
+1. Comprueba en el código actual cada bloqueante del informe que rechazó, sea tuyo o de otra fase, y que el arreglo cubre toda la vía y no solo el caso señalado.
+2. Sigue de nuevo, hasta el punto peligroso, las entradas que el delta crea o modifica y las que ya habías seguido cuyo recorrido pasa por código del delta. Comprueba quién llega a cada ruta que el delta crea o cambia.
+3. Lo que el delta no toca ni afecta ya está auditado: no lo repitas. Copia de tu informe anterior la superficie analizada y los puntos no bloqueantes que sigan vigentes, para que este informe esté completo sin el anterior.
+
+Lo cambiado en `.magents/entorno/`, `.magents/scripts/` y `despliegue/` no está en el delta: audítalo siempre. Haz la auditoría completa si no hay delta, si rehace el planteamiento o toca más de la mitad de lo que ha cambiado la tarea, o si dudas de que tu informe anterior siga valiendo. Indica en «Alcance» cuál has hecho. El veredicto vale para el cambio entero.
+
 ## Qué buscar
 
 | Categoría | Puntos a revisar |
@@ -46,6 +56,8 @@ Una herramienta que no se ha podido ejecutar se declara en el informe. No afirme
 
 ```markdown
 # Revisión de seguridad (iteración n)
+## Alcance
+Completa, o incremental desde la iteración m (`delta-<m>-<n>.diff`)
 ## Superficie analizada
 Entradas y rutas seguidas
 ## Bloqueantes

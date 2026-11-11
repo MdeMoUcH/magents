@@ -74,7 +74,7 @@ Ejecuta todas y anota el comando y el resultado real:
 4. Si hay más servicios que `web`: `.magents/scripts/comprobar-entorno.sh` pasa y cada nombre que usa la configuración de la web, también un alias, está en `/etc/hosts` del contenedor. Después, solo si pasa, para cada servicio con `docker compose stop <servicio>`: `getent ahosts <nombre>` dentro de `web` sigue dando su IP privada; no uses `getent hosts`, que consulta `AAAA` fuera de Docker aunque el nombre esté en `/etc/hosts`. Espera 60 s, con `sleep 60` en segundo plano porque Claude Code bloquea los `sleep` largos en primer plano, ya que antes de que caduque la caché ARP la conexión puede tardar todo su tiempo de espera, y la web debe dar su error en menos de 20 s. Vuelve a levantarlo con `docker compose up -d --wait <servicio>`. Si no pasa, no pares el servicio y anótalo.
 5. `/.git/HEAD` y `/.magents/proyecto.md` no se sirven por la URL local.
 6. Las páginas principales, como la de inicio y la de acceso, no redirigen fuera de la URL local (`curl -sI`).
-7. Un `Warning`, un `Notice` y un `Deprecated` provocados con una sonda temporal llegan al log indicado en `proyecto.md` y no se muestran en la página. Borra la sonda.
+7. Un `Warning`, un `Notice` y un `Deprecated` provocados con una sonda temporal llegan al log indicado en `proyecto.md` y no se muestran en la página. Llama a la sonda `magents-sonda-<algo>.php`, el único nombre que el hook te deja crear fuera de `.magents/`, y bórrala con su ruta exacta.
 8. `git status --porcelain` no ha cambiado.
 9. El comando de parada termina sin error y no queda ningún contenedor de este entorno.
 

@@ -33,7 +33,7 @@ if [ -t 0 ] && [ -e "$destino/.claude/skills/tarea/SKILL.md" ]; then
 fi
 
 agentes=(preparador triage desarrollador revisor-codigo revisor-seguridad probador documentador)
-skills=(preparar tarea magents-normas php-preparacion php-triage php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
+skills=(preparar tarea calibrar magents-normas php-preparacion php-triage php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
 
 mkdir -p "$destino/.claude/agents" "$destino/.claude/skills"
 for a in "${agentes[@]}"; do
@@ -107,6 +107,7 @@ mkdir -p "$scripts"
 instalar_script copiar-revision.sh
 instalar_script comprobar-entorno.sh
 instalar_script confirmar.sh
+instalar_script guardar-iteracion.sh
 instalar_script menu.sh
 dirname "$origen" > "$scripts/.ruta-magents"
 
@@ -144,7 +145,7 @@ if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
 fi
 
 # Registro de lo instalado, para distinguir en la próxima instalación los cambios propios.
-(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh menu.sh $(ls iniciar.sh parar.sh reiniciar-bd.sh 2>/dev/null)) > "$instalados"
+(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh guardar-iteracion.sh menu.sh $(ls iniciar.sh parar.sh reiniciar-bd.sh 2>/dev/null)) > "$instalados"
 
 magents_pintar "1;32" "Instalado en $destino"
 echo

@@ -21,7 +21,7 @@ listar_scripts() {
   for ruta in "$scripts_dir"/*.sh; do
     nombre="$(basename "$ruta")"
     case "$nombre" in
-      menu.sh | confirmar.sh | antes-de-iniciar.sh | iniciar.sh | parar.sh | reiniciar-bd.sh | comprobar-entorno.sh | copiar-revision.sh) ;;
+      menu.sh | confirmar.sh | guardar-iteracion.sh | antes-de-iniciar.sh | iniciar.sh | parar.sh | reiniciar-bd.sh | comprobar-entorno.sh | copiar-revision.sh) ;;
       *) [ -x "$ruta" ] && echo "$nombre" ;;
     esac
   done

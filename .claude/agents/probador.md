@@ -27,7 +27,7 @@ hooks:
     - matcher: "Bash|Read|Edit|Write|Grep|Glob|NotebookEdit|mcp__firefox-devtools__.*"
       hooks:
         - type: command
-          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs"'
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/skills/magents-normas/limite-carpeta.cjs" solo-magents'
           onFailure: block
 skills:
   - magents-normas
