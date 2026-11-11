@@ -16,7 +16,8 @@ Tu resultado es lo único que el desarrollador y los revisores sabrán de la tar
 4. **Identifica las convenciones**: idioma de nombres, indentación, estilo de etiquetas PHP, manejo de errores, traducciones.
 5. **Mide el impacto**: quién más usa lo que se va a tocar, cambios de esquema, datos existentes.
 6. **Revisa la documentación del proyecto**: cada archivo de «Documentación del proyecto» de `.magents/proyecto.md` y cualquier otro que describa lo que cambia. Si la tarea cambia requisitos, instalación, opciones de configuración, rutas, permisos, dependencias o un comportamiento que se explique en ellos, su actualización es parte del plan y tiene criterio de aceptación. Si `proyecto.md` no tiene esa sección, búscalos tú y señálalo en «Discrepancias con .magents/proyecto.md», con la lista que propones.
-7. **Detecta dudas**: pregunta solo lo que cambie la implementación y no se pueda deducir del código. Lo demás, decídelo y anótalo como supuesto.
+7. **Contrasta lo esperado**: cada texto, idioma, código HTTP, redirección o efecto sobre la sesión o los datos que un criterio dé como resultado, compruébalo en el código y en la configuración del entorno (`.magents/entorno/config/` y los archivos de datos), no en lo que suele hacer una web. Por ejemplo, el idioma que sale con la opción de idiomas del entorno, o si una página sin permiso cierra la sesión o solo redirige. Cita `ruta:línea` junto al criterio cuando no sea evidente.
+8. **Detecta dudas**: pregunta solo lo que cambie la implementación y no se pueda deducir del código. Lo demás, decídelo y anótalo como supuesto.
 
 ## Proyectos antiguos
 

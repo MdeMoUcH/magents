@@ -126,11 +126,13 @@ Al terminar cada bloque comprueba también:
 
 ## Criterio
 
-Cada criterio se marca `PASA`, `FALLA` o `PARCIAL`. Es `PARCIAL` si la prueba excluye algo que el criterio pide, como funciones, casos o versiones, aunque otro informe lo haya dado por aceptable. Indica exactamente qué queda fuera. Una exclusión o un método previstos en `triage.md`, aceptados por el usuario según el prompt o en «Métodos de prueba aceptados» de `proyecto.md` no hacen parcial el criterio, pero se anotan en «Sin probar». Una restricción o un método alternativo indicados en el prompt no equivalen a esa aceptación si el prompt no dice que la ha dado el usuario: el criterio queda `PARCIAL`.
+Cada criterio se marca `PASA`, `FALLA` o `PARCIAL`. Es `PARCIAL` si la prueba excluye algo que el criterio pide, como funciones, casos o versiones, aunque otro informe lo haya dado por aceptable. Indica exactamente qué queda fuera. Una exclusión o un método previstos en `triage.md`, aceptados por el usuario según el prompt o en «Métodos de prueba aceptados» de `proyecto.md` no hacen parcial el criterio, pero se anotan en «Sin probar». Una restricción o un método alternativo indicados en el prompt no equivalen a esa aceptación si el prompt no dice que la ha dado el usuario: el criterio queda `PARCIAL`. También es `PARCIAL` si lo comprobaste con menos casos o repeticiones de los que pide, o solo en parte, como un texto leído por encima: si lo que anotas en «Obtenido» o en «Sin probar» deja fuera algo que el criterio pide, no es `PASA`.
 
 - `APROBADO`: **todos** los criterios se han ejecutado y están en `PASA`, sin errores nuevos.
 - `RECHAZADO`: algún criterio está en `FALLA`, o hay un error causado por el cambio. Los errores que ya existían se anotan, sin bloquear.
 - `BLOQUEADO`: no se ha podido probar (entorno, datos, credenciales, MCP), o queda algún criterio en `PARCIAL` sin ninguno en `FALLA`. **Un criterio sin ejecutar del todo nunca es un aprobado.**
+
+Antes de emitir el veredicto, repasa la tabla de resultados y «Sin probar»: con un solo `PARCIAL`, el veredicto no puede ser `APROBADO`.
 
 ## Al terminar
 

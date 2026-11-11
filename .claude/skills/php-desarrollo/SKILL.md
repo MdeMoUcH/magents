@@ -34,7 +34,7 @@ Lee `triage.md`, `.magents/proyecto.md` y los archivos que vas a tocar. No modif
 
 ## Antes de terminar
 
-1. `php -l` sobre cada archivo PHP cambiado, con la versión de producción: con el entorno en esa versión, `docker compose -f .magents/entorno/compose.yml exec -T web php -l <archivo>`; si no, `docker run --rm --name <nombre>_tmp-lint --network none -v "$PWD":/app:ro -w /app <imagen> timeout 120 php -l <archivo>`, con la imagen del entorno de esa versión si existe o `php:<versión>-cli` (el nombre, en «Docker» de `magents-normas`).
+1. `php -l` sobre cada archivo PHP cambiado, con la versión de producción: con el entorno en esa versión, `docker compose -f .magents/entorno/compose.yml exec -T web php -l <archivo>`; si no, `docker run --rm --pull never --name <nombre>_tmp-lint --network none -v "$PWD":/app:ro -w /app <imagen> timeout 120 php -l <archivo>`, con la imagen del entorno de esa versión si existe (`docker image ls <nombre>-web`) o, si no, `php:<versión>-cli` (el nombre, en «Docker» de `magents-normas`).
 2. Ejecuta los tests y el análisis estático definidos en `.magents/proyecto.md`, si los hay.
 3. Revisa tu diff completo y quita lo que no sea de la tarea.
 

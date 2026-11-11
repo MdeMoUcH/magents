@@ -44,7 +44,36 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 3. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/` y `.magents/tareas/<id>/capturas/`.
 4. Guarda en `estado.md` el texto íntegro de la tarea, el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si hay alguno, guarda también `git diff HEAD` en `informes/cambios-previos.diff`, avisa al usuario de que pueden mezclarse con los de la tarea si afectan a los mismos archivos y pregúntale si continúa o prefiere confirmarlos antes.
 
-Mantén `estado.md` al día: en cada cambio de fase, **sustituye** los apartados «Fase actual» e «Iteración de desarrollo», sin dejar el valor antiguo, y añade los veredictos al historial. Si quedas esperando algo del usuario, anótalo en una línea `Pendiente: <qué falta y qué hay que hacer después>`, y bórrala al resolverlo.
+Mantén `estado.md` al día: en cada cambio de fase, **sustituye** los apartados «Fase actual» e «Iteración de desarrollo», sin dejar el valor antiguo, y añade los veredictos al historial. Si quedas esperando algo del usuario, anótalo en una línea `Pendiente: <qué falta y qué hay que hacer después>`, y bórrala al resolverlo. Usa siempre este formato, con la fecha en cada línea del historial:
+
+```markdown
+# Estado de la tarea <id>
+
+## Tarea
+
+<texto íntegro>
+
+## Commit base
+
+<hash completo>
+
+## Cambios previos (git status --porcelain)
+
+<salida, o «(ninguno)»>
+
+## Fase actual
+
+<fase>
+
+## Iteración de desarrollo
+
+<n>
+
+## Historial
+
+- <AAAA-MM-DD>: <fase> <n> → <veredicto> (informes/<archivo>). <lo que importe para seguir>
+- <AAAA-MM-DD>: <decisión del usuario o hecho, y qué se hace después>
+```
 
 Si el usuario hace un commit antes de que empiece el desarrollo, cambia el commit base por el nuevo en su apartado de `estado.md`, anota el anterior en el historial y actualiza los cambios previos. Una vez empezado el desarrollo, el commit base ya no cambia.
 
@@ -71,7 +100,7 @@ Antes de lanzar `documentador`, borra `.magents/tareas/<id>/tmp/`, salvo lo que 
 
 ## Reglas de decisión
 
-Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigua, pídele que la emita con SendMessage, o relanza la fase si no puedes; nunca la interpretes tú.
+Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigua, pídele que la emita con SendMessage, o relanza la fase si no puedes; nunca la interpretes tú. Haz lo mismo si contradice su propio informe, como un `APROBADO` de `probador` con algún criterio en `PARCIAL` o `FALLA`: pídele que lo revise, indicando el criterio.
 
 | Veredicto | Acción |
 |---|---|
@@ -90,7 +119,8 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 - **Documentación del proyecto pendiente**: si el informe de `documentador` la tiene, enséñasela al usuario con el texto propuesto y pregúntale con AskUserQuestion si se aplica ahora o queda como deuda. Si se aplica, anótalo en el historial, lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios, y repite revisión de código, revisión de seguridad y documentación; las pruebas solo si los cambios afectan a lo que ve la web, como un texto de una página. Si queda como deuda, anótalo en el historial.
 - **Criterios parciales**: si el probador termina con `BLOQUEADO` por un criterio `PARCIAL`, enseña al usuario qué queda fuera. Si acepta esa exclusión, anótalo en el historial y relanza `probador` solo para ese criterio, indicándole la exclusión aceptada.
 - **Decisiones del usuario**: si un informe deja un riesgo o una decisión para el usuario, pregúntale con AskUserQuestion antes de seguir, aunque el veredicto permita avanzar. No las tomes tú. Puedes prohibir de inmediato una acción peligrosa, pero no sustituir una prueba ni excluir nada de un criterio: lo que esa prohibición impida probar queda `PARCIAL` hasta que el usuario lo acepte. Anota su respuesta en el historial y, al pasarla a un subagente, indica que la ha aceptado el usuario.
-- **Límite**: como máximo **5 iteraciones** de desarrollo. Si la 5.ª se rechaza, para y presenta al usuario el historial y el problema pendiente.
+- **Sugerencias aceptadas**: pregunta por las sugerencias y endurecimientos opcionales de las dos revisiones a la vez, al terminar la revisión de seguridad y antes de las pruebas, no tras cada revisión. Si el usuario acepta alguno, anótalo en el historial y lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios; después repite las tres verificaciones, como tras un rechazo.
+- **Límite**: como máximo **5 iteraciones** de desarrollo. Las abiertas por decisión del usuario, sin rechazo previo, no cuentan: se numeran igual, pero anótalas así en el historial. Si se rechaza la 5.ª que cuenta, para y presenta al usuario el historial y el problema pendiente.
 - **Ciclo sin avance**: si el mismo problema vuelve a aparecer en dos rechazos seguidos, para antes del límite y pregunta.
 - **Desacuerdo**: si el desarrollador responde que un hallazgo es erróneo, no lo decides tú: la siguiente revisión lo reevalúa con ese argumento, y si se mantiene preguntas al usuario.
 - **Nunca** te saltes una fase, salvo la comprobación de entorno en el caso que indica «Flujo», ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.

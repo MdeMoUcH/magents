@@ -596,6 +596,7 @@ class Analizador {
     }
     if (enContenedor === 'run' || enContenedor === 'create') {
       this.nombrePropio(resto);
+      this.pullNunca(resto);
       return this.dockerRun(resto);
     }
     if (sub === 'build' || ((sub === 'buildx' || sub === 'image') && accion === 'build')) {
@@ -690,6 +691,16 @@ class Analizador {
       if (!a.texto.startsWith('-') && !argumentos[i - 1]?.texto.startsWith('-')) break;
     }
     bloquea(`docker run necesita --name ${propios.nombre}_tmp-<algo> (minúsculas, números, puntos o guiones; por ejemplo ${propios.nombre}_tmp-lint), para poder pararlo si se cuelga`);
+  }
+
+  // Sin --pull never, docker run descarga la imagen si falta, sin que se vea en el comando.
+  pullNunca(argumentos) {
+    for (let i = 0; i < argumentos.length; i += 1) {
+      const a = argumentos[i];
+      if (!a.dinamica && (a.texto === '--pull=never' || (a.texto === '--pull' && argumentos[i + 1]?.texto === 'never' && !argumentos[i + 1].dinamica))) return;
+      if (!a.texto.startsWith('-') && !argumentos[i - 1]?.texto.startsWith('-')) break;
+    }
+    bloquea('docker run necesita --pull never: usa una imagen que ya exista, como la del entorno, o descárgala antes con docker pull y decláralo');
   }
 
   dockerCompose(argumentos) {
