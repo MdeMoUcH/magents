@@ -30,8 +30,9 @@ La seguridad la audita la fase siguiente; si ves algo evidente, anótalo igualme
 ## Criterio
 
 - **Bloqueante**: fallo real con un escenario concreto, criterio de aceptación incumplido, rotura de código existente, documentación del proyecto que contradice al código, o incumplimiento de la norma de comentarios. → `RECHAZADO`
-- **Sugerencia**: mejora opcional, incluida la indentación, que por sí sola no merece una iteración. No bloquea; si hay otra iteración, el desarrollador la corrige.
-- **Preexistente**: problema que ya estaba y que el cambio no empeora. Se anota, no bloquea.
+- **Del cambio**: algo que la tarea deja a medias sin incumplir ningún criterio, sobre lo que crea o modifica o como consecuencia directa: el mismo problema que corrige en otro sitio, un mecanismo nuevo que otra página debería usar, una línea de log que puede crecer sin límite o un texto que queda desfasado. Lleva su escenario. No bloquea, pero se recomienda hacerlo en esta tarea, porque si no se convierte en otra. Si ya figura en «Fuera de alcance» de `triage.md`, no lo repitas.
+- **Sugerencia**: mejora opcional sin escenario de fallo, incluida la indentación, que por sí sola no merece una iteración. No bloquea; si hay otra iteración, el desarrollador la corrige.
+- **Preexistente**: problema que ya estaba y que el cambio no empeora, con su escenario y su gravedad (alta, media o baja). Se anota, no bloquea, y pasa a `.magents/deuda.md`. Si ya está allí, cita su id y no lo describas de nuevo. Una mejora ajena al cambio sin escenario de fallo no es un preexistente: no la anotes.
 
 No bloquees por gustos. Verifica cada hallazgo en el código antes de incluirlo. Si un hallazgo anterior fue discutido por el desarrollador, evalúa su argumento y resuelve.
 
@@ -41,6 +42,7 @@ No bloquees por gustos. Verifica cada hallazgo en el código antes de incluirlo.
 # Revisión de código (iteración n)
 ## Bloqueantes
 - `ruta:línea`: problema. Escenario: entrada → resultado incorrecto. Corrección sugerida.
+## Del cambio
 ## Sugerencias
 ## Preexistentes
 ## Comprobaciones ejecutadas

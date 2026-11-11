@@ -32,17 +32,31 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
    ## Historial de iteraciones
    Rechazos: fase, motivo y corrección
    ## Riesgos y deuda pendiente
-   Problemas preexistentes detectados, incluidos los de seguridad
+   Ids de `.magents/deuda.md` que abre y que cierra esta tarea, con una línea cada uno; notas de las revisiones (endurecimientos y sugerencias no aplicados), y observaciones sin contrastar
    ```
 
 2. **`.magents/decisiones/NNNN-<slug>.md`**, solo si hay una decisión de arquitectura que afecte al futuro del proyecto (dependencia nueva, cambio de esquema importante, patrón nuevo). Formato: Contexto, Decisión, Consecuencias. Numera siguiendo lo que ya exista.
 
 3. **`.magents/CHANGELOG.md`**: añade una línea arriba con la fecha, el id, un resumen y el enlace a la ficha. Créalo si no existe.
 
+4. **`.magents/deuda.md`**, la lista única de lo pendiente del proyecto, para que se pueda agrupar en tareas en lugar de encadenarlas:
+
+   ```markdown
+   # Deuda pendiente
+   ## Abierta
+   | Id | Gravedad | Tipo | Dónde | Qué | Origen |
+   ## Cerrada
+   | Id | Qué | Cerrada por | Fecha |
+   ```
+
+   - **Añade** a «Abierta» los preexistentes de las revisiones, lo «del cambio» que el usuario haya aplazado según el historial de `estado.md`, lo de «Fuera de alcance» de `triage.md` que no se haya hecho y la documentación del proyecto pendiente. Cada punto lleva un id nuevo (`D001`, `D002`…, siguiendo el mayor que exista), la gravedad (alta, media o baja), el tipo (seguridad, código o documentación), `ruta:línea`, una frase y la tarea e informe de origen. Antes, comprueba que no esté ya, aunque con otras palabras. Los endurecimientos y las sugerencias sin escenario de fallo no entran.
+   - **Cierra** lo que esta tarea resuelve: compruébalo en el diff y en el código actual, y muévelo a «Cerrada» con la tarea y la fecha. Si solo lo resuelve en parte, déjalo abierto y corrige la frase.
+   - **Si no existe**, créalo y recoge también lo que siga abierto en «Riesgos y deuda pendiente» de las fichas anteriores, comprobando cada punto en el código actual. No añadas lo ya resuelto, y marca «sin comprobar» en «Qué» lo que no puedas comprobar.
+
 ## Reglas
 
 - Sin secretos ni datos personales, tampoco en las capturas: mira cada una de `capturas/`, borra las que los muestren e indícalo en tu informe. Describe las vulnerabilidades preexistentes indicando dónde y qué tipo, sin instrucciones de explotación.
-- No toques la documentación propia del proyecto: sus cambios forman parte del plan y los revisa la revisión de código. Compara cada archivo de «Documentación del proyecto» de `proyecto.md`, y los que describan lo cambiado, con el diff y el código actual. Lo que falte o contradiga va en «Documentación del proyecto pendiente» de tu informe, aunque una revisión ya lo haya sugerido, y también en «Riesgos y deuda pendiente» de la ficha.
+- No toques la documentación propia del proyecto: sus cambios forman parte del plan y los revisa la revisión de código. Compara cada archivo de «Documentación del proyecto» de `proyecto.md`, y los que describan lo cambiado, con el diff y el código actual. Lo que falte o contradiga va en «Documentación del proyecto pendiente» de tu informe, aunque una revisión ya lo haya sugerido, y también en `deuda.md`. Si el usuario lo aplica en otra iteración, la siguiente documentación lo cierra.
 - Si en las capturas o en el diff ves algo que los informes no recogen o contradicen, como un posible defecto visual, anótalo en la ficha, en «Riesgos y deuda pendiente», como observación sin contrastar, y en el apartado «Observaciones sin contrastar» de tu informe. No lo descartes por tu cuenta.
 - Breve: la ficha es para quien dentro de un año pregunte por qué se hizo así.
 
@@ -51,6 +65,8 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
 ```markdown
 # Documentación
 ## Archivos escritos
+## Deuda
+(ids añadidos y cerrados en `deuda.md`, o «Sin cambios»)
 ## Diferencias entre informes y diff
 ## Documentación del proyecto pendiente
 («Nada» si no falta nada; si falta: archivo y línea, qué dice o qué falta, y el texto propuesto)

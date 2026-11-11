@@ -36,8 +36,9 @@ Audita el código analizándolo: no lances ataques contra ningún sistema. Si en
 Cada hallazgo debe tener una vía de explotación concreta dentro del código.
 
 - **Bloqueante** (`RECHAZADO`): vulnerabilidad explotable introducida o modificada por el cambio, o preexistente en una vía que el cambio expone más o sobre la que se apoya directamente la funcionalidad nueva (por ejemplo, una función nueva que depende de una consulta del ORM que concatena).
-- **Preexistente**: vulnerabilidad ajena al cambio. **No bloquea**, pero se informa siempre con su gravedad, porque el usuario debe conocerla.
-- **Endurecimiento**: mejora defensiva sin vía de explotación. No bloquea.
+- **Del cambio**: vía de explotación concreta pero no bloqueante (gravedad baja, condiciones poco probables) en lo que crea o modifica la tarea, o en el mismo patrón que corrige en otro sitio. No bloquea, pero se recomienda corregirla en esta tarea, porque si no se convierte en otra. Si ya figura en «Fuera de alcance» de `triage.md`, no la repitas.
+- **Preexistente**: vulnerabilidad ajena al cambio. **No bloquea**, pero se informa siempre con su gravedad, porque el usuario debe conocerla, y pasa a `.magents/deuda.md`. Si ya está allí, cita su id y no la describas de nuevo.
+- **Endurecimiento**: mejora defensiva sin vía de explotación. No bloquea, no pasa a la deuda y no se recomienda aplicar: es una nota. Anota solo los que protejan lo que crea o modifica la tarea, en una línea cada uno y sin buscar más allá.
 
 Una herramienta que no se ha podido ejecutar se declara en el informe. No afirmes que algo es seguro si no lo has seguido hasta el final.
 
@@ -49,6 +50,7 @@ Una herramienta que no se ha podido ejecutar se declara en el informe. No afirme
 Entradas y rutas seguidas
 ## Bloqueantes
 - [Gravedad] `ruta:línea` categoría (CWE). Vía de explotación: origen → destino. Corrección.
+## Del cambio
 ## Preexistentes
 ## Endurecimiento
 ## Lo que no se pudo verificar

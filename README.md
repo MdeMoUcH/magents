@@ -20,9 +20,16 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 | Pruebas en Firefox | `probador` | `php-pruebas-firefox` | Sin edición + MCP de Firefox |
 | Documentación | `documentador` | `php-documentacion` | Edición, solo en `.magents/` por instrucción |
 
-`documentador` usa Sonnet (`model: sonnet` en su definición), porque es una fase larga y sigue un método muy pautado; el resto usa el modelo de la sesión. Para cambiarlo, edita o quita esa línea en `.claude/agents/`; una reinstalación la vuelve a poner.
+Todos los agentes usan el modelo de la sesión. Para fijar otro en uno, añade `model:` a su definición en `.claude/agents/`; una reinstalación la vuelve a quitar.
 
 La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git, carpeta y Docker. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas). Las iteraciones que abres tú para aplicar sugerencias de las revisiones no cuentan para ese límite.
+
+Para que una tarea no deje deuda que obligue a lanzar otra, el triage busca el mismo problema en otros sitios y las consecuencias del cambio, y lo incluye en el plan o te lo enseña antes de desarrollar como «Fuera de alcance». Las revisiones separan lo no bloqueante en tres grupos:
+- «Del cambio»: lo que la tarea deja a medias. `/tarea` recomienda hacerlo en la misma tarea.
+- Notas: sugerencias y endurecimientos sin escenario de fallo. No se recomiendan ni pasan a la deuda.
+- Preexistentes.
+
+Lo que quede pendiente, ya sean preexistentes, cosas aplazadas o documentación, lo recoge `documentador` en `.magents/deuda.md`, con un id, su gravedad y su origen, y lo cierra cuando una tarea lo resuelve. Puedes pedir varios puntos en una sola tarea, por ejemplo `/tarea resuelve D003 y D007`.
 
 Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen y un mensaje de commit recomendado. Los commits los haces tú: los agentes solo usan git para consultar y no hacen despliegues.
 
@@ -110,6 +117,7 @@ Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de l
 | `.magents/tareas/<id>/anexos/` | Cualquier otra información | No |
 | `.magents/decisiones/` | Decisiones de arquitectura | No |
 | `.magents/CHANGELOG.md` | Historial de cambios | No |
+| `.magents/deuda.md` | Deuda pendiente del proyecto, abierta y cerrada, con id, gravedad y origen | No |
 | `.magents/proyecto.md` | Configuración del entorno | No |
 | `.magents/entorno/` | Configuración de Docker local | No |
 | `.magents/scripts/` | Scripts para iniciar, parar, comprobar y restablecer el entorno, y para copiar lo necesario para una revisión | No |

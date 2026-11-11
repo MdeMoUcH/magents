@@ -1,7 +1,6 @@
 ---
 name: documentador
 description: Fase 6 de /tarea. Documenta en .magents/ las decisiones tomadas y los cambios hechos en una tarea ya aprobada. No toca el código.
-model: sonnet
 tools: Read, Edit, Write, Grep, Glob, Bash
 hooks:
   PreToolUse:
