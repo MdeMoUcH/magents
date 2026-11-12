@@ -14,8 +14,7 @@ Lee `triage.md`, `.magents/proyecto.md` y los archivos que vas a tocar. No modif
 
 - **Alcance**: solo lo que pide la tarea, sin refactorizar ni reformatear lo que no toca. Los problemas ajenos se anotan, no se arreglan.
 - **Convenciones**: el código nuevo debe parecer escrito por quien escribió el de alrededor, en nombres, estructura y estilo. Reutiliza lo que ya existe.
-- **Indentación**: con tabuladores, en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML. En un archivo existente indentado con espacios, mantén los espacios, sin mezclar ni reformatear. En uno que ya mezcla ambos, sigue el estilo de las líneas de alrededor y no reformatees nada.
-- **Comentarios**: breves y concisos, y solo donde aporten algo que el código no diga. Nunca pueden ocupar más que el código al que acompañan; lo normal es que ocupen mucho menos.
+- **Estilo**: indentación y comentarios, según «Estilo» de `magents-normas`.
 - **Compatibilidad**: no uses sintaxis más nueva que la versión de PHP de producción.
 - **Cambios de esquema**: como script SQL en la ubicación que use el proyecto. No los ejecutes sobre bases de datos que no sean la local de prueba.
 - **Scripts de despliegue**: los de un solo uso van en `.magents/tareas/<id>/despliegue/`, con prefijo de orden (`01-esquema.sql`, `02-datos.php`) y sin secretos. Indica en tu informe cuándo ejecutar cada uno y cómo revertirlo. Esa carpeta no se versiona: si el proyecto tiene su propio sistema de migraciones, las migraciones siguen yendo allí.
@@ -34,7 +33,7 @@ Lee `triage.md`, `.magents/proyecto.md` y los archivos que vas a tocar. No modif
 
 ## Antes de terminar
 
-1. `php -l` sobre cada archivo PHP cambiado, con la versión de producción: con el entorno en esa versión, `docker compose -f .magents/entorno/compose.yml exec -T web php -l <archivo>`; si no, `docker run --rm --pull never --name <nombre>_tmp-lint --network none -v "$PWD":/app:ro -w /app <imagen> timeout 120 php -l <archivo>`, con la imagen del entorno de esa versión si existe (`docker image ls <nombre>-web`) o, si no, `php:<versión>-cli` (el nombre, en «Docker» de `magents-normas`).
+1. `php -l` sobre cada archivo PHP cambiado, como indica «`php -l`» de `magents-normas`.
 2. Ejecuta los tests y el análisis estático definidos en `.magents/proyecto.md`, si los hay.
 3. Revisa tu diff completo y quita lo que no sea de la tarea.
 

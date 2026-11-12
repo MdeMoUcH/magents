@@ -1,6 +1,6 @@
 ---
 name: magents-normas
-description: Normas comunes a todos los agentes de /tarea y /preparar sobre git solo de lectura, límite de carpeta y uso de Docker.
+description: Normas comunes a todos los agentes de /tarea, /preparar y /calibrar sobre git solo de lectura, límite de carpeta, uso de Docker y estilo.
 user-invocable: false
 ---
 
@@ -22,7 +22,28 @@ user-invocable: false
 
 **Borrados:** cada `rm` va en una orden simple, con la ruta exacta y sin variables, sin `xargs` ni scripts. Si Claude Code o el hook rechazan un borrado, no lo reintentes: indícalo en tu informe.
 
-**Docker:** usa solo los comandos de `.magents/proyecto.md`, `docker compose` sobre el entorno de este proyecto y el `docker run --rm` de una comprobación puntual como `php -l`, montando únicamente la raíz del proyecto, en solo lectura (`:ro`); si necesitas escribir, monta además con escritura solo tu carpeta de temporales (`.magents/tareas/<id>/tmp/`). Cada `docker run` lleva `--pull never`, para no descargar imágenes sin que se vea, y `--name <nombre>_tmp-<algo>`, donde `<nombre>` es el `name:` de `.magents/entorno/compose.yml` (o `magents-<carpeta del proyecto>` si no existe) y `<algo>` va en minúsculas, números, puntos o guiones, y su comando va dentro de `timeout` (`... <imagen> timeout 120 <comando>`), porque un comando que espera para siempre, como leer un FIFO o `/dev/stderr`, deja el contenedor colgado. Solo puedes parar, matar, reiniciar o entrar con `exec` en esos contenedores tuyos y en los del entorno (`<nombre>-<servicio>-<n>`), siempre por su nombre completo, nunca por id; si uno tuyo queda colgado, páralo con `docker kill <nombre>_tmp-<algo>` y decláralo. Un contenedor que se quede sirviendo, por ejemplo para comparar con el commit base, solo si está en el plan de `triage.md`; se declara y se elimina al terminar. No listes, inspecciones, pares ni borres contenedores, imágenes o volúmenes ajenos, ni borres los volúmenes de este entorno sin que lo autorice el usuario, salvo con `.magents/scripts/reiniciar-bd.sh`. Para parar un solo servicio, como la BD, sigue «Probar con la BD u otro servicio caído» de `php-pruebas-firefox`: sin esa protección, su nombre puede resolverse fuera de Docker. No consultes información global del equipo, como `docker system df` o `ip link`, salvo que un diagnóstico lo exija, y decláralo en tu informe, igual que las imágenes que descargues, siempre con `docker pull` aparte y solo si no existe ninguna imagen local que sirva (antes, `docker image ls <repositorio>`).
+**Docker:**
+
+- **Qué puedes usar**: solo los comandos de `.magents/proyecto.md`, `docker compose` sobre el entorno de este proyecto y el `docker run --rm` de una comprobación puntual como `php -l`.
+- **Montajes**: únicamente la raíz del proyecto, en solo lectura (`:ro`). Si necesitas escribir, monta además con escritura solo tu carpeta de temporales (`.magents/tareas/<id>/tmp/`).
+- **Cada `docker run`** lleva tres cosas:
+  - `--pull never`, para no descargar imágenes sin que se vea.
+  - `--name <nombre>_tmp-<algo>`, donde `<nombre>` es el `name:` de `.magents/entorno/compose.yml` (o `magents-<carpeta del proyecto>` si no existe) y `<algo>` va en minúsculas, números, puntos o guiones.
+  - Su comando dentro de `timeout` (`... <imagen> timeout 120 <comando>`), porque un comando que espera para siempre, como leer un FIFO o `/dev/stderr`, deja el contenedor colgado.
+- **Tus contenedores y los del entorno**: solo puedes parar, matar, reiniciar o entrar con `exec` en los tuyos y en los del entorno (`<nombre>-<servicio>-<n>`), siempre por su nombre completo, nunca por id. Si uno tuyo queda colgado, páralo con `docker kill <nombre>_tmp-<algo>` y decláralo. Un contenedor que se quede sirviendo, por ejemplo para comparar con el commit base, solo si está en el plan de `triage.md`; se declara y se elimina al terminar.
+- **Dentro del contenedor**: el proyecto está montado con escritura en el servicio `web`, así que lo que borres o cambies en su ruta montada cambia el proyecto. Vale lo mismo que fuera: rutas exactas y nada que no sea de tu trabajo.
+- **Lo ajeno**: no listes, inspecciones, pares ni borres contenedores, imágenes o volúmenes ajenos, ni borres los volúmenes de este entorno sin que lo autorice el usuario, salvo con `.magents/scripts/reiniciar-bd.sh`.
+- **Parar un servicio**: para parar uno solo, como la BD, sigue «Probar con la BD u otro servicio caído» de `php-pruebas-firefox`: sin esa protección, su nombre puede resolverse fuera de Docker.
+- **Información global e imágenes**: no consultes información global del equipo, como `docker system df` o `ip link`, salvo que un diagnóstico lo exija, y decláralo en tu informe. Declara también las imágenes que descargues, siempre con `docker pull` aparte y solo si no existe ninguna imagen local que sirva (antes, `docker image ls <repositorio>`).
+
+**`php -l`:** se pasa con la versión de PHP de producción. Con el entorno en esa versión, `docker compose -f .magents/entorno/compose.yml exec -T web php -l <archivo>`. Si no, `docker run --rm --pull never --name <nombre>_tmp-lint --network none -v "$PWD":/app:ro -w /app <imagen> timeout 120 php -l <archivo>`, con la imagen del entorno de esa versión si existe (`docker image ls <nombre>-web`) o, si no, `php:<versión>-cli`.
+
+**Solo el entorno local:** no envíes archivos a otra máquina (`curl -d @archivo`, `-F`, `-T`) ni conectes un cliente de base de datos (`mysql`, `psql`…) a un servidor que no sea el del entorno. En `curl`, escribe la URL completa, con `http://`. El hook lo bloquea.
+
+**Estilo**, en todo lo que escribas en el proyecto o en `.magents/entorno/`:
+
+- **Indentación**: con tabuladores, en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML. En un archivo existente indentado con espacios, mantén los espacios, sin mezclar ni reformatear. En uno que ya mezcla ambos, sigue el estilo de las líneas de alrededor y no reformatees nada.
+- **Comentarios**: breves y concisos, y solo donde aporten algo que el código no diga. Nunca pueden ocupar más que el código al que acompañan; lo normal es que ocupen mucho menos.
 
 **Revisiones:** nunca ejecutes `.magents/scripts/copiar-revision.sh`: escribe fuera del proyecto y lo lanza solo el usuario. Tampoco uses `.magents/scripts/menu.sh`, que es interactivo: ejecuta directamente el script que necesites.
 

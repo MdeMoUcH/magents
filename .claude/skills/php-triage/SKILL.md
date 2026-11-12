@@ -23,6 +23,15 @@ Tu resultado es lo único que el desarrollador y los revisores sabrán de la tar
 
 No propongas modernizar lo que no se pide. Respeta el estilo existente, aunque sea antiguo, y sugiere las mejoras aparte. Si el proyecto usa `<?` o `mysql_*`, indica si el código nuevo puede o no usar sintaxis moderna según la versión de PHP de producción. Si esa versión no se puede determinar y afecta a la tarea, es una duda.
 
+## Tareas menores
+
+Las tres verificaciones son la norma. Propón omitir una solo si **todo** el plan cumple su condición; ante la duda, ninguna:
+
+- **Revisión de seguridad**: el plan solo cambia textos fijos, traducciones, estilos, imágenes, comentarios o documentación. No si toca código que lea entradas, consulte la BD, muestre datos o trate sesión, permisos, archivos, cabeceras o redirecciones; ni JavaScript, configuración, dependencias o el entorno; ni documentación que indique permisos, credenciales, configuración o comandos que alguien vaya a ejecutar.
+- **Pruebas en Firefox**: el plan no cambia nada que la web sirva o ejecute: solo documentación, comentarios o archivos que no se sirven. Escribe entonces los criterios de aceptación para comprobarlos leyendo.
+
+La revisión de código y la documentación no se omiten nunca. Lo decide el usuario, y la revisión de código confirma después con el diff que la condición se cumple; si no, la verificación se hace.
+
 ## Experimentos
 
 Ejecutar da mejores planes que solo leer, y puedes hacerlo si cambia el plan: usa contenedores desechables, con el proyecto en solo lectura y `--network none` siempre que sea posible. No escribas en la BD de prueba: un login también escribe, porque actualiza datos del usuario. Si necesitas datos o escrituras, deja el experimento para el desarrollador o el probador. Declara en tu informe lo que hayas ejecutado y lo que quede en Docker.
@@ -42,10 +51,12 @@ Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la v
 ## Plan de implementación
 Pasos concretos, archivo por archivo
 ## Criterios de aceptación
-- [ ] CA1: comportamiento observable y comprobable en el navegador
+- [ ] CA1: comportamiento observable y comprobable en el navegador, o leyendo el resultado si propones omitir las pruebas
 (en la versión de PHP con la que arranca el entorno; pide otras solo si la tarea lo hace de forma expresa o si el cambio usa funciones cuyo comportamiento o firma cambian entre la versión mínima de producción y la del entorno; en ese caso, solo para los criterios afectados y con el motivo escrito junto al criterio. Tampoco repitas tus experimentos en varias versiones sin uno de esos motivos. Si un criterio usa un `confirm`, indica que se probará sustituyéndolo con clic real, y usa los «Métodos de prueba aceptados» de `proyecto.md`)
 ## Necesidades de prueba
 (siempre: lo que las pruebas necesitan más allá de navegar por la web con la BD de prueba y los usuarios de `proyecto.md`, como otra versión de PHP, parar un servicio, datos, usuarios o archivos especiales, pruebas por CLI o con `docker run`, o un método que no esté en «Métodos de prueba aceptados», cada uno con lo que hay que comprobar antes de desarrollar; o «Ninguna». Si quieres una referencia del estado anterior, como capturas antes de un cambio visual, inclúyela aquí)
+## Verificaciones que se pueden omitir
+(siempre: «Ninguna», o la revisión de seguridad, las pruebas en Firefox o ambas, cada una con el motivo según «Tareas menores»)
 ## Documentación del proyecto
 (siempre: cada archivo de «Documentación del proyecto» de `proyecto.md`, y los demás que afecte la tarea, con qué cambia y dónde, o «Nada» y por qué)
 ## Fuera de alcance

@@ -28,7 +28,7 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
    ## Despliegue
    SQL y scripts de `despliegue/`, configuración, orden, cuándo ejecutar cada uno y cómo revertirlo. "Nada" si no hay
    ## Verificación
-   Qué se probó en Firefox y resultado
+   Qué se probó en Firefox y resultado. Si se omitió alguna verificación: cuál, por qué y que lo aceptó el usuario
    ## Historial de iteraciones
    Rechazos: fase, motivo y corrección
    ## Riesgos y deuda pendiente

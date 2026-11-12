@@ -62,7 +62,7 @@ Aplica solo lo que el prompt indica como confirmado. Antes de empezar, guarda la
 4. Si una versión antigua de PHP no se puede construir, no la cambies por otra más nueva: `BLOQUEADO`, y explica el error.
 5. Nunca modifiques los scripts fijos, porque `install.sh` los sobrescribe. Si el arranque necesita algo propio del proyecto, ponlo en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta desde `.magents/entorno/` si existe y `install.sh` no toca. Todo script del entorno va en `.magents/scripts/`.
 6. Si `apt-get` no descarga dentro de la red de Docker, por ejemplo con una VPN, construye desde ese script con `docker build --network=host -t <imagen> .`, donde `<imagen>` es `<name>-web:<versión de PHP>` con el `name:` de `compose.yml` (por ejemplo `magents-cfw-web:8.5`), porque el hook solo deja etiquetar imágenes de este proyecto, y en `compose.yml` cambia `build: .` por `image: <imagen>` y `pull_policy: never`. Compose no sirve para esto, porque construir con `network: host` le exige permisos adicionales.
-7. En lo que escribas, usa tabuladores salvo en formatos que no los admitan, como YAML, o donde el archivo ya use espacios. Los comentarios son breves, solo donde aporten algo, y nunca ocupan más que lo que acompañan.
+7. En lo que escribas, sigue «Estilo» de `magents-normas`.
 
 ### Comprobaciones
 
@@ -123,7 +123,7 @@ VEREDICTO: CORRECTO | PROBLEMAS | BLOQUEADO
 Aplica solo los arreglos que el prompt indica como confirmados.
 
 1. Si el entorno está en marcha, anótalo. Copia `.magents/entorno/`, sin `bd-inicial/`, que aquí no cambia y hay que conservar de `entorno/` si se recupera la copia, a `.magents/entorno.anterior/<fecha y hora>/`, y `proyecto.md` dentro de esa copia. Copia también `antes-de-iniciar.sh`, si vas a cambiarlo.
-2. Escribe solo dentro de `.magents/`, salvo la sonda temporal de las comprobaciones, que debes borrar. No modifiques los scripts fijos, y pon lo propio del proyecto en `.magents/scripts/antes-de-iniciar.sh`, con las normas de estilo de «Modo `generar`».
+2. Escribe solo dentro de `.magents/`, salvo la sonda temporal de las comprobaciones, que debes borrar. No modifiques los scripts fijos, y pon lo propio del proyecto en `.magents/scripts/antes-de-iniciar.sh`, con «Estilo» de `magents-normas`.
 3. No borres el volumen de la BD ni cambies `bd-inicial/`. Si un arreglo lo exigiera, termina con `BLOQUEADO`. Al añadir la subred propia, conserva `name:` y la clave del volumen, de los que depende su nombre, y aplícala con `.magents/scripts/iniciar.sh`, que borra la red antigua sin tocar los volúmenes.
 4. Al actualizar `proyecto.md`, no borres lo que siga sin averiguar, como una causa sin investigar. Si un arreglo deja obsoleto un riesgo citado en `.magents/CHANGELOG.md`, añade arriba una línea con la fecha y lo que cambia, sin reescribir las anteriores.
 5. Ejecuta `.magents/scripts/comprobar-entorno.sh` y todas las comprobaciones de «Modo `generar`», con el mismo criterio de `BLOQUEADO` y el mismo estado final del entorno. Una comprobación sin hacer o a medias da `BLOQUEADO`. Si los arreglos solo cambian `proyecto.md`, no reinicies el entorno: ejecuta `comprobar-entorno.sh` y las comprobaciones que dependan de lo que hayas cambiado, como la 7 si cambia el log, y anota las demás como no repetidas porque no les afecta. Eso no da `BLOQUEADO`.

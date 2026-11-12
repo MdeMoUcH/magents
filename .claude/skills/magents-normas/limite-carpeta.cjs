@@ -3,6 +3,7 @@
 // Es una barrera ante errores, no un aislamiento: no ve lo que haga el código PHP o JS al ejecutarse,
 // ni lo que hagan los scripts de .magents/scripts/. Ante la duda, bloquea.
 // Con el argumento solo-magents (agentes que no programan), además solo deja escribir en .magents/ y en sondas magents-sonda-*.
+// De lo que se ejecuta dentro de un contenedor solo mira las órdenes que escriben en el proyecto montado.
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -23,12 +24,22 @@ const MODIFICAN = new Set(['rm', 'rmdir', 'unlink', 'shred', 'mv', 'cp', 'ln', '
 const LEEN = new Set(['cat', 'less', 'more', 'head', 'tail', 'ls', 'du', 'stat', 'file', 'wc', 'grep', 'egrep', 'fgrep', 'rg',
   'sed', 'awk', 'sort', 'uniq', 'cut', 'diff', 'cmp', 'sha256sum', 'sha1sum', 'md5sum', 'tar', 'zip', 'unzip', 'gzip', 'gunzip',
   'base64', 'realpath', 'readlink', 'tree', 'xxd', 'od', 'nl', 'tac', 'strings', 'source', '.', 'cd', 'pushd', 'bash', 'sh', 'zsh', 'dash',
+  'gawk', 'mawk', 'nawk', 'sqlite3',
   'php', 'python', 'python3', 'node', 'perl', 'ruby']);
 const ENVOLTORIOS = new Set(['env', 'command', 'exec', 'nohup', 'nice', 'timeout', 'stdbuf', 'time', 'ionice', 'builtin']);
 // Cambian el daemon, el proyecto o el archivo sobre el que actúan docker y docker compose.
 const VARIABLES_DOCKER = /^(DOCKER_HOST|DOCKER_CONTEXT|DOCKER_CONFIG|COMPOSE_PROJECT_NAME|COMPOSE_FILE|COMPOSE_PATH_SEPARATOR)=/;
 const CLAVES = new Set(['if', 'then', 'elif', 'else', 'fi', 'for', 'while', 'until', 'do', 'done', 'case', 'esac', '!', '{', '}', 'function']);
-const CON_PATRON = new Set(['grep', 'egrep', 'fgrep', 'rg', 'sed', 'awk']);
+const CON_PATRON = new Set(['grep', 'egrep', 'fgrep', 'rg', 'sed', 'awk', 'gawk', 'mawk', 'nawk']);
+const AWK = /^[gmn]?awk$/;
+// Clientes que se conectan a una base de datos: solo a la del entorno local.
+const CLIENTES_BD = new Set(['mysql', 'mariadb', 'mysqldump', 'mariadb-dump', 'mysqladmin', 'mariadb-admin', 'psql', 'pg_dump', 'pg_dumpall',
+  'pg_restore', 'mongosh', 'mongo', 'mongodump', 'redis-cli']);
+const LOCALES = new Set(['localhost', '::1', '[::1]', '0.0.0.0']);
+// Opciones de docker run, exec y compose run/exec que no llevan valor: las demás lo llevan en el argumento siguiente.
+const SIN_VALOR_DOCKER = new Set(['--rm', '-d', '--detach', '-i', '--interactive', '-t', '--tty', '--init', '--privileged', '--read-only', '-P',
+  '--publish-all', '--no-healthcheck', '-q', '--quiet', '--oom-kill-disable', '-T', '--no-TTY', '--no-tty', '--no-deps', '--service-ports',
+  '--use-aliases', '--build', '--quiet-pull', '--quiet-build', '--remove-orphans', '--help']);
 const CON_CODIGO = { php: '-r', node: '-e', python: '-c', python3: '-c', perl: '-e', ruby: '-e' };
 const INTERPRETES = new Set(['bash', 'sh', 'zsh', 'dash']);
 const SONDA = /^magents-sonda-[A-Za-z0-9._-]+$/;
@@ -71,6 +82,12 @@ function real(ruta) {
       actual = padre;
     }
   }
+}
+
+// Máquina de una URL con esquema, o null si no lo es.
+function anfitrionDe(url) {
+  const m = url.match(/^[a-z][a-z0-9+.-]*:\/\/(?:[^@/]*@)?(\[[^\]]*\]|[^/:?#]*)/i);
+  return m ? m[1].toLowerCase() : null;
 }
 
 function dentroDe(ruta, base) {
@@ -299,11 +316,33 @@ class Analizador {
     this.profundidad = 0;
     this.shellDeEntrada = false;
     this.codigoDeEntrada = false;
+    this.entradasActuales = [];
+    // Al analizar una orden que se ejecuta dentro de un contenedor: { montajes, anfitrion }.
+    this.contenedor = null;
   }
 
   resolver(ruta, cwd = this.cwd) {
     const sinComodines = ruta.replace(/[*?[].*$/, '');
+    if (this.contenedor) return path.posix.resolve(cwd, sinComodines || '.');
     return real(path.resolve(cwd, sinComodines || '.'));
+  }
+
+  // El entorno local: esta máquina o la de la URL base de proyecto.md.
+  esLocal(anfitrion) {
+    if (!anfitrion) return false;
+    if (LOCALES.has(anfitrion) || /^127(\.\d+){3}$/.test(anfitrion)) return true;
+    // Dentro de un contenedor del entorno, lo local son sus servicios.
+    if (this.contenedor) return this.contenedor.servicios.includes(anfitrion);
+    if (this.anfitrionProyecto === undefined) {
+      let texto = '';
+      try {
+        texto = fs.readFileSync(path.join(this.raiz, '.magents/proyecto.md'), 'utf8');
+      } catch {
+        texto = '';
+      }
+      this.anfitrionProyecto = anfitrionDe((texto.match(/URL base:\s*<?(\S+)/) || [])[1] || '') || '';
+    }
+    return anfitrion === this.anfitrionProyecto;
   }
 
   dentro(ruta) {
@@ -317,19 +356,29 @@ class Analizador {
   }
 
   comprobarLectura(texto) {
+    if (this.contenedor) return;
     const ruta = this.resolver(texto);
     if (ruta === '/dev/urandom' || ruta === '/dev/zero' || ruta === '/dev/stdin' || SALIDAS_INOFENSIVAS.has(ruta)) return;
     if (!this.lecturaPermitida(ruta)) bloquea(`la ruta ${ruta} está fuera de la raíz del proyecto`);
   }
 
-  comprobarEscritura(texto, salidaInofensiva = false) {
+  // bajo: se escribe en algo de dentro de esa carpeta, no en la carpeta entera (find -delete).
+  comprobarEscritura(texto, salidaInofensiva = false, bajo = false) {
     const ruta = this.resolver(texto);
+    if (this.contenedor) {
+      // Dentro del contenedor solo importa lo que cae en un montaje del equipo con escritura.
+      const montaje = this.contenedor.montajes.filter((m) => dentroDe(ruta, m.destino)).sort((a, b) => b.destino.length - a.destino.length)[0];
+      if (montaje && montaje.origen && !montaje.ro) {
+        this.contenedor.anfitrion.comprobarEscritura(path.join(montaje.origen, path.posix.relative(montaje.destino, ruta)), false, bajo);
+      }
+      return;
+    }
     if (salidaInofensiva && (SALIDAS_INOFENSIVAS.has(ruta) || /^\/dev\/fd\/\d+$/.test(ruta))) return;
     if (ruta === '/' || CRITICAS.some((base) => dentroDe(ruta, base)) || ruta === HOME || dentroDe(HOME, ruta)) {
       bloquea(`no se puede modificar ${ruta}: es una ruta del sistema`);
     }
     if (!this.dentro(ruta)) bloquea(`la ruta ${ruta} está fuera de la raíz del proyecto`);
-    if (ruta === this.raiz) bloquea('no se puede modificar la raíz del proyecto entera');
+    if (ruta === this.raiz && !bajo) bloquea('no se puede modificar la raíz del proyecto entera');
     for (const protegida of ['.git', '.claude']) {
       if (dentroDe(ruta, path.join(this.raiz, protegida))) bloquea(`no se puede modificar ${protegida}/`);
     }
@@ -340,13 +389,16 @@ class Analizador {
     }
   }
 
+  // Devuelve true si la palabra no se puede comprobar y hay que dejarla pasar: una ruta calculada dentro de un contenedor.
   comprobarDinamica(palabra, verbo) {
+    if (this.contenedor) return palabra.dinamica;
     if (palabra.dinamica) {
       bloquea(`${verbo} con una ruta calculada (variable o $(...)) no se puede verificar; escribe la ruta exacta en una orden simple`);
     }
     if (!this.cwdConocido && !path.isAbsolute(palabra.texto)) {
       bloquea(`${verbo} con ruta relativa tras un cd que no se puede verificar; usa la ruta absoluta`);
     }
+    return false;
   }
 
   analizar(texto) {
@@ -358,18 +410,19 @@ class Analizador {
       CLAUDE_PROJECT_DIR: this.raiz,
       HOME,
     });
-    const previo = [this.shellDeEntrada, this.codigoDeEntrada];
+    const previo = [this.shellDeEntrada, this.codigoDeEntrada, this.entradasActuales];
     this.shellDeEntrada = false;
     this.codigoDeEntrada = false;
+    this.entradasActuales = entradas;
     for (const orden of ordenes) this.orden(orden);
     const [shell, codigo] = [this.shellDeEntrada, this.codigoDeEntrada];
-    [this.shellDeEntrada, this.codigoDeEntrada] = previo;
+    [this.shellDeEntrada, this.codigoDeEntrada, this.entradasActuales] = previo;
     // Un intérprete sin script ejecuta lo que le llegue por la entrada: solo se puede verificar si está escrito aquí.
     if (shell) {
-      if (!entradas.length) bloquea('un intérprete de órdenes que las lee de la entrada (como ... | sh) no se puede verificar; escribe las órdenes directamente');
+      if (!entradas.length && !this.contenedor) bloquea('un intérprete de órdenes que las lee de la entrada (como ... | sh) no se puede verificar; escribe las órdenes directamente');
       for (const e of entradas) {
-        if (e.dinamica) bloquea('un intérprete de órdenes con una entrada calculada no se puede verificar');
-        this.analizar(e.texto);
+        if (e.dinamica && !this.contenedor) bloquea('un intérprete de órdenes con una entrada calculada no se puede verificar');
+        if (!e.dinamica) this.analizar(e.texto);
       }
     }
     if (codigo) for (const e of entradas) this.codigoEnLinea(e.texto);
@@ -380,12 +433,12 @@ class Analizador {
   orden(orden) {
     let palabras = orden.palabras.slice();
     while (palabras.length && (esAsignacion(palabras[0]) || (!palabras[0].entrecomillada && CLAVES.has(palabras[0].texto)))) {
-      if (VARIABLES_DOCKER.test(palabras[0].texto)) bloquea(`${palabras[0].texto.split('=')[0]} cambia el destino de docker y no está permitido`);
+      if (!this.contenedor && VARIABLES_DOCKER.test(palabras[0].texto)) bloquea(`${palabras[0].texto.split('=')[0]} cambia el destino de docker y no está permitido`);
       palabras.shift();
     }
     if (palabras.length && ENVOLTORIOS.has(palabras[0].texto)) {
       const envoltorio = palabras.shift().texto;
-      if (palabras.some((p) => VARIABLES_DOCKER.test(p.texto))) bloquea('esa variable cambia el destino de docker y no está permitido');
+      if (!this.contenedor && palabras.some((p) => VARIABLES_DOCKER.test(p.texto))) bloquea('esa variable cambia el destino de docker y no está permitido');
       while (palabras.length && (/^-/.test(palabras[0].texto) || esAsignacion(palabras[0])
         || (envoltorio === 'timeout' && /^\d/.test(palabras[0].texto)))) palabras.shift();
       this.orden({ palabras, redirecciones: orden.redirecciones });
@@ -394,40 +447,52 @@ class Analizador {
     const enDocker = palabras.length > 0 && path.basename(palabras[0].texto) === 'docker';
     for (const r of orden.redirecciones) {
       if (r.tipo === 'escribe') {
-        this.comprobarDinamica(r.destino, 'Una redirección');
-        this.comprobarEscritura(r.destino.texto, true);
+        if (!this.comprobarDinamica(r.destino, 'Una redirección')) this.comprobarEscritura(r.destino.texto, true);
       } else if (!r.destino.dinamica) {
         this.comprobarLectura(r.destino.texto);
       }
     }
     if (!palabras.length) return;
-    if (palabras[0].dinamica) bloquea('el comando a ejecutar sale de una variable y no se puede verificar');
+    if (palabras[0].dinamica) {
+      if (this.contenedor) return;
+      bloquea('el comando a ejecutar sale de una variable y no se puede verificar');
+    }
 
     let nombre = palabras[0].texto;
     const argumentos = palabras.slice(1);
     if (nombre.includes('/')) {
-      const ruta = this.resolver(nombre);
-      if (!this.dentro(ruta) && !EJECUTABLES.some((base) => dentroDe(ruta, base))) {
-        bloquea(`no se puede ejecutar ${ruta}: está fuera de la raíz del proyecto`);
+      if (!this.contenedor) {
+        const ruta = this.resolver(nombre);
+        if (!this.dentro(ruta) && !EJECUTABLES.some((base) => dentroDe(ruta, base))) {
+          bloquea(`no se puede ejecutar ${ruta}: está fuera de la raíz del proyecto`);
+        }
+        this.revisarScript(ruta);
       }
-      this.revisarScript(ruta);
       nombre = path.basename(nombre);
     }
-    if (PROHIBIDOS.has(nombre) || /^mkfs/.test(nombre)) bloquea(`${nombre} no está permitido`, true);
-    if (enDocker) return this.docker(argumentos);
-    if (nombre === 'git') return this.git(argumentos);
+    // Lo que sigue son normas del equipo: dentro de un contenedor no aplican.
+    if (!this.contenedor) {
+      if (PROHIBIDOS.has(nombre) || /^mkfs/.test(nombre)) bloquea(`${nombre} no está permitido`, true);
+      if (enDocker) return this.docker(argumentos);
+      if (nombre === 'git') return this.git(argumentos);
+      if (nombre === 'ip') {
+        if (argumentos.some((a) => /^(add|del|delete|set|flush|replace|change)$/.test(a.texto))) bloquea('ip solo se puede usar para consultar');
+        return undefined;
+      }
+      if (nombre === 'kill') return this.kill(argumentos);
+      if (CLIENTES_BD.has(nombre)) return this.clienteBd(nombre, argumentos);
+      if (AWK.test(nombre)) this.awk(argumentos);
+    } else if (CLIENTES_BD.has(nombre) && this.contenedor.servicios.length) {
+      return this.clienteBd(nombre, argumentos);
+    }
     if (nombre === 'curl' || nombre === 'wget') return this.descarga(nombre, argumentos);
     if (nombre === 'find') return this.find(argumentos);
     if (nombre === 'xargs') return this.xargs(argumentos);
-    if (nombre === 'ip') {
-      if (argumentos.some((a) => /^(add|del|delete|set|flush|replace|change)$/.test(a.texto))) bloquea('ip solo se puede usar para consultar');
-      return undefined;
-    }
     if (nombre === 'dd') {
       for (const a of argumentos) {
         const m = a.texto.match(/^(if|of)=(.*)$/);
         if (!m) continue;
-        this.comprobarDinamica(a, 'dd');
+        if (this.comprobarDinamica(a, 'dd')) continue;
         if (m[1] === 'of') this.comprobarEscritura(m[2], true);
         else this.comprobarLectura(m[2]);
       }
@@ -440,6 +505,7 @@ class Analizador {
   }
 
   revisarScript(ruta) {
+    if (this.contenedor) return;
     if (!dentroDe(ruta, this.raiz) || dentroDe(ruta, path.join(this.raiz, '.magents/scripts'))) return;
     let contenido;
     try {
@@ -491,8 +557,7 @@ class Analizador {
         if (verbo === 'rsync' && /^[^/]*:/.test(a.texto)) bloquea('rsync a otra máquina no está permitido');
         if (!a.dinamica) this.comprobarLectura(a.texto);
       }
-      if (destino) {
-        this.comprobarDinamica(destino, verbo);
+      if (destino && !this.comprobarDinamica(destino, verbo)) {
         if (verbo === 'rsync' && /^[^/]*:/.test(destino.texto)) bloquea('rsync a otra máquina no está permitido');
         this.comprobarEscritura(destino.texto, verbo === 'cp');
       }
@@ -503,7 +568,7 @@ class Analizador {
     // El primer argumento de chmod, chown y chgrp es el modo o el dueño.
     const rutas = /^(chmod|chown|chgrp)$/.test(verbo) ? lista.slice(1) : lista;
     for (const a of rutas) {
-      this.comprobarDinamica(a, verbo);
+      if (this.comprobarDinamica(a, verbo)) continue;
       if (verbo === 'rsync' && /^[^/]*:/.test(a.texto)) bloquea('rsync a otra máquina no está permitido');
       this.comprobarEscritura(a.texto, destinoInofensivo);
     }
@@ -548,12 +613,59 @@ class Analizador {
 
   // No puede seguir lo que el código haga al ejecutarse; solo mira las rutas absolutas que aparezcan en él.
   codigoEnLinea(codigo) {
+    if (this.contenedor) return;
     for (const m of codigo.matchAll(/['"](\/[^'"\s]*)['"]/g)) {
       // "/" suelto (separador) o algo cuya primera carpeta no existe, como "/admin/login" de una URL, no es una ruta del equipo.
       const primera = m[1].split('/')[1];
       if (!primera || !fs.existsSync(`/${primera}`)) continue;
       const ruta = this.resolver(m[1]);
       if (!this.lecturaPermitida(ruta) && !SALIDAS_INOFENSIVAS.has(ruta)) bloquea(`el código menciona ${ruta}, fuera de la raíz del proyecto`);
+    }
+  }
+
+  // Un PID negativo o 0 es un grupo entero, y -1, todos los procesos del usuario.
+  kill(argumentos) {
+    const textos = argumentos.map((a) => a.texto);
+    let i = 0;
+    if (/^-[sn]$/.test(textos[0] || '')) i = 2;
+    else if (/^-[A-Za-z0-9]+$/.test(textos[0] || '')) i = 1;
+    if (textos[i] === '--') i += 1;
+    for (const a of argumentos.slice(i)) {
+      if (!a.dinamica && /^(-\d+|0)$/.test(a.texto)) bloquea('kill sobre un grupo o sobre todos los procesos no está permitido; indica el PID exacto', true);
+    }
+  }
+
+  clienteBd(nombre, argumentos) {
+    for (let i = 0; i < argumentos.length; i += 1) {
+      const t = argumentos[i].texto;
+      const pegado = t.match(/^--host=(.*)$/) || t.match(/^-h(.+)$/);
+      let palabra = argumentos[i];
+      let anfitrion;
+      if (pegado) anfitrion = pegado[1];
+      else if (/^(-h|--host)$/.test(t) && argumentos[i + 1]) {
+        palabra = argumentos[i + 1];
+        anfitrion = palabra.texto;
+      } else if (anfitrionDe(t) !== null) anfitrion = anfitrionDe(t);
+      else continue;
+      if (palabra.dinamica || !this.esLocal(anfitrion.toLowerCase())) {
+        bloquea(`${nombre} hacia ${palabra.dinamica ? 'un servidor calculado' : anfitrion} no está permitido: la base de datos de pruebas es la del entorno local`, true);
+      }
+    }
+  }
+
+  // awk puede ejecutar órdenes (system, tuberías) y escribir archivos desde su programa.
+  awk(argumentos) {
+    const literal = /\bsystem\s*\(\s*"((?:[^"\\]|\\.)*)"\s*\)|\|\s*"((?:[^"\\]|\\.)*)"|"((?:[^"\\]|\\.)*)"\s*\|\s*getline/g;
+    for (const a of argumentos) {
+      const llamadas = (a.texto.match(/\bsystem\s*\(/g) || []).length;
+      const ordenes = [...a.texto.matchAll(literal)];
+      if (llamadas || ordenes.length) {
+        if (a.dinamica || llamadas > ordenes.filter((m) => m[1] !== undefined).length) {
+          bloquea('awk con system() sobre una orden calculada no se puede verificar; ejecuta la orden fuera de awk');
+        }
+        for (const m of ordenes) this.analizar((m[1] ?? m[2] ?? m[3]).replace(/\\(.)/g, '$1'));
+      }
+      this.codigoEnLinea(a.texto);
     }
   }
 
@@ -604,39 +716,68 @@ class Analizador {
     const conRuta = verbo === 'curl'
       ? /^(-o|--output|-T|--upload-file|-c|--cookie-jar|-b|--cookie|-D|--dump-header|--output-dir)$/
       : /^(-O|--output-document|-P|--directory-prefix)$/;
+    let sube = false;
     for (let i = 0; i < argumentos.length; i += 1) {
       const a = argumentos[i];
+      const cuerpo = verbo === 'wget' && a.texto.match(/^--(?:post|body)-file=(.+)$/);
+      if (cuerpo) {
+        this.comprobarDinamica(a, verbo);
+        this.comprobarLectura(cuerpo[1]);
+        sube = true;
+      }
+      if (/^(-T|--upload-file)$/.test(a.texto)) sube = true;
       if (conRuta.test(a.texto) && argumentos[i + 1]) {
         const siguiente = argumentos[i + 1];
         // Con un "=" literal, curl toma -b como cookie y no como archivo: no hay ruta que verificar.
         if (/^(-b|--cookie)$/.test(a.texto) && siguiente.texto.includes('=')) continue;
-        this.comprobarDinamica(siguiente, verbo);
+        // "-" es la salida o la entrada estándar, no un archivo.
+        if (siguiente.texto === '-' && !siguiente.dinamica) continue;
+        if (this.comprobarDinamica(siguiente, verbo)) continue;
         if (/^(-T|--upload-file)$/.test(a.texto)) this.comprobarLectura(siguiente.texto);
         else if (/^(-b|--cookie)$/.test(a.texto) && !siguiente.texto.includes('=')) this.comprobarLectura(siguiente.texto);
         else if (!/^(-b|--cookie)$/.test(a.texto)) this.comprobarEscritura(siguiente.texto, true);
       }
       const adjunto = a.texto.match(/(?:^|=)@([^;]+)/);
+      if (adjunto) sube = true;
       if (adjunto && !a.dinamica) this.comprobarLectura(adjunto[1]);
+    }
+    // Un archivo solo se envía al entorno local, y con la URL a la vista.
+    if (sube && !this.contenedor) {
+      const urls = argumentos.filter((a) => anfitrionDe(a.texto) !== null);
+      const fuera = urls.find((a) => !this.esLocal(anfitrionDe(a.texto)));
+      if (fuera) bloquea(`${verbo} envía un archivo a ${anfitrionDe(fuera.texto) || 'un destino calculado'}, que no es el entorno local`, true);
+      if (!urls.length) bloquea(`${verbo} envía un archivo y su destino no se puede verificar; escribe la URL completa, con http://`);
     }
   }
 
   find(argumentos) {
     let i = 0;
+    const partida = [];
     while (i < argumentos.length && !/^[-(!]/.test(argumentos[i].texto)) {
-      if (!argumentos[i].dinamica) this.comprobarLectura(argumentos[i].texto);
+      if (!argumentos[i].dinamica) {
+        this.comprobarLectura(argumentos[i].texto);
+        partida.push(argumentos[i].texto);
+      }
       i += 1;
     }
+    let modifica = false;
+    // Sin ninguna condición, -delete borra la carpeta de partida entera.
+    const conCondicion = argumentos.slice(i).some((a) => !/^-(delete|depth|print|print0)$/.test(a.texto));
     for (; i < argumentos.length; i += 1) {
       const a = argumentos[i].texto;
       if (/^-(fprint|fprintf|fprint0|fls)$/.test(a)) bloquea(`find ${a} no se puede verificar`);
+      if (a === '-delete') modifica = true;
       if (/^-(exec|execdir|ok|okdir)$/.test(a)) {
         const resto = [];
         for (i += 1; i < argumentos.length && argumentos[i].texto !== ';' && argumentos[i].texto !== '+'; i += 1) {
           if (argumentos[i].texto !== '{}') resto.push(argumentos[i]);
         }
+        if (resto.length && MODIFICAN.has(path.basename(resto[0].texto))) modifica = true;
         this.orden({ palabras: resto, redirecciones: [] });
       }
     }
+    // Lo que borra o cambia está bajo las rutas de partida.
+    if (modifica) for (const ruta of partida.length ? partida : ['.']) this.comprobarEscritura(ruta, false, conCondicion);
     if (argumentos.some((a) => a.dinamica) && argumentos.some((a) => /^-(delete|exec|execdir)$/.test(a.texto))) {
       bloquea('find con una ruta calculada no se puede verificar; escribe la ruta exacta');
     }
@@ -700,12 +841,16 @@ class Analizador {
     const enContenedor = sub === 'container' ? accion : sub;
     const resto = argumentos.slice(sub === 'container' ? 2 : 1);
     if (/^(stop|kill|restart|pause|unpause|update|rename|start|exec|attach|wait)$/.test(enContenedor)) {
-      return this.contenedoresPropios(enContenedor, resto);
+      this.contenedoresPropios(enContenedor, resto);
+      if (enContenedor === 'exec') this.comandoEnContenedor('exec', resto);
+      return undefined;
     }
     if (enContenedor === 'run' || enContenedor === 'create') {
       this.nombrePropio(resto);
       this.pullNunca(resto);
-      return this.dockerRun(resto);
+      this.dockerRun(resto);
+      this.comandoEnContenedor('run', resto);
+      return undefined;
     }
     if (sub === 'build' || ((sub === 'buildx' || sub === 'image') && accion === 'build')) {
       for (let i = 1; i < argumentos.length; i += 1) {
@@ -723,8 +868,103 @@ class Analizador {
           this.comprobarEscritura(a.texto);
         }
       }
+      this.copiaAContenedor(argumentos[argumentos.length - 1]);
     }
     return undefined;
+  }
+
+  // Montajes del equipo en los contenedores del entorno, según compose.yml: { origen, destino, ro }.
+  // Un tmpfs tapa lo que haya debajo y no tiene origen.
+  montajesCompose() {
+    if (this.montajes) return this.montajes;
+    this.montajes = [];
+    const carpeta = path.join(this.raiz, '.magents/entorno');
+    let compose = '';
+    try {
+      compose = fs.readFileSync(path.join(carpeta, 'compose.yml'), 'utf8');
+    } catch {
+      return this.montajes;
+    }
+    for (const m of compose.matchAll(/^[ \t]*-[ \t]*["']?(\.{1,2}(?:\/[^:"'\s]*)?|\/[^:"'\s]*):(\/[^:"'\s]+)(?::([a-z,]+))?["']?[ \t]*(?:#.*)?$/gm)) {
+      this.montajes.push({ origen: real(path.resolve(carpeta, m[1])), destino: path.posix.normalize(m[2]), ro: /(^|,)ro(,|$)/.test(m[3] || '') });
+    }
+    for (const m of compose.matchAll(/^[ \t]*-[ \t]*["']?(\/[^:"'\s]+)["']?[ \t]*(?:#.*)?$/gm)) {
+      this.montajes.push({ origen: null, destino: path.posix.normalize(m[1]), ro: false });
+    }
+    return this.montajes;
+  }
+
+  // Montaje de un -v o --mount de docker run, o null si no es una ruta del equipo.
+  montajeDe(texto) {
+    let origen;
+    let destino;
+    let ro;
+    if (/(^|,)(source|src)=/.test(texto)) {
+      origen = (texto.match(/(?:^|,)(?:source|src)=([^,]+)/) || [])[1];
+      destino = (texto.match(/(?:^|,)(?:target|dst|destination)=([^,]+)/) || [])[1];
+      ro = /(^|,)(readonly|ro)(,|=true|$)/.test(texto);
+    } else {
+      const partes = texto.split(':');
+      [origen, destino] = partes;
+      ro = /(^|,)ro(,|$)/.test(partes[2] || '');
+    }
+    if (!origen || !destino || !/^[/.~]/.test(origen) || !destino.startsWith('/')) return null;
+    return { origen: real(path.resolve(this.cwd, origen)), destino: path.posix.normalize(destino), ro };
+  }
+
+  analizadorDeContenedor(montajes, cwd) {
+    const dentro = new Analizador(this.raiz, cwd, this.autorizadas, this.soloMagents);
+    // servicios: nombres que resuelven dentro del entorno; vacío si no se conocen.
+    dentro.contenedor = { montajes, anfitrion: this, servicios: this.contenedores().servicios };
+    dentro.profundidad = this.profundidad;
+    return dentro;
+  }
+
+  // La orden que docker run, docker exec o docker compose run/exec ejecutan dentro del contenedor.
+  // Solo se miran sus escrituras en lo montado desde el equipo; si no se entiende, no bloquea.
+  comandoEnContenedor(tipo, argumentos) {
+    if (this.contenedor) return;
+    const opciones = [];
+    let i = 0;
+    for (; i < argumentos.length && argumentos[i].texto.startsWith('-'); i += 1) {
+      const a = argumentos[i];
+      const pegado = a.texto.match(/^(--[^=]+)=(.*)$/);
+      if (pegado) {
+        opciones.push({ nombre: pegado[1], valor: { ...a, texto: pegado[2] } });
+      } else if (!SIN_VALOR_DOCKER.has(a.texto) && !/^-[dituTPq]{2,}$/.test(a.texto)) {
+        opciones.push({ nombre: a.texto, valor: argumentos[i + 1] });
+        i += 1;
+      }
+    }
+    // argumentos[i] es la imagen, el servicio o el contenedor.
+    const comando = argumentos.slice(i + 1);
+    if (!comando.length) return;
+    const montajes = tipo === 'run' ? [] : this.montajesCompose().slice();
+    if (tipo !== 'exec') {
+      for (const o of opciones) {
+        if (!/^(-v|--volume|--mount)$/.test(o.nombre) || !o.valor || o.valor.dinamica) continue;
+        const montaje = this.montajeDe(o.valor.texto);
+        if (montaje) montajes.push(montaje);
+      }
+    }
+    if (!montajes.some((m) => m.origen && !m.ro) && tipo === 'run') return;
+    const trabajo = opciones.find((o) => /^(-w|--workdir)$/.test(o.nombre));
+    const raizMontada = montajes.find((m) => m.origen === this.raiz);
+    let cwd = '/';
+    if (trabajo && trabajo.valor && !trabajo.valor.dinamica && trabajo.valor.texto.startsWith('/')) cwd = trabajo.valor.texto;
+    else if (tipo !== 'run' && raizMontada) cwd = raizMontada.destino;
+    const dentro = this.analizadorDeContenedor(montajes, cwd);
+    dentro.orden({ palabras: comando, redirecciones: [] });
+    // Un sh sin script dentro del contenedor recibe el heredoc de esta orden.
+    if (dentro.shellDeEntrada) {
+      for (const e of this.entradasActuales) if (!e.dinamica) dentro.analizar(e.texto);
+    }
+  }
+
+  // docker cp hacia <contenedor>:/ruta también escribe en el proyecto si esa ruta está montada.
+  copiaAContenedor(a) {
+    const m = a && !a.dinamica ? a.texto.match(/^[^/:]+:(\/.*)$/) : null;
+    if (m) this.analizadorDeContenedor(this.montajesCompose(), '/').comprobarEscritura(m[1], false, true);
   }
 
   // Contenedores de este proyecto: los del compose de magents (<name>-<servicio>-<n> o <name>-<servicio>-run-<id>)
@@ -837,6 +1077,7 @@ class Analizador {
       bloquea('borrar los volúmenes de este entorno solo se hace con .magents/scripts/reiniciar-bd.sh');
     }
     if (sub === 'run') this.dockerRun(resto);
+    if (sub === 'run' || sub === 'exec') this.comandoEnContenedor('compose', resto);
     if (sub === 'cp') {
       for (const a of resto) {
         if (!a.texto.startsWith('-') && !/^[^/]+:/.test(a.texto)) {
@@ -844,6 +1085,7 @@ class Analizador {
           this.comprobarEscritura(a.texto);
         }
       }
+      this.copiaAContenedor(resto[resto.length - 1]);
     }
   }
 

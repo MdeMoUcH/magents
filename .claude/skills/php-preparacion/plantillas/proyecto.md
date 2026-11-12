@@ -33,6 +33,10 @@ Las tareas que cambien lo que describen deben actualizarlos. -->
 
 <!-- Métodos que el usuario acepta para todas las tareas, para no volver a preguntarlos -->
 
+## Tareas menores
+
+- Omitir las verificaciones que proponga el triage: <!-- sí, no o preguntar; sin valor, se pregunta en cada tarea -->
+
 ## Comprobaciones automáticas
 
 - Tests: <!-- p. ej. vendor/bin/phpunit, o "no hay" -->

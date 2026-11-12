@@ -64,7 +64,7 @@ Una ejecución puede cortarse en cualquier momento, y tu informe solo se guarda 
 
 1. Antes de la primera prueba, guarda en `codigo.txt` la huella del código, ejecutando esto desde la raíz del proyecto:
    ```bash
-   { git diff --name-only <commit-base> -- . ':(exclude).magents/tareas'; git ls-files --others --exclude-standard -- . ':(exclude).magents/tareas'; } | sort -u | while IFS= read -r f; do if [ -e "$f" ]; then sha256sum "$f"; else echo "borrado  $f"; fi; done
+   { git -c core.quotepath=off diff --name-only --relative <commit-base> -- . ':(exclude).magents/tareas'; git -c core.quotepath=off ls-files --others --exclude-standard -- . ':(exclude).magents/tareas'; } | sort -u | while IFS= read -r f; do if [ -e "$f" ]; then sha256sum "$f"; else echo "borrado  $f"; fi; done
    ```
 2. Empieza `progreso.md` con la versión de PHP. Cada criterio, caso límite, regresión o vista móvil es un bloque. Al terminarlo, tras comprobar consola, red y logs, añade una línea, sin secretos: `<bloque> | PASA, FALLA o PARCIAL | lo obtenido | capturas`.
 

@@ -32,7 +32,7 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 
 - Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las tres verificaciones en orden**, porque un arreglo puede romper lo ya aprobado. Las revisiones son incrementales desde la segunda vez; las pruebas, siempre completas.
 - Lanza cada verificación al terminar la anterior, nunca a la vez: si una rechaza, el trabajo de las siguientes se pierde.
-- **Nunca** te saltes una fase, salvo la comprobación de entorno en el caso que indica el paso 3, ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.
+- **Nunca** te saltes una fase, salvo la comprobación de entorno en el caso que indica el paso 3 y lo que se omita según «Tareas menores» del paso 2, ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.
 - Las acciones de producción están fuera del flujo salvo que el usuario las pida.
 
 ## Cómo lanzar cada fase
@@ -45,7 +45,7 @@ No indiques `model` al lanzarlos: cada uno usa el de su definición. Los subagen
 | Corrección de entorno | `preparador` | `preparacion-<n>.md` | modo `generar`; lo que haya confirmado el usuario |
 | Entorno | `probador` | `entorno.md` | indicación de hacer solo la comprobación de entorno; rutas de `triage.md` y `.magents/proyecto.md`; carpeta de evidencia `capturas/entorno/`; métodos aceptados por el usuario |
 | 2 | `desarrollador` | `desarrollo-<n>.md` | rutas de `triage.md` y `.magents/proyecto.md`; desde `n=2`, ruta del informe que rechazó |
-| 3 | `revisor-codigo` | `revision-codigo-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; si ya revisó una iteración, lo del paso 5 |
+| 3 | `revisor-codigo` | `revision-codigo-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; verificaciones que se omiten, si las hay; si ya revisó una iteración, lo del paso 5 |
 | 4 | `revisor-seguridad` | `revision-seguridad-<n>.md` | rutas de `triage.md` y `desarrollo-<n>.md`; si ya revisó una iteración, lo del paso 5 |
 | 5 | `probador` | `pruebas-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; commit base; carpeta de evidencia `capturas/<n>/`; métodos aceptados por el usuario; ejecución anterior de esta iteración, si la hay |
 | 6 | `documentador` | `documentacion.md` | ruta de la carpeta de la tarea |
@@ -118,9 +118,11 @@ Lanza `triage`. Cuando termine, junta en **una sola consulta** con AskUserQuesti
 
 Con `DUDAS`, añade a la misma consulta lo que el informe ya traiga de los demás apartados, para que el triage reciba todas las respuestas de una vez. Lo que vuelve al triage se le pasa como indica «Veredictos». Cuando devuelva `LISTO`, pregunta solo por lo que sea nuevo respecto a lo ya respondido.
 
+**Tareas menores:** si «Verificaciones que se pueden omitir» de `triage.md` propone alguna, mira «Tareas menores» de `.magents/proyecto.md`. Con `sí`, se omiten sin preguntar; con `no`, no se omiten. Si no dice nada o dice `preguntar`, añádelo a la misma consulta, con el motivo del triage: si las omite en esta tarea, si además quiere que se omitan siempre que el triage lo proponga (anota entonces `sí` en `proyecto.md`) o que no se pregunte más (anota `no`). Anota en el historial lo que se omite. Una verificación omitida se hace igualmente si `revisor-codigo` no confirma su condición, y lo que el triage no propuso no se omite.
+
 ### 3. Comprobación de entorno
 
-Es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Sáltala solo si se cumple todo esto: «Necesidades de prueba» de `triage.md` dice «Ninguna», no ha habido corrección de entorno en esta tarea, `.magents/scripts/comprobar-entorno.sh` pasa justo antes y la URL base de `proyecto.md` responde con `curl`. Anótalo en el historial («Entorno: omitida, sin necesidades de prueba») y pasa al paso 4. Si `probador` se bloquea después por el entorno o el MCP, resuélvelo como cualquier `BLOQUEADO`: no cuenta como iteración.
+Es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Si se omiten las pruebas por tarea menor, se omite también. Si no, sáltala solo si se cumple todo esto: «Necesidades de prueba» de `triage.md` dice «Ninguna», no ha habido corrección de entorno en esta tarea, `.magents/scripts/comprobar-entorno.sh` pasa justo antes y la URL base de `proyecto.md` responde con `curl`. Anótalo en el historial («Entorno: omitida, sin necesidades de prueba») y pasa al paso 4. Si `probador` se bloquea después por el entorno o el MCP, resuélvelo como cualquier `BLOQUEADO`: no cuenta como iteración.
 
 Si se bloquea solo por un método de prueba y el usuario lo acepta, no la repitas: trátalo como en la última fila de la tabla del paso 2. Haz lo mismo si termina en `LISTO` pero propone un método de prueba o un cambio de datos o de archivos que no estén en `triage.md` ni entre los aceptados, como crear un archivo de configuración temporal: pregúntaselo al usuario antes de pasarlo a `desarrollador` o `probador`, y pásalo solo si lo acepta.
 
@@ -132,13 +134,15 @@ Lanza `desarrollador`. Con `IMPLEMENTADO`, ejecuta `.magents/scripts/guardar-ite
 
 Lanza `revisor-codigo` y, si aprueba, `revisor-seguridad`. Si esa fase ya revisó una iteración anterior de esta tarea, pásale además su último informe (`revision-codigo-<m>.md` o `revision-seguridad-<m>.md`), el informe que rechazó la iteración anterior, si lo hay, y `informes/delta-<m>-<n>.diff`, con la misma `m` que su informe, indicándole que haga la revisión incremental de su skill. Si no existe ese delta, o la fase aún no ha revisado ninguna iteración, la revisión es completa.
 
-**Sugerencias:** cuando apruebe seguridad y antes de las pruebas, no tras cada revisión, enseña al usuario lo no bloqueante de las dos revisiones, en tres grupos:
+Si se omite alguna verificación por tarea menor, indícaselo a `revisor-codigo` y lee «Verificaciones omitidas» de su informe en cada iteración: con «Condición cumplida», anota en el historial «Seguridad: omitida, tarea menor» o «Pruebas: omitidas, tarea menor» y no lances esa fase; con «No se cumple», anótalo y lánzala como siempre, también la comprobación de entorno si se trataba de las pruebas.
+
+**Sugerencias:** cuando termine la última revisión y antes de las pruebas, no tras cada revisión, enseña al usuario lo no bloqueante de las dos revisiones, en tres grupos:
 
 - «Del cambio»: recomienda hacerlo ahora, porque si no se convierte en otra tarea.
 - Sugerencias y endurecimientos: son notas; enuméralas en una línea cada una, sin recomendar aplicarlas.
 - Preexistentes: no se preguntan, salvo que el informe deje una decisión; van a `.magents/deuda.md`.
 
-Pregúntale con AskUserQuestion qué aplica. Si acepta algo, anótalo en el historial y lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios; después repite las tres verificaciones, como tras un rechazo. Anota también lo «del cambio» que aplace, para que `documentador` lo pase a la deuda.
+Si no hay nada en ningún grupo, sigue sin preguntar. Si lo hay, pregúntale con AskUserQuestion qué aplica. Si acepta algo, anótalo en el historial y lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios; después repite las tres verificaciones, como tras un rechazo. Anota también lo «del cambio» que aplace, para que `documentador` lo pase a la deuda.
 
 ### 6. Pruebas
 
@@ -153,7 +157,7 @@ Antes de lanzar `documentador`, borra `.magents/tareas/<id>/tmp/`, salvo lo que 
 
 ### 8. Al terminar
 
-Resume al usuario: qué se hizo, archivos cambiados, número de iteraciones y motivos de los rechazos, evidencia de las pruebas, cambios de entorno que también pueda necesitar producción, riesgos preexistentes detectados, los ids de `.magents/deuda.md` que se han abierto y cerrado, y dónde está la documentación. Indica que los cambios están sin confirmar. Si el flujo terminó sin completarse, dilo de forma explícita y no recomiendes ningún commit.
+Resume al usuario: qué se hizo, archivos cambiados, número de iteraciones y motivos de los rechazos, evidencia de las pruebas, verificaciones omitidas por tarea menor, cambios de entorno que también pueda necesitar producción, riesgos preexistentes detectados, los ids de `.magents/deuda.md` que se han abierto y cerrado, y dónde está la documentación. Indica que los cambios están sin confirmar. Si el flujo terminó sin completarse, dilo de forma explícita y no recomiendes ningún commit.
 
 Si el flujo se completó, borra `.magents/tareas/<id>/iteraciones/` y cierra con estos dos apartados, basados en `git diff <commit-base>` y `git status --porcelain` y sin incluir los cambios previos anotados en `estado.md` y `informes/cambios-previos.diff`:
 
