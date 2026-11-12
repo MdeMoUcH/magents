@@ -98,6 +98,8 @@ rsync -a --delete --no-links \
   --exclude '/tareas/*/tmp' \
   --exclude '/tareas/*/iteraciones' \
   --exclude '/preparacion/tmp' \
+  --exclude '/origen' \
+  --exclude '/origen-cfw' \
   "$origen/" "$destino/magents/"
 
 git -C "$proyecto" log --oneline -50 > "$destino/git-log.txt" 2>/dev/null || true

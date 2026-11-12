@@ -30,6 +30,7 @@ No escribas nada. Averigua:
    **Subred**, si hay más servicios que `web`: con `n` = puerto − 8100, `__SUBRED__` es `10.<213 + n / 256, sin decimales>.<n % 256>`, y la red es `__SUBRED__.0/28`. Al salir del puerto, dos entornos de magents con puertos distintos no chocan. Compruébala con `ip -4 route show table all to match __SUBRED__.1 | grep -v '^default'`: si sale alguna ruta, esa red ya está en uso (VPN o red local), así que elige otra `/28` de `10.0.0.0/8` e indícalo. No uses `ip route get`, porque con una VPN da su interfaz para cualquier IP. Con el puerto fuera de ese intervalo, elige también una al azar.
 7. **Comprobaciones y rutas**: tests, análisis estático y rutas que no se deben tocar.
 8. **Documentación del proyecto**: archivos versionados que explican la web a quien la usa, la instala o la actualiza (`README`, guías de instalación o de migración, `docs/`, y textos de la propia web que listen requisitos o medidas), con qué cubre cada uno, para la sección «Documentación del proyecto» de `proyecto.md`. No incluyas nada de `.magents/`.
+9. **CFW**, solo si existe `.claude/skills/cfw/SKILL.md`: versión de CFW, ficheros de `cfw/general/` que tengan copia en `cfw/specific/` y cómo iniciar sesión sin navegador, para la sección «CFW» de `proyecto.md`. Sin esa skill, la sección no se crea ni se propone.
 
 Si no hay entorno propio y Docker no está disponible: `BLOQUEADO`.
 

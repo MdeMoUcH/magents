@@ -62,6 +62,20 @@ Se respeta la forma de programar de cada proyecto. La indentación es con tabula
 
 Copia `.claude/agents` y `.claude/skills`, añade `.claude/` y `.magents/` al `.gitignore` y crea `.magents/.htaccess` con `Require all denied`, que solo protege en Apache. Volver a ejecutarlo actualiza esos agentes y skills, sin tocar los demás, y también los scripts fijos de `.magents/scripts/` si el proyecto ya tiene entorno, así que no los modifiques a mano: si encuentra cambios, o una versión instalada sin registro, guarda el script en `.magents/scripts/anterior/` y avisa. Si lo lanzas desde una terminal, pide confirmación antes de sustituir una instalación existente. Si venías de una versión con los scripts en `.magents/entorno/`, los mueve, guarda los antiguos en `.magents/scripts/anterior/` y corrige sus rutas en `proyecto.md`. Las demás plantillas no llegan a un entorno ya generado. Al terminar ejecuta `comprobar-entorno.sh` y muestra lo que encuentre, sin impedir la instalación. Abre después Claude Code en el proyecto (o reinícialo) y acepta la confianza de la carpeta: sin ella no arranca el MCP de Firefox.
 
+Si el proyecto usa el framework [CFW](https://github.com/MdeMoUcH/cfw) (existe `cfw/general/class/Page.php`), instala además la skill `cfw`, que todos los agentes leen al empezar su fase: el núcleo no se toca, lo propio va en `cfw/specific/`, las mejoras para el framework se anotan como deuda «Para CFW» y cada fase tiene sus comprobaciones. Incluye el método para actualizar CFW en una web y para migrar una web a CFW por etapas, con un inventario en `.magents/migracion.md` y la web de origen en `.magents/origen/`. `./install.sh --cfw <ruta>` la fuerza, para una web que se va a migrar, y `--sin-cfw` la evita.
+
+Para migrar una web a CFW, sea de un CFW anterior o sin framework:
+
+```bash
+git clone --branch <etiqueta> https://github.com/MdeMoUcH/cfw.git mi-web && cd mi-web
+git remote rename origin cfw            # CFW queda como remoto de solo lectura
+git remote add origin <repositorio de la web>
+/ruta/a/magents/install.sh .
+mkdir -p .magents/origen                # copia aquí la web antigua; su volcado va en .magents/entorno/bd-inicial/
+```
+
+Después, `/preparar`, una primera `/tarea` que pida el inventario y el plan de migración, y una `/tarea` por etapa. Para actualizar CFW más adelante: `git fetch cfw && git merge <etiqueta>` y una `/tarea` que aplique `MIGRACION.md`.
+
 ## Uso
 
 ```
@@ -103,7 +117,7 @@ Si ya hay entorno, `/preparar` te deja elegir:
 
 `comprobar-entorno.sh` solo detecta fallos de estructura, muestra el estado sin que influya en el resultado, y lo ejecutan `install.sh` y `/tarea`. Los de funcionamiento los busca «Revisar». Los errores de PHP van a `docker compose logs web`, no a la página, gracias al `LogLevel info` de `magents.conf`. Si un entorno los envía a un archivo con `error_log`, `proyecto.md` indica cómo leerlo. Los agentes no borran ni vacían esos logs.
 
-Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
+Te pedirá confirmar lo que el código no puede indicar, como la versión de PHP de producción. Si no hay esquema en el repositorio, deja un volcado **anonimizado** (o el real, si sus datos no son sensibles y así lo decides) en `.magents/entorno/bd-inicial/`, que se carga solo cuando el volumen de la BD está vacío. El probador se bloquea, en lugar de arriesgarse, si no puede confirmar que los datos son de prueba.
 
 ### Copia para revisar
 

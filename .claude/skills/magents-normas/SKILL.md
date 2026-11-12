@@ -45,6 +45,8 @@ user-invocable: false
 - **Indentación**: con tabuladores, en archivos nuevos y en los que ya los usan, salvo en formatos que no los admiten, como YAML. En un archivo existente indentado con espacios, mantén los espacios, sin mezclar ni reformatear. En uno que ya mezcla ambos, sigue el estilo de las líneas de alrededor y no reformatees nada.
 - **Comentarios**: breves y concisos, y solo donde aporten algo que el código no diga. Nunca pueden ocupar más que el código al que acompañan; lo normal es que ocupen mucho menos.
 
+**CFW:** si existe `.claude/skills/cfw/SKILL.md`, la web usa el framework CFW o se está migrando a él: léela antes de empezar tu fase y síguela.
+
 **Revisiones:** nunca ejecutes `.magents/scripts/copiar-revision.sh`: escribe fuera del proyecto y lo lanza solo el usuario. Tampoco uses `.magents/scripts/menu.sh`, que es interactivo: ejecuta directamente el script que necesites.
 
 **Temporales:** tus archivos temporales van solo en `.magents/tareas/<id>/tmp/`, o en `.magents/preparacion/tmp/` si no hay tarea, aunque tu entorno te sugiera un scratchpad o `/tmp`. Esto, las salidas de evidencia, el avance de `probador` y el anexo de `triage` son las únicas excepciones para los agentes sin edición. Bórralos al terminar, salvo que indiques en tu informe para qué sirven después. Salvo a `desarrollador`, el hook solo deja escribir dentro de `.magents/`. Si una comprobación necesita un archivo servido por la web, llámalo `magents-sonda-<algo>.php`, que el hook sí permite fuera de `.magents/`: bórralo al terminar, con su ruta exacta, y decláralo. Cualquier otro archivo del proyecto que haya que crear o cambiar para una prueba necesita que el usuario lo acepte y añada su ruta a `.magents/rutas-autorizadas.txt`.

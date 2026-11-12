@@ -21,6 +21,14 @@ Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.mag
 - Framework o estructura:
 - Requisitos especiales: <!-- p. ej. short_open_tag=On -->
 
+## CFW
+
+<!-- Solo si la web usa el framework CFW o se está migrando a él; si no, borra la sección.
+- Versión de CFW: la de cfw/general/VERSION, o el commit de CFW del que parte
+- Ficheros de general copiados a specific, con el motivo de cada uno
+- Inicio de sesión sin navegador: cómo se hace en este entorno, porque la contraseña viaja cifrada
+- Web de origen, si es una migración: qué hay en .magents/origen/ y si sus datos son reales -->
+
 ## Documentación del proyecto
 
 <!-- Archivos versionados que explican la web a quien la usa, instala o actualiza, y qué cubre cada uno. P. ej.:

@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # Instala o actualiza los agentes y skills de magents en un proyecto PHP.
-# Uso: ./install.sh /ruta/al/proyecto
+# Uso: ./install.sh [--cfw|--sin-cfw] /ruta/al/proyecto
 set -euo pipefail
 
 origen="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.claude"
 source "$origen/skills/php-preparacion/plantillas/scripts/confirmar.sh"
 
+# La skill cfw se instala sola si el destino lleva CFW; --cfw la fuerza (web que se va a migrar) y --sin-cfw la evita.
+cfw=auto
+case "${1:-}" in
+  --cfw) cfw=si; shift ;;
+  --sin-cfw) cfw=no; shift ;;
+esac
+
 if [ "$#" -ne 1 ] || [ ! -d "$1" ]; then
-  magents_error "Uso: $0 /ruta/al/proyecto"
+  magents_error "Uso: $0 [--cfw|--sin-cfw] /ruta/al/proyecto"
   exit 1
 fi
 
@@ -43,6 +50,17 @@ for s in "${skills[@]}"; do
   rm -rf "${destino:?}/.claude/skills/$s"
   cp -r "$origen/skills/$s" "$destino/.claude/skills/$s"
 done
+if [ "$cfw" = auto ]; then
+  cfw=no
+  if [ -f "$destino/cfw/general/class/Page.php" ]; then
+    cfw=si
+  fi
+fi
+rm -rf "${destino:?}/.claude/skills/cfw"
+if [ "$cfw" = si ]; then
+  cp -r "$origen/skills/cfw" "$destino/.claude/skills/cfw"
+  echo "Skill cfw instalada."
+fi
 # Solo sirve para desarrollar magents.
 rm -f "$destino/.claude/skills/magents-normas/limite-carpeta.test.cjs"
 
