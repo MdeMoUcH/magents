@@ -24,6 +24,7 @@ Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.mag
 ## CFW
 
 <!-- Solo si la web usa el framework CFW o se está migrando a él; si no, borra la sección.
+- Si este proyecto es el propio CFW o una web hecha con él
 - Versión de CFW: la de cfw/general/VERSION, o el commit de CFW del que parte
 - Ficheros de general copiados a specific, con el motivo de cada uno
 - Inicio de sesión sin navegador: cómo se hace en este entorno, porque la contraseña viaja cifrada

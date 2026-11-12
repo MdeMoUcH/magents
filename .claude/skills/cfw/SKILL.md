@@ -14,6 +14,16 @@ CFW es un framework MVC en PHP: `cfw/general/` es el núcleo y `cfw/specific/` l
 2. Mira la versión en `cfw/general/VERSION` y en «CFW» de `.magents/proyecto.md`. Cada web lleva su copia de CFW: lo que sepas de otra versión no vale si el código dice otra cosa.
 3. Si el código y la documentación no coinciden, manda el código, y la diferencia va al informe.
 
+## Si el proyecto es el propio CFW
+
+Lo es si «CFW» de `.magents/proyecto.md` lo dice o, si no dice nada, si `cfw/specific/` no tiene páginas, clases ni ORM propios y no hay un remoto de git llamado `cfw`. Entonces el núcleo es el trabajo y cambian tres cosas:
+
+- No valen «El núcleo no se toca» ni «Mejoras para CFW» de «Reglas», ni la comprobación de que el núcleo no ha cambiado de «Revisión de código».
+- Todo cambio se mira como lo recibirá un sitio al actualizar: si le obliga a tocar algo o cambia un comportamiento, va en `MIGRACION.md`; si cambia cómo se construye sobre CFW, en `DESARROLLO.md`; y nada propio de un sitio entra en `cfw/specific/`, que aquí solo lleva los `index.php` de protección.
+- Un cambio que rompa a los sitios existentes es una duda para el usuario, porque decide el número de versión.
+
+Lo demás de esta skill vale igual.
+
 ## Reglas
 
 - **El núcleo no se toca.** En una web, ninguna tarea cambia `cfw/general/`, `cfw/includes.php`, `cfw/index.php`, `index.php` ni los estáticos del núcleo, salvo que la tarea sea actualizar CFW. Lo que haga falta va en `cfw/specific/`. Esta regla no vale en el repositorio del propio CFW: ahí el núcleo es el trabajo.
