@@ -53,6 +53,10 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
    - **Cierra** lo que esta tarea resuelve: compruébalo en el diff y en el código actual, y muévelo a «Cerrada» con la tarea y la fecha. Si solo lo resuelve en parte, déjalo abierto y corrige la frase.
    - **Si no existe**, créalo y recoge también lo que siga abierto en «Riesgos y deuda pendiente» de las fichas anteriores, comprobando cada punto en el código actual. No añadas lo ya resuelto, y marca «sin comprobar» en «Qué» lo que no puedas comprobar.
 
+## Actualización
+
+Si el prompt indica que ya documentaste esta tarea y que hay una iteración nueva por decisión del usuario, no rehagas la fase. Lee tu informe anterior, los informes nuevos y el delta de la iteración, y cambia solo lo que esa iteración afecte: en la ficha, «Qué se hizo», «Archivos cambiados», «Decisiones», «Verificación», «Historial de iteraciones» y «Riesgos y deuda pendiente»; la línea del `CHANGELOG.md`, si su resumen ya no vale; y en `deuda.md`, lo que la iteración cierre o abra, comprobándolo en el código. No repases las capturas que ya miraste ni vuelvas a comparar la documentación del proyecto que el delta no toque. Tu informe lleva los mismos apartados, y en «Documentación del proyecto pendiente» solo lo nuevo.
+
 ## Reglas
 
 - Sin secretos ni datos personales, tampoco en las capturas: mira cada una de `capturas/`, borra las que los muestren e indícalo en tu informe. Describe las vulnerabilidades preexistentes indicando dónde y qué tipo, sin instrucciones de explotación.

@@ -38,7 +38,7 @@ Ejecutar da mejores planes que solo leer, y puedes hacerlo si cambia el plan: us
 
 ## `.magents/proyecto.md`
 
-Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Señala también si el entorno arranca con una versión de PHP distinta de la de producción. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, señálalo como discrepancia e indica qué necesita y cómo comprobarlo, sin detallar la implementación: lo resuelve el preparador. Nunca propongas modificar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`: lo propio del proyecto va en `.magents/scripts/antes-de-iniciar.sh`.
+Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Señala también si el entorno arranca con una versión de PHP distinta de la de producción. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, señálalo como discrepancia e indica qué necesita y cómo comprobarlo, sin detallar la implementación: lo resuelve el preparador. Nunca propongas modificar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`: lo propio del proyecto va en `.magents/scripts/antes-de-iniciar.sh`. Si un cambio del entorno solo puede funcionar con el código nuevo, como un montaje sobre un archivo que la web aún no lee, no es una discrepancia para el preparador: ponlo en el plan como un paso aparte, después del código, e indica que hay que reiniciar el entorno y repetir su comprobación antes de las pruebas.
 
 ## Formato del informe
 

@@ -71,9 +71,9 @@ Antes de guardar una respuesta nueva de la misma fase, renombra el informe anter
 2. Si `.magents/proyecto.md` no existe o le falta la URL base o cómo arrancar el entorno, lee `${CLAUDE_SKILL_DIR}/../preparar/SKILL.md` y sigue sus pasos antes de continuar. Si no termina con `LISTO`, para: sin entorno no se puede probar la tarea, y el usuario tendrá que lanzar `/tarea` de nuevo cuando lo tenga.
    Si ya existe y también `.magents/scripts/comprobar-entorno.sh`, ejecútalo. Si sale con error, enseña los problemas al usuario y pregúntale con AskUserQuestion si los revisa ahora, siguiendo «Revisar un entorno existente» de `${CLAUDE_SKILL_DIR}/../preparar/SKILL.md`, o si para. Solo sigue con la tarea si el script pasa después.
 3. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/` y `.magents/tareas/<id>/capturas/`.
-4. Guarda en `estado.md` el texto íntegro de la tarea, el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si hay alguno, guarda también `git diff HEAD` en `informes/cambios-previos.diff`, avisa al usuario de que pueden mezclarse con los de la tarea si afectan a los mismos archivos y pregúntale si continúa o prefiere confirmarlos antes.
+4. Guarda en `.magents/tareas/<id>/informes/estado.md` (ahí y no en la raíz de la tarea: los scripts lo buscan en `informes/`) el texto íntegro de la tarea, el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si hay alguno, guarda también `git diff HEAD` en `informes/cambios-previos.diff`, avisa al usuario de que pueden mezclarse con los de la tarea si afectan a los mismos archivos y pregúntale si continúa o prefiere confirmarlos antes.
 
-Mantén `estado.md` al día: en cada cambio de fase, **sustituye** los apartados «Fase actual» e «Iteración de desarrollo», sin dejar el valor antiguo, y añade los veredictos al historial. Si quedas esperando algo del usuario, anótalo en una línea `Pendiente: <qué falta y qué hay que hacer después>`, y bórrala al resolverlo. Usa siempre este formato, con la fecha en cada línea del historial:
+Mantén `informes/estado.md` al día: en cada cambio de fase, **sustituye** los apartados «Fase actual» e «Iteración de desarrollo», sin dejar el valor antiguo, y añade los veredictos al historial. Si quedas esperando algo del usuario, anótalo en una línea `Pendiente: <qué falta y qué hay que hacer después>`, y bórrala al resolverlo. Usa siempre este formato, con la fecha en cada línea del historial:
 
 ```markdown
 # Estado de la tarea <id>
@@ -122,7 +122,7 @@ Con `DUDAS`, añade a la misma consulta lo que el informe ya traiga de los demá
 
 ### 3. Comprobación de entorno
 
-Es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Si se omiten las pruebas por tarea menor, se omite también. Si no, sáltala solo si se cumple todo esto: «Necesidades de prueba» de `triage.md` dice «Ninguna», no ha habido corrección de entorno en esta tarea, `.magents/scripts/comprobar-entorno.sh` pasa justo antes y la URL base de `proyecto.md` responde con `curl`. Anótalo en el historial («Entorno: omitida, sin necesidades de prueba») y pasa al paso 4. Si `probador` se bloquea después por el entorno o el MCP, resuélvelo como cualquier `BLOQUEADO`: no cuenta como iteración.
+Es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Si se omiten las pruebas por tarea menor, se omite también, aunque haya habido corrección de entorno. Si no, sáltala solo si se cumple todo esto: «Necesidades de prueba» de `triage.md` dice «Ninguna», no ha habido corrección de entorno en esta tarea, `.magents/scripts/comprobar-entorno.sh` pasa justo antes y la URL base de `proyecto.md` responde con `curl`. Anótalo en el historial («Entorno: omitida, sin necesidades de prueba») y pasa al paso 4. Si `probador` se bloquea después por el entorno o el MCP, resuélvelo como cualquier `BLOQUEADO`: no cuenta como iteración.
 
 Si se bloquea solo por un método de prueba y el usuario lo acepta, no la repitas: trátalo como en la última fila de la tabla del paso 2. Haz lo mismo si termina en `LISTO` pero propone un método de prueba o un cambio de datos o de archivos que no estén en `triage.md` ni entre los aceptados, como crear un archivo de configuración temporal: pregúntaselo al usuario antes de pasarlo a `desarrollador` o `probador`, y pásalo solo si lo acepta.
 
@@ -142,7 +142,7 @@ Si se omite alguna verificación por tarea menor, indícaselo a `revisor-codigo`
 - Sugerencias y endurecimientos: son notas; enuméralas en una línea cada una, sin recomendar aplicarlas.
 - Preexistentes: no se preguntan, salvo que el informe deje una decisión; van a `.magents/deuda.md`.
 
-Si no hay nada en ningún grupo, sigue sin preguntar. Si lo hay, pregúntale con AskUserQuestion qué aplica. Si acepta algo, anótalo en el historial y lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios; después repite las tres verificaciones, como tras un rechazo. Anota también lo «del cambio» que aplace, para que `documentador` lo pase a la deuda.
+Si no hay nada en ningún grupo, sigue sin preguntar. Si lo hay, pregúntale con AskUserQuestion qué aplica. Si acepta algo, anótalo en el historial y lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios; después sigue «Iteraciones por decisión del usuario». Anota también lo «del cambio» que aplace, para que `documentador` lo pase a la deuda.
 
 ### 6. Pruebas
 
@@ -153,7 +153,16 @@ Crea la carpeta de evidencia antes de lanzar `probador`. Si ya tiene contenido d
 Antes de lanzar `documentador`, borra `.magents/tareas/<id>/tmp/`, salvo lo que un informe pida conservar, para que la ficha describa lo que queda de verdad. De su informe:
 
 - **Observaciones sin contrastar**: enséñaselas siempre al usuario, aunque el flujo haya terminado. Pueden ser un defecto que las pruebas no vieron.
-- **Documentación del proyecto pendiente**: enséñasela con el texto propuesto y pregúntale con AskUserQuestion si se aplica ahora o queda como deuda. Si se aplica, anótalo en el historial, lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios, y repite revisión de código, revisión de seguridad y documentación; las pruebas solo si los cambios afectan a lo que ve la web, como un texto de una página. Si queda como deuda, anótalo en el historial.
+- **Documentación del proyecto pendiente**: enséñasela con el texto propuesto y pregúntale con AskUserQuestion si se aplica ahora o queda como deuda. Si se aplica, anótalo en el historial, lanza `desarrollador` en una iteración nueva por decisión del usuario, no por rechazo, solo con esos cambios, y sigue «Iteraciones por decisión del usuario». Si queda como deuda, anótalo en el historial.
+
+### Iteraciones por decisión del usuario
+
+Son las que se abren sin rechazo, para aplicar sugerencias o documentación pendiente. Junta en una sola iteración todo lo que el usuario acepte en la misma consulta. Después de `desarrollador` y de `guardar-iteracion.sh`:
+
+- **Si solo cambia documentación**, es decir, archivos de «Documentación del proyecto» de `proyecto.md`, otros que la web no sirva ni ejecute, o `.magents/proyecto.md`: lanza solo `revisor-codigo`, con la revisión incremental, e indícale que la revisión de seguridad y las pruebas se omiten por ser una iteración solo de documentación. Con «Condición cumplida» en «Verificaciones omitidas», anota en el historial «Seguridad y pruebas: omitidas, iteración solo de documentación» y no las lances. Con «No se cumple» en alguna, lanza esa, como siempre: pasa, por ejemplo, con la seguridad si la documentación cambia permisos, credenciales, configuración o comandos que alguien vaya a ejecutar.
+- **En otro caso**: las verificaciones de siempre, como tras un rechazo. Las pruebas se repiten si la iteración cambia algo que la web sirva o ejecute.
+- **Sugerencias nuevas**: de lo no bloqueante de estas revisiones, pregunta solo por lo «del cambio». Las sugerencias y endurecimientos nuevos no se preguntan: enuméraselos al usuario en una línea cada uno y sigue, salvo que él pida aplicar alguno.
+- **Documentación**: si `documentador` ya había terminado en esta tarea, no rehace su fase. Continúalo con SendMessage si puedes, o relánzalo, pasándole su informe anterior, los informes nuevos y el `delta-<m>-<n>.diff` de la iteración, e indícale que siga «Actualización» de su skill. De su informe, pregunta solo por la documentación pendiente que no estuviera ya en el anterior.
 
 ### 8. Al terminar
 

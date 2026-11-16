@@ -460,6 +460,29 @@ caso('permite', 'escribir en ruta autorizada', bash(`rm ${fuera}/a`));
 caso('bloquea', 'ruta no autorizada', bash(`cat ${base}/otra`));
 caso('bloquea', 'sistema aunque esté autorizado', bash('rm /etc/hosts'));
 
+// touch: el valor de -d y -t es una fecha y el de -r se lee; no son rutas que se escriban.
+fs.rmSync(path.join(raiz, '.magents/rutas-autorizadas.txt'), { force: true });
+const enWeb = 'docker compose -f .magents/entorno/compose.yml exec -T web';
+caso('permite', 'touch -d con fecha', bash('touch -d 2020-01-01 .magents/tareas/1/tmp/a', 'solo-magents'));
+caso('permite', 'touch -t con fecha', bash('touch -h -t 202001010000 .magents/tareas/1/tmp/a', 'solo-magents'));
+caso('permite', 'touch -r dentro', bash('touch -r cfw/a.php .magents/tareas/1/tmp/a', 'solo-magents'));
+caso('permite', 'touch --date=', bash('touch --date=2020-01-01 .magents/tareas/1/tmp/a', 'solo-magents'));
+caso('permite', 'touch -d en el contenedor', bash(`${enWeb} sh -c 'touch -h -d "2020-01-01" /tmp/x'`, 'solo-magents'));
+caso('bloquea', 'touch -d sobre el código, solo-magents', bash('touch -d 2020-01-01 cfw/a.php', 'solo-magents'));
+caso('bloquea', 'touch -r de fuera', bash('touch -r /etc/passwd .magents/tareas/1/tmp/a'));
+caso('bloquea', 'touch --reference= de fuera', bash('touch --reference=/etc/passwd .magents/tareas/1/tmp/a'));
+caso('bloquea', 'touch -d fuera', bash('touch -d 2020-01-01 /tmp/a'));
+
+// Una carpeta del proyecto en rutas-autorizadas.txt se puede limpiar con solo-magents, exista o no.
+caso('bloquea', 'solo-magents: borrar carpeta sin autorizar', bash(`rm -r ${raiz}/cfw/data/intentos`, 'solo-magents'));
+fs.writeFileSync(path.join(raiz, '.magents/rutas-autorizadas.txt'), `# contadores\n${raiz}/cfw/data/intentos\n`);
+caso('permite', 'solo-magents: borrar carpeta autorizada que no existe', bash(`rm -r ${raiz}/cfw/data/intentos`, 'solo-magents'));
+fs.mkdirSync(path.join(raiz, 'cfw/data/intentos'), { recursive: true });
+caso('permite', 'solo-magents: borrar carpeta autorizada', bash(`rm -r ${raiz}/cfw/data/intentos`, 'solo-magents'));
+caso('permite', 'solo-magents: borrar dentro de la autorizada', bash('rm cfw/data/intentos/abcd', 'solo-magents'));
+caso('bloquea', 'solo-magents: borrar junto a la autorizada', bash('rm cfw/data/clave_privada.pem', 'solo-magents'));
+fs.rmSync(path.join(raiz, '.magents/rutas-autorizadas.txt'));
+
 // Si el hook no puede decidir, bloquea.
 const roto = spawnSync('node', [hook], { input: '{no es json', env: { ...process.env, CLAUDE_PROJECT_DIR: raiz }, encoding: 'utf8' });
 caso('2', 'entrada inválida', String(roto.status));

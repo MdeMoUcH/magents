@@ -20,7 +20,9 @@ magents_confirmar "${BASH_SOURCE[0]}"
 
 # Commit base de una tarea, según su estado.md.
 commit_base() {
-  local estado="$1/informes/estado.md" hash
+  # Algunas tareas lo tienen en la raíz de la tarea en vez de en informes/.
+  local estado="${1%/}/informes/estado.md" hash
+  [ -f "$estado" ] || estado="${1%/}/estado.md"
   hash="$(grep -i 'base efectivo' "$estado" 2>/dev/null | grep -oE '\b[0-9a-f]{7,40}\b' | head -1 || true)"
   if [ -z "$hash" ]; then
     hash="$(grep -iA2 'commit base' "$estado" 2>/dev/null | grep -oE '\b[0-9a-f]{7,40}\b' | head -1 || true)"

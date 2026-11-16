@@ -31,6 +31,8 @@ Para que una tarea no deje deuda que obligue a lanzar otra, el triage busca el m
 
 Una tarea que solo cambia textos, estilos, comentarios o documentación puede ahorrarse la revisión de seguridad, y una que no cambia nada que la web sirva o ejecute, también las pruebas en Firefox. Lo propone el triage en «Verificaciones que se pueden omitir», lo decides tú (una vez por tarea, o para siempre en «Tareas menores» de `.magents/proyecto.md`, con `sí` o `no`) y la revisión de código lo confirma con el diff: si el cambio toca algo más, la verificación se hace. La revisión de código y la documentación no se omiten nunca.
 
+Las iteraciones que abres tú sin que haya un rechazo, para aplicar sugerencias o documentación pendiente, cuestan menos que las demás. Si solo cambian documentación, las revisa solo la revisión de código, sin seguridad ni pruebas, salvo que el cambio toque permisos, credenciales, configuración o comandos. Tras ellas solo se te pregunta por lo «del cambio», no por sugerencias nuevas, y `documentador` actualiza lo que ya escribió en vez de rehacerlo.
+
 Lo que quede pendiente, ya sean preexistentes, cosas aplazadas o documentación, lo recoge `documentador` en `.magents/deuda.md`, con un id, su gravedad y su origen, y lo cierra cuando una tarea lo resuelve. Puedes pedir varios puntos en una sola tarea, por ejemplo `/tarea resuelve D003 y D007`.
 
 Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen y un mensaje de commit recomendado. Los commits los haces tú: los agentes solo usan git para consultar y no hacen despliegues.
@@ -159,6 +161,16 @@ La opción `--tools` es necesaria: el preset por defecto no incluye las herramie
 ## Límite de carpeta
 
 Los agentes solo trabajan dentro de la raíz del proyecto. Si necesitan algo de fuera, se bloquean y `/tarea` o `/preparar` te piden permiso indicando la ruta y el motivo; el permiso vale solo para esa ruta, ese fin y esa ejecución.
+
+El hook no se entera de ese permiso: lo que le vale es `.magents/rutas-autorizadas.txt`. Es un archivo opcional que no crea ni la instalación ni `/preparar`, y que solo editas tú, porque el hook impide a los agentes tocarlo. Lleva una ruta absoluta por línea; las líneas vacías y las que empiezan por `#` no cuentan. Sirve para dos cosas:
+
+- **Una ruta de fuera del proyecto** que hayas autorizado. Añádela mientras dure la tarea y quítala al terminar.
+- **Una carpeta del propio proyecto, fuera de `.magents/`, que las pruebas deban limpiar o preparar**, como una carpeta de contadores o de subidas. Sin ella, el hook solo deja borrarla a `desarrollador`, y `probador` tendría que dejártela a ti. Esta puede quedarse de forma permanente. Vale para todos los agentes, no solo para `probador`.
+
+```
+# .magents/rutas-autorizadas.txt
+/ruta/del/proyecto/cfw/data/intentos
+```
 
 ## Limitaciones
 

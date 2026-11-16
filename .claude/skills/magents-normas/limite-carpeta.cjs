@@ -563,6 +563,22 @@ class Analizador {
       }
       return;
     }
+    // En touch, el valor de -d y -t es una fecha, y el de -r, un archivo que solo se lee.
+    if (verbo === 'touch') {
+      const sinValores = [];
+      for (let i = 0; i < argumentos.length; i += 1) {
+        const a = argumentos[i];
+        const pegado = a.texto.match(/^--reference=(.+)$/);
+        if (pegado) this.comprobarLectura(pegado[1]);
+        else if (/^(-d|--date|-t)$/.test(a.texto)) i += 1;
+        else if (/^--(date|time)=/.test(a.texto)) continue;
+        else if (/^(-r|--reference)$/.test(a.texto)) {
+          const referencia = argumentos[(i += 1)];
+          if (referencia && !referencia.dinamica) this.comprobarLectura(referencia.texto);
+        } else sinValores.push(a);
+      }
+      argumentos = sinValores;
+    }
     const lista = this.posicionales(argumentos);
     const destinoInofensivo = verbo === 'tee' || verbo === 'cp';
     // El primer argumento de chmod, chown y chgrp es el modo o el dueño.
