@@ -113,6 +113,7 @@ Lanza `triaje`. Cuando termine, junta en **una sola consulta** con AskUserQuesti
 |---|---|---|
 | «Dudas» (veredicto `DUDAS`) | Cada duda, con sus opciones y la recomendación del triaje | La respuesta vuelve al triaje |
 | «Fuera de alcance» | Qué incluye, con el motivo y lo que costaría cada punto. Recomienda incluir lo que sea consecuencia directa del cambio o el mismo problema en otro sitio, porque si no se convierte en otra tarea | Si incluye algo, la respuesta vuelve al triaje. Lo que quede fuera lo recoge `documentador` en `.magents/deuda.md` |
+| «Pendiente del usuario» | Nada: enséñale el archivo y el texto, que aplica él cuando quiera | Ningún criterio depende de ello. Si una revisión o las pruebas lo echan en falta, no es un rechazo |
 | «Borrados» | Si se hacen, con la ruta y el motivo de cada uno | Uno que no acepte vuelve al triaje, para que cambie el plan |
 | «Discrepancias con .magents/proyecto.md» | Qué se corrige en la configuración o el entorno | «Corrección de entorno» de `casos.md`, antes del paso 3 |
 | «Necesidades de prueba» con un método que no esté en «Métodos de prueba aceptados» de `proyecto.md`, o que cambien datos o archivos | Si lo acepta, y si vale solo para esta tarea o también para las siguientes | Anótalo en el historial y pásalo a `probador` y a `desarrollador` indicando que lo ha aceptado el usuario. Si vale para las siguientes, añádelo a «Métodos de prueba aceptados» |

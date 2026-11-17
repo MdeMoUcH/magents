@@ -57,6 +57,8 @@ const GIT_SOLO_CONSULTA = {
   remote: (opciones, sueltos) => !sueltos.length || sueltos[0] === 'get-url',
   config: (opciones, sueltos) => opciones.some((o) => /^(--get|--get-all|--get-regexp|--get-urlmatch|--list|-l)$/.test(o)) || /^(get|list)$/.test(sueltos[0] || ''),
   stash: (opciones, sueltos) => /^(list|show)$/.test(sueltos[0] || ''),
+  // Sin -w solo calcula el hash; con -w guarda el objeto en .git.
+  'hash-object': (opciones) => !opciones.some((o) => /^(--write|-[a-z]*w[a-z]*)$/.test(o)),
   worktree: (opciones, sueltos) => sueltos[0] === 'list',
   reflog: (opciones, sueltos) => !sueltos.length || /^(show|exists)$/.test(sueltos[0]),
   submodule: (opciones, sueltos) => sueltos[0] === 'status',
@@ -407,7 +409,6 @@ class Analizador {
   analizar(texto) {
     this.profundidad += 1;
     if (this.profundidad > 8) bloquea('comando demasiado anidado para verificarlo');
-    if (texto.includes('rutas-autorizadas')) bloquea(`${ARCHIVO_RUTAS} solo lo edita el usuario`);
     if (/reiniciar-bd\.sh\b[^\n;&|]*--sin-copia/.test(texto)) bloquea('reiniciar-bd.sh --sin-copia borra la BD sin guardar los datos del usuario: solo lo ejecuta él');
     const { ordenes, internos, entradas } = analizarSintaxis(texto, {
       PWD: this.cwd,
@@ -670,7 +671,10 @@ class Analizador {
   }
 
   // No puede seguir lo que el código haga al ejecutarse; solo mira las rutas absolutas que aparezcan en él.
+  // Leer la lista de rutas con órdenes del shell está permitido (comprobarEscritura impide cambiarla); dentro de código
+  // de un intérprete no se puede saber si se escribe, así que basta con mencionarla.
   codigoEnLinea(codigo) {
+    if (codigo.includes('rutas-autorizadas')) bloquea(`${ARCHIVO_RUTAS} solo lo edita el usuario; para leerlo usa Read, cat o grep`);
     if (this.contenedor) return;
     for (const m of codigo.matchAll(/['"](\/[^'"\s]*)['"]/g)) {
       // "/" suelto (separador) o algo cuya primera carpeta no existe, como "/admin/login" de una URL, no es una ruta del equipo.

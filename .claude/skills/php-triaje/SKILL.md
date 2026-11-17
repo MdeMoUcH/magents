@@ -38,7 +38,9 @@ Ejecutar da mejores planes que solo leer, y puedes hacerlo si cambia el plan: us
 
 ## `.magents/proyecto.md`
 
-Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Señala también si el entorno arranca con una versión de PHP distinta de la de producción. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, señálalo como discrepancia e indica qué necesita y cómo comprobarlo, sin detallar la implementación: lo resuelve el preparador. Nunca propongas modificar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`: lo propio del proyecto va en `.magents/scripts/antes-de-iniciar.sh`. Si un cambio del entorno solo puede funcionar con el código nuevo, como un montaje sobre un archivo que la web aún no lee, no es una discrepancia para el preparador: ponlo en el plan como un paso aparte, después del código, e indica que hay que reiniciar el entorno y repetir su comprobación antes de las pruebas.
+Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la versión de PHP o en la base de datos, señálalo en tu informe. Señala también si el entorno arranca con una versión de PHP distinta de la de producción. Si la tarea necesita algo que el entorno no tiene, como una extensión de PHP, señálalo como discrepancia e indica qué necesita y cómo comprobarlo, sin detallar la implementación: lo resuelve el preparador. Nunca propongas modificar `iniciar.sh`, `parar.sh` ni `reiniciar-bd.sh`: lo propio del proyecto va en `.magents/scripts/antes-de-iniciar.sh`. Si un cambio del entorno solo puede funcionar con el código nuevo, como un montaje sobre un archivo que la web aún no lee, no es una discrepancia para el preparador: ponlo en el plan como un paso aparte, después del código. El reinicio no es un paso del plan: lo hace `/tarea` al terminar el desarrollo.
+
+Los agentes no pueden cambiar nada de `.claude/`, como la skill `cfw`. Si la tarea pide cambiarlo, no lo pongas en el plan ni en un criterio: ponlo en «Pendiente del usuario» con el texto exacto que propones, y el usuario lo aplica cuando quiera.
 
 ## Formato del informe
 
@@ -61,6 +63,8 @@ Pasos concretos, archivo por archivo
 (siempre: cada archivo de «Documentación del proyecto» de `proyecto.md`, y los demás que afecte la tarea, con qué cambia y dónde, o «Nada» y por qué)
 ## Fuera de alcance
 (siempre: lo relacionado que el plan no incluye, como el mismo problema en otros sitios, consecuencias del cambio o puntos abiertos de `.magents/deuda.md` en el código afectado, cada uno con `ruta:línea`, el id de deuda si lo tiene, por qué queda fuera y lo que costaría incluirlo; o «Nada»)
+## Pendiente del usuario
+(solo si lo hay: cambios en `.claude/`, con el archivo y el texto exacto)
 ## Borrados
 (solo si los hay: ruta exacta de cada archivo o carpeta del proyecto, y por qué; el usuario los verá antes de desarrollar)
 ## Casos límite y riesgos

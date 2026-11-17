@@ -68,9 +68,13 @@ if [ ! -e "$proyecto_md" ]; then
   exit 0
 fi
 
-# Rutas que cita proyecto.md, sin la puntuación final de la frase.
+# Rutas que cita proyecto.md, sin la puntuación final de la frase. bd-usuario/ solo existe
+# mientras hay una copia pendiente y rutas-autorizadas.txt es opcional.
 while IFS= read -r ruta; do
   ruta="${ruta%.}"
+  case "$ruta" in
+    .magents/bd-usuario|.magents/bd-usuario/*|.magents/rutas-autorizadas.txt) continue ;;
+  esac
   if [ ! -e "$raiz/$ruta" ]; then
     problema "proyecto.md cita $ruta, que no existe."
   fi

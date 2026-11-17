@@ -24,9 +24,9 @@ A veces el entorno no se puede cambiar antes del desarrollo, porque el cambio so
 
 1. La comprobación de entorno se hace antes del desarrollo, con el entorno sin cambiar.
 2. `desarrollador` hace primero el código y después, en la misma iteración, el cambio de `.magents/entorno/`, de `antes-de-iniciar.sh` y de `proyecto.md`, sin tocar los scripts fijos. Puede que la web en marcha deje de responder hasta el reinicio: debe decirlo en su informe.
-3. Las revisiones miran también esos archivos, que no están en el diff de git.
-4. Antes de las pruebas, reinicia el entorno con `.magents/scripts/iniciar.sh` y repite la comprobación de entorno, renombrando el informe anterior. Con `BLOQUEADO` por el cambio, vuelve a `desarrollador` como tras un rechazo.
-5. Si una iteración posterior vuelve a cambiar el entorno, repite el punto 4.
+3. Tras el `IMPLEMENTADO`, reinicia tú el entorno con `.magents/scripts/iniciar.sh`, antes de las revisiones, para que no encuentren la web a medias. Ni `desarrollador` ni los revisores lo reinician; si `iniciar.sh` falla, vuelve a `desarrollador` con su salida. Las revisiones miran también esos archivos, que no están en el diff de git.
+4. Antes de las pruebas, repite la comprobación de entorno, renombrando el informe anterior. Con `BLOQUEADO` por el cambio, vuelve a `desarrollador` como tras un rechazo.
+5. Si una iteración posterior vuelve a cambiar el entorno, repite los puntos 3 y 4.
 
 Anota en el historial cada reinicio y qué archivos quedan en el proyecto como parte del entorno, como un punto de montaje vacío.
 

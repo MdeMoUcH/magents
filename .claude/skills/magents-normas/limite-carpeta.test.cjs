@@ -170,6 +170,11 @@ const permitidos = [
   'docker run --rm --pull never --name magents-cfw_tmp-x -v "$PWD":/app:ro -w /app magents-cfw-web:8.5 timeout 120 sh -c "rm -rf /app/cfw"',
   'docker run --rm --pull never --name magents-cfw_tmp-x -v "$PWD":/app:ro -v "$PWD/.magents/tareas/1/tmp":/salida magents-cfw-web:8.5 timeout 60 sh -c "php -v > /salida/v.txt"',
   'docker run --rm --pull never --name magents-cfw_tmp-x -v "$PWD":/app -w /app magents-cfw-web:8.5 timeout 60 sh -c "rm -rf /tmp/* cfw/cache/*"',
+  // Leer la lista de rutas autorizadas (falsos positivos de la 0029: solo se bloquea escribirla).
+  'cat .magents/rutas-autorizadas.txt',
+  'git status --porcelain; cat .magents/rutas-autorizadas.txt; ls -la data',
+  'grep -c intentos .magents/rutas-autorizadas.txt',
+  'git hash-object cfw/a.php',
 ];
 for (const c of permitidos) caso('permite', c, bash(c));
 
@@ -305,6 +310,16 @@ const bloqueados = [
   'bash .magents/tareas/1/tmp/malo.sh',
   '.magents/tareas/1/tmp/malo.sh',
   'echo a > .magents/rutas-autorizadas.txt',
+  'echo a | tee -a .magents/rutas-autorizadas.txt',
+  'git hash-object -w cfw/a.php',
+  'git hash-object --write cfw/a.php',
+  'git hash-object -tw blob cfw/a.php',
+  'sed -i s/a/b/ .magents/rutas-autorizadas.txt',
+  'mv .magents/rutas-autorizadas.txt .magents/x',
+  'python3 -c "open(\'.magents/rutas-autorizadas.txt\',\'a\').write(\'x\')"',
+  'python3 <<\'EOF\'\nopen(\'.magents/rutas-autorizadas.txt\',\'a\')\nEOF',
+  'docker run --rm --pull never --name magents-cfw_tmp-x -v "$PWD":/p alpine sh -c "echo x >> /p/.magents/rutas-autorizadas.txt"',
+  'docker run --rm --pull never --name magents-cfw_tmp-x -v "$PWD":/p magents-cfw-web:8.5 php -r "file_put_contents(\'/p/.magents/rutas-autorizadas.txt\',\'x\');"',
   'cat "sin cerrar',
   'bash <<EOF\nrm -rf /etc/x\nEOF',
   'cat <<EOF | sh\nrm -rf ../vecino\nEOF',
