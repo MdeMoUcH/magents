@@ -90,11 +90,12 @@ fi
 destino="$magents/.magents/revision/$(basename "$proyecto")"
 mkdir -p "$destino"
 
-# Fuera: datos y configuración sustituta, copias de entornos, temporales y copias del código de cada iteración.
+# Fuera: datos, copias de la BD del usuario y configuración sustituta, copias de entornos, temporales y copias del código de cada iteración.
 # --no-links evita enlaces a otras rutas.
 rsync -a --delete --no-links \
   --exclude '/entorno/bd-inicial' \
   --exclude '/entorno/config' \
+  --exclude '/bd-usuario' \
   --exclude '/entorno.anterior' \
   --exclude '/entorno.anterior-*' \
   --exclude '/tareas/*/tmp' \

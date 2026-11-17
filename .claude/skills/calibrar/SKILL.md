@@ -24,7 +24,7 @@ Lee `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas valen también 
 
 1. **Calibración a medias**: si algún `.magents/calibracion/*/estado.md` tiene una línea `Pendiente:`, no siembres nada: ve al paso 4 con su `siembra.md` y su `siembra.diff`, y termina ahí.
 2. **Código limpio**: si `git status --porcelain` muestra algo, para y dile al usuario que confirme o aparte sus cambios: el defecto se mezclaría con ellos y no se podría comprobar que se ha deshecho.
-3. **Entorno**: ejecuta `.magents/scripts/comprobar-entorno.sh`, si existe. Si sale con error, para: hay que ejecutar `/preparar` con «Revisar».
+3. **Entorno**: ejecuta `.magents/scripts/comprobar-entorno.sh`, si existe. Si sale con error, para: hay que ejecutar `/preparar` con «Revisar». Después sigue el punto 5 de «Preparación» de `/tarea`, para guardar la BD del usuario.
 4. **Tarea de referencia**: la indicada o, si no hay ninguna, la más reciente de `.magents/tareas/` que tenga `informes/documentacion.md`. Necesita `informes/triage.md` y un `informes/pruebas-<n>.md` con `APROBADO`. Si no hay ninguna así, díselo al usuario y para.
 5. **Tipo de defecto**: pregunta al usuario con AskUserQuestion, nombrando la tarea de referencia para que pueda cambiarla:
    - **Sutil** (recomendado): el caso principal del criterio sigue funcionando y falla algo que el criterio o los casos límite de `triage.md` piden de forma expresa, como un valor límite, un rol, un texto o la vista móvil. Es lo que distingue un `PASA` de un `PARCIAL`.
@@ -48,5 +48,7 @@ Crea `.magents/calibracion/<fecha y hora>/capturas/`, con el formato de fecha de
    No lo decidas por lo que el probador debería haber visto: solo por lo que escribió.
 4. **Deshacer**, siempre, también si algo falló antes: continúa el mismo `desarrollador` con SendMessage, o relánzalo con las rutas de `siembra.md` y `siembra.diff`, para que deje el archivo como estaba. Después comprueba tú que `git status --porcelain` y `git diff` no muestran nada. Si muestran algo, dile al usuario qué archivo sigue cambiado y que puede restaurarlo con `git checkout -- <archivo>`, que ejecuta él; no borres la línea `Pendiente:`. Si está limpio, bórrala.
 5. **Informe**: guarda en `resultado.md` la tarea de referencia, el tipo de defecto, el archivo y la línea, el criterio, el veredicto de `probador`, el resultado y, copiada de su informe, la fila de ese criterio y lo que diga de él en «Sin probar». Enséñaselo al usuario. Con `NO DETECTADO` o `A MEDIAS`, indícale además qué pasos hizo `probador` en ese criterio y cuál habría hecho falta para verlo: es lo que hay que corregir en `php-pruebas-firefox` o en cómo el triage escribe los criterios. Si `probador` rechazó por otro motivo, enséñaselo también: puede ser un fallo real.
+
+Al terminar, también sin resultado, si `.magents/scripts/restaurar-bd.sh --estado` indica una copia pendiente, ejecuta `.magents/scripts/restaurar-bd.sh`, sin migraciones, para devolver al usuario sus datos; si falla, enséñale el error.
 
 Una calibración prueba un solo defecto. No cambies skills ni código a partir del resultado: lo decide el usuario.

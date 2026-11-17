@@ -15,13 +15,13 @@ fi
 # Primero los habituales; después cualquier otro script ejecutable.
 listar_scripts() {
   local nombre ruta
-  for nombre in comprobar-entorno.sh copiar-revision.sh iniciar.sh parar.sh reiniciar-bd.sh; do
+  for nombre in comprobar-entorno.sh copiar-revision.sh iniciar.sh parar.sh reiniciar-bd.sh guardar-bd.sh restaurar-bd.sh; do
     [ -x "$scripts_dir/$nombre" ] && echo "$nombre"
   done
   for ruta in "$scripts_dir"/*.sh; do
     nombre="$(basename "$ruta")"
     case "$nombre" in
-      menu.sh | confirmar.sh | guardar-iteracion.sh | antes-de-iniciar.sh | iniciar.sh | parar.sh | reiniciar-bd.sh | comprobar-entorno.sh | copiar-revision.sh) ;;
+      menu.sh | confirmar.sh | bd-comun.sh | guardar-bd.sh | restaurar-bd.sh | guardar-iteracion.sh | antes-de-iniciar.sh | iniciar.sh | parar.sh | reiniciar-bd.sh | comprobar-entorno.sh | copiar-revision.sh) ;;
       *) [ -x "$ruta" ] && echo "$nombre" ;;
     esac
   done

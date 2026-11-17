@@ -9,7 +9,7 @@ Sin contraseñas de producción aquí. Este archivo no se versiona, porque `.mag
 - Cómo pararlo: <!-- p. ej. .magents/scripts/parar.sh -->
 - Logs de errores PHP: <!-- p. ej. docker compose -f .magents/entorno/compose.yml logs web -->
 - Base de datos de prueba: <!-- cómo crearla; nunca la de producción -->
-- Cómo restablecer la BD de prueba: <!-- p. ej. .magents/scripts/reiniciar-bd.sh -->
+- Cómo restablecer la BD de prueba: <!-- p. ej. .magents/scripts/reiniciar-bd.sh, que guarda antes en .magents/bd-usuario/ una copia de lo que el usuario tenga en ella -->
 - Usuarios de prueba: <!-- rol y cómo obtener el acceso -->
 - Aislamiento de producción: <!-- qué configuración se sustituye y cómo se ha comprobado -->
 

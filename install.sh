@@ -158,12 +158,15 @@ if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
   instalar_script iniciar.sh
   instalar_script parar.sh
   if grep -q '^  bd:' "$entorno/compose.yml" 2>/dev/null; then
+    instalar_script bd-comun.sh
     instalar_script reiniciar-bd.sh
+    instalar_script guardar-bd.sh
+    instalar_script restaurar-bd.sh
   fi
 fi
 
 # Registro de lo instalado, para distinguir en la próxima instalación los cambios propios.
-(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh guardar-iteracion.sh menu.sh $(ls iniciar.sh parar.sh reiniciar-bd.sh 2>/dev/null)) > "$instalados"
+(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh guardar-iteracion.sh menu.sh $(ls iniciar.sh parar.sh bd-comun.sh reiniciar-bd.sh guardar-bd.sh restaurar-bd.sh 2>/dev/null)) > "$instalados"
 
 magents_pintar "1;32" "Instalado en $destino"
 echo

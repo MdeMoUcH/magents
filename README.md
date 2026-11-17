@@ -101,13 +101,23 @@ Después, `/preparar`, una primera `/tarea` que pida el inventario y el plan de 
 .magents/scripts/menu.sh      # Lista los scripts, muestra el estado y permite lanzarlos
 .magents/scripts/iniciar.sh   # Inicia o reinicia, espera a que responda y muestra la URL
 .magents/scripts/parar.sh     # Para el entorno
-.magents/scripts/reiniciar-bd.sh   # Si hay BD: borra sus datos y la recarga desde bd-inicial/
+.magents/scripts/reiniciar-bd.sh   # Si hay BD: guarda una copia, borra sus datos y la recarga desde bd-inicial/
+.magents/scripts/restaurar-bd.sh   # Si hay BD: devuelve a la BD tus datos desde esa copia
+.magents/scripts/guardar-bd.sh     # Si hay BD: guarda una copia a mano, sin cambiar nada
 .magents/scripts/comprobar-entorno.sh   # Busca fallos de estructura y muestra el estado, sin arrancar ni cambiar nada
 ```
 
 `guardar-iteracion.sh` es de uso interno de `/tarea` y no aparece en el menú.
 
-Lo que puede perder algo pide confirmación, tanto desde `menu.sh` como lanzado a mano: `reiniciar-bd.sh` y `copiar-revision.sh` siempre, e `iniciar.sh` y `parar.sh` si el entorno está en marcha, porque se pierden los logs y temporales de los contenedores. Sin terminal o dentro de Claude Code no pregunta, para que los agentes no se queden esperando; esto incluye los comandos `!` de Claude Code. Para no preguntar en un uso propio, define `MAGENTS_CONFIRMADO=1`. Un script añade esa confirmación con una línea `# menu: confirmar: <motivo>` o `# menu: confirmar-si-en-marcha: <motivo>` y cargando `confirmar.sh`, y su descripción sale de la línea 2. En una terminal, los scripts e `install.sh` muestran una cabecera, que se omite para agentes y tuberías. El color sigue la misma regla: morado para el logo, verde para lo correcto, rojo para los errores y amarillo para lo que requiere atención. `NO_COLOR=1` lo desactiva.
+Lo que puede perder algo pide confirmación, tanto desde `menu.sh` como lanzado a mano: `reiniciar-bd.sh`, `restaurar-bd.sh` y `copiar-revision.sh` siempre, e `iniciar.sh` y `parar.sh` si el entorno está en marcha, porque se pierden los logs y temporales de los contenedores. Sin terminal o dentro de Claude Code no pregunta, para que los agentes no se queden esperando; esto incluye los comandos `!` de Claude Code. Para no preguntar en un uso propio, define `MAGENTS_CONFIRMADO=1`. Un script añade esa confirmación con una línea `# menu: confirmar: <motivo>` o `# menu: confirmar-si-en-marcha: <motivo>` y cargando `confirmar.sh`, y su descripción sale de la línea 2. En una terminal, los scripts e `install.sh` muestran una cabecera, que se omite para agentes y tuberías. El color sigue la misma regla: morado para el logo, verde para lo correcto, rojo para los errores y amarillo para lo que requiere atención. `NO_COLOR=1` lo desactiva.
+
+**Tus datos en la BD.** Tú y los agentes usáis la misma BD del entorno, y ellos la restablecen para probar. Para que no pierdas lo que hayas creado, como un usuario propio:
+
+- Al empezar, `/tarea` ejecuta `reiniciar-bd.sh`, que guarda una copia completa en `.magents/bd-usuario/` y deja la BD de pruebas. Lo hace también si lo lanzas tú o un agente, pero solo la primera vez: mientras esa copia esté sin restaurar, los reinicios siguientes no copian nada.
+- Al terminar, `/tarea` ejecuta `restaurar-bd.sh`, que devuelve tus datos a la BD. Si la tarea cambió el esquema, aplica después los `.sql` de su carpeta `despliegue/`, los mismos que ejecutará producción, para dejar tus datos con el esquema nuevo. Por eso una tarea que cambia el esquema debe dejar ahí la migración, y la revisión de código rechaza si falta.
+- Si una migración falla sobre tus datos, te lo dice y no se pierde nada: la copia no se borra nunca. Se guardan las cinco últimas.
+- Durante la tarea, la BD es la de pruebas: lo que crees en ese rato no se conserva. Si una tarea se queda a medias, `menu.sh` avisa de que hay una copia sin restaurar, y la recuperas con `restaurar-bd.sh`. Para volver a una copia anterior, `restaurar-bd.sh --copia <archivo>`; `--estado` las lista y `--descartar` da por buena la BD actual.
+- Solo MySQL y MariaDB. Con otro motor, `reiniciar-bd.sh` avisa y no copia. Las copias pueden tener datos personales: no se versionan ni se incluyen en `copiar-revision.sh`.
 
 `iniciar.sh` y `parar.sh` conservan los datos de la BD, y el entorno escucha solo en `127.0.0.1`. Si hay más servicios que `web`, todos tienen IP fija en una subred `/28` propia, calculada a partir del puerto, y `web` los tiene en `extra_hosts`: así, con la BD parada, su nombre no se consulta fuera de Docker. Un entorno anterior sin esto no pasa `comprobar-entorno.sh`, y `/preparar` con «Revisar» lo corrige sin tocar el volumen de la BD. Antes de terminar, el preparador comprueba que arranca, que la web no apunta a producción ni redirige fuera de la URL local, y que `.git/` y `.magents/` no se sirven. Lo que un proyecto necesite antes de arrancar va en `.magents/scripts/antes-de-iniciar.sh`, que `iniciar.sh` ejecuta si existe y `install.sh` no toca. Si `compose.yml` usa `pull_policy: never` y falta ese script, `iniciar.sh` da error, porque nadie construiría la imagen.
 
@@ -147,6 +157,7 @@ Por defecto añade `diffs/<id>.diff` por tarea: de su commit base a la base de l
 | `.magents/proyecto.md` | Configuración del entorno | No |
 | `.magents/entorno/` | Configuración de Docker local | No |
 | `.magents/scripts/` | Scripts para iniciar, parar, comprobar y restablecer el entorno, y para copiar lo necesario para una revisión | No |
+| `.magents/bd-usuario/` | Copias de la BD con tus datos, y cuál está sin restaurar | No |
 | `.magents/preparacion/` | Propuesta, informe, revisiones y reparaciones de `/preparar` | No |
 | `.magents/calibracion/` | Defecto sembrado, informe de las pruebas y resultado de cada `/calibrar` | No |
 

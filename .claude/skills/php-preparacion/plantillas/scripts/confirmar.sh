@@ -168,6 +168,22 @@ magents_resumen_copias() {
   printf ' (%s)\n' "${tamano:-?}"
 }
 
+# Copias de la BD del usuario (guardar-bd.sh, restaurar-bd.sh): avisa si hay una sin restaurar.
+magents_resumen_bd() {
+  local carpeta="$magents_carpeta/bd-usuario" pendiente="" copias
+  [ -d "$carpeta" ] || return 0
+  [ ! -f "$carpeta/pendiente" ] || pendiente="$(head -1 "$carpeta/pendiente")"
+  copias="$(find "$carpeta" -maxdepth 1 -name '*.sql' 2>/dev/null | wc -l)"
+  [ -n "$pendiente" ] || [ "$copias" -gt 0 ] || return 0
+  magents_etiqueta "BD"
+  if [ -n "$pendiente" ]; then
+    magents_pintar "1;33" "de pruebas; tus datos están en la copia $pendiente, sin restaurar (restaurar-bd.sh)"
+  else
+    printf 'con tus datos; copias guardadas: %s' "$copias"
+  fi
+  echo
+}
+
 # Solo informa: no cambia nada ni influye en el código de salida de quien lo llame.
 magents_resumen_entorno() {
   magents_estado
@@ -176,6 +192,7 @@ magents_resumen_entorno() {
     magents_resumen_php
     magents_resumen_servicios
   fi
+  magents_resumen_bd
   magents_resumen_copias
   return 0
 }
