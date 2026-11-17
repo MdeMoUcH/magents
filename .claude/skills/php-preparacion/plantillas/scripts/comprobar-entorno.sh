@@ -97,6 +97,14 @@ if [ -e "$entorno/compose.yml" ]; then
   if grep -q '^  bd:' "$entorno/compose.yml" && [ ! -x "$scripts/reiniciar-bd.sh" ]; then
     problema "hay servicio bd y falta .magents/scripts/reiniciar-bd.sh o no es ejecutable."
   fi
+  # reiniciar-bd.sh carga bd-comun.sh para guardar antes una copia de la BD.
+  if grep -q 'bd-comun.sh' "$scripts/reiniciar-bd.sh" 2>/dev/null; then
+    for script in bd-comun.sh restaurar-bd.sh; do
+      if [ ! -e "$scripts/$script" ]; then
+        problema "falta .magents/scripts/$script, que reiniciar-bd.sh necesita para guardar y recuperar la copia de la BD; vuelve a ejecutar install.sh de magents."
+      fi
+    done
+  fi
 
   comprobar_nombres_fijos
 

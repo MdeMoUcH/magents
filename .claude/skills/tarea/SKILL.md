@@ -32,7 +32,7 @@ triage → entorno → desarrollador → revisor-codigo → revisor-seguridad �
 
 - Tras cualquier rechazo se vuelve a `desarrollador` y después se repiten **las tres verificaciones en orden**, porque un arreglo puede romper lo ya aprobado. Las revisiones son incrementales desde la segunda vez; las pruebas, siempre completas.
 - Lanza cada verificación al terminar la anterior, nunca a la vez: si una rechaza, el trabajo de las siguientes se pierde.
-- **Nunca** te saltes una fase, salvo la comprobación de entorno en el caso que indica el paso 3 y lo que se omita según «Tareas menores» del paso 2, ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.
+- **Nunca** te saltes una fase, salvo la comprobación de entorno en el caso que indica el paso 3, lo que se omita según «Tareas menores» del paso 2 y lo que indica «Iteraciones por decisión del usuario» para las que solo cambian documentación, ni des por aprobada una verificación que no se haya ejecutado, ni apliques tú los arreglos.
 - Las acciones de producción están fuera del flujo salvo que el usuario las pida.
 
 ## Cómo lanzar cada fase
@@ -72,7 +72,7 @@ Antes de guardar una respuesta nueva de la misma fase, renombra el informe anter
    Si ya existe y también `.magents/scripts/comprobar-entorno.sh`, ejecútalo. Si sale con error, enseña los problemas al usuario y pregúntale con AskUserQuestion si los revisa ahora, siguiendo «Revisar un entorno existente» de `${CLAUDE_SKILL_DIR}/../preparar/SKILL.md`, o si para. Solo sigue con la tarea si el script pasa después.
 3. Genera el identificador `<NNNN>-<slug-corto>`: `NNNN` es el mayor número que aparezca en `.magents/tareas/`, más uno, con cuatro dígitos (`0001` si no hay ninguno). Un número usado por una tarea abandonada no se reutiliza. Crea `.magents/tareas/<id>/informes/` y `.magents/tareas/<id>/capturas/`.
 4. Guarda en `.magents/tareas/<id>/informes/estado.md` (ahí y no en la raíz de la tarea: los scripts lo buscan en `informes/`) el texto íntegro de la tarea, el commit base (`git rev-parse HEAD`) y la salida de `git status --porcelain`: esos cambios ya existentes **no son de la tarea**. Si hay alguno, guarda también `git diff HEAD` en `informes/cambios-previos.diff`, avisa al usuario de que pueden mezclarse con los de la tarea si afectan a los mismos archivos y pregúntale si continúa o prefiere confirmarlos antes.
-5. **BD del usuario**: si existe `.magents/scripts/restaurar-bd.sh`, ejecuta `.magents/scripts/restaurar-bd.sh --estado`. Si indica una copia pendiente, sigue «BD del usuario» de `casos.md` antes de continuar. Después ejecuta `.magents/scripts/reiniciar-bd.sh`, que guarda en `.magents/bd-usuario/` una copia de la BD con lo que el usuario haya creado en ella y deja la de pruebas para los agentes. Anota en el historial el nombre de la copia. Si falla, para y enséñale el error: no sigas sin copia ni uses `--sin-copia` si no lo pide él.
+5. **BD del usuario**: si existe `.magents/scripts/restaurar-bd.sh`, ejecuta `.magents/scripts/restaurar-bd.sh --estado`. Si indica una copia pendiente, sigue «BD del usuario» de `casos.md` antes de continuar. Después ejecuta `.magents/scripts/reiniciar-bd.sh`, que guarda en `.magents/bd-usuario/` una copia de la BD con lo que el usuario haya creado en ella y deja la de pruebas para los agentes. Anota en el historial el nombre de la copia. Si falla, para y enséñale el error: no sigas sin copia. Restablecer sin copia (`reiniciar-bd.sh --sin-copia`) solo puede hacerlo él, en su terminal o con `!`: el hook te lo bloquea.
 
 Mantén `informes/estado.md` al día: en cada cambio de fase, **sustituye** los apartados «Fase actual» e «Iteración de desarrollo», sin dejar el valor antiguo, y añade los veredictos al historial. Si quedas esperando algo del usuario, anótalo en una línea `Pendiente: <qué falta y qué hay que hacer después>`, y bórrala al resolverlo. Usa siempre este formato, con la fecha en cada línea del historial:
 
@@ -197,3 +197,6 @@ Si ocurre alguno, lee su apartado en `${CLAUDE_SKILL_DIR}/casos.md` antes de act
 | `probador` se corta, se bloquea o deja un criterio `PARCIAL` | «Pruebas interrumpidas o parciales» |
 | El desarrollador responde que un hallazgo es erróneo | «Desacuerdo» |
 | El usuario hace un commit durante la tarea | «Cambio de commit base» |
+| El hook impide a un agente un borrado o un cambio que `proyecto.md` le pide | «Salir de la raíz» |
+| El plan cambia el entorno después del código, como un montaje sobre un archivo nuevo | «Cambio de entorno que depende del código» |
+| Hay una copia de la BD pendiente al empezar, o `restaurar-bd.sh` sale con error | «BD del usuario» |

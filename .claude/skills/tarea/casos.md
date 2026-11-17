@@ -32,7 +32,7 @@ Anota en el historial cada reinicio y qué archivos quedan en el proyecto como p
 
 ## BD del usuario
 
-El usuario usa la misma BD del entorno que los agentes y lo que crea en ella debe conservarse. `reiniciar-bd.sh` guarda una copia en `.magents/bd-usuario/` la primera vez que se restablece y la deja como pendiente; `restaurar-bd.sh` la devuelve a la BD. Esas copias pueden tener datos personales: no las leas ni las borres, ni uses `--sin-copia`.
+El usuario usa la misma BD del entorno que los agentes y lo que crea en ella debe conservarse. `reiniciar-bd.sh` guarda una copia en `.magents/bd-usuario/` la primera vez que se restablece y la deja como pendiente; `restaurar-bd.sh` la devuelve a la BD. Esas copias pueden tener datos personales: el hook te bloquea leerlas, cambiarlas o borrarlas, y también `reiniciar-bd.sh --sin-copia`, que solo ejecuta el usuario. Para saber qué hay, `restaurar-bd.sh --estado`.
 
 - **Copia pendiente al empezar una tarea nueva**: viene de una tarea que no terminó o de un reinicio a mano, y la BD actual es la de pruebas, quizá con cambios posteriores del usuario. Enséñale el nombre de la copia, que lleva su fecha, y pregúntale con AskUserQuestion: restaurarla ahora (`restaurar-bd.sh`; si aquella tarea cambió el esquema y sus cambios siguen en el código, con sus `.sql` de `despliegue/`), o descartarla y conservar la BD tal como está (`restaurar-bd.sh --descartar`, que no borra el archivo). Después sigue con el punto 5 de «Preparación».
 - **Al retomar una tarea**: la copia pendiente es la de esta tarea, anotada en el historial. No la restaures ni vuelvas a copiar.

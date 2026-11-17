@@ -8,7 +8,7 @@ Es una web creada como clon de CFW, con el remoto `cfw`. El usuario hace `git fe
 
 1. Lee en `MIGRACION.md` los apartados de todas las versiones entre la anterior y la nueva.
 2. Por cada fichero de `general` copiado a `specific` (lista en «CFW» de `proyecto.md`), compara la copia con el nuevo original y lleva a la copia lo que haya cambiado, o propón eliminar la copia si ya no hace falta.
-3. Aplica lo que `MIGRACION.md` pida a la configuración, el `.htaccess`, el esquema y los estáticos del sitio. Los cambios de esquema van como archivo SQL para que el usuario los aplique también en producción.
+3. Aplica lo que `MIGRACION.md` pida a la configuración, el `.htaccess`, el esquema y los estáticos del sitio. Los cambios de esquema van como `.sql` en `despliegue/` de la tarea: `/tarea` los aplica al terminar a la BD con los datos del usuario, y él los aplica también en producción.
 4. Actualiza la versión en «CFW» de `proyecto.md`.
 
 Los criterios de aceptación incluyen lo que la web ya hacía: ver «Inventario».
@@ -24,7 +24,7 @@ Vale igual para una web con un CFW anterior que para una sin framework: no se ac
 ### Si el origen lleva un CFW anterior
 
 - **Qué cambió en su núcleo.** El origen no trae la versión de su CFW ni comparte historia con el actual. Compara su `cfw/general/`, su `index.php` y su `.htaccess` con los del proyecto, fichero a fichero, y separa tres cosas: lo que es solo antigüedad (CFW lo cambió después), lo que la web modificó a propósito en el núcleo y lo que no se sabe. Lo segundo entra en el inventario; lo tercero es una duda. Si el usuario dispone del CFW de aquella época, pídeselo en `.magents/origen-cfw/`: con él la separación es exacta.
-- **Su `specific` no se copia entero.** Cada página, clase, ORM, plantilla y texto se revisa contra `MIGRACION.md` y `DESARROLLO.md`: constructores que deben llamar a `exigirAdmin()` o `exigirUsuario()`, formularios sin `csrf`, contraseñas enviadas en md5 o en claro, datos pintados sin `escapar()`, `menu.php` de idiomas y copias de ficheros de `general` que ya no coinciden con el actual.
+- **Su `specific` no se copia entero.** Cada página, clase, ORM, plantilla y texto se revisa contra `MIGRACION.md` y `DESARROLLO.md`: constructores que deben llamar a `exigirAdmin()` o `exigirUsuario()`, formularios sin `csrf`, contraseñas enviadas en md5 o en claro, datos pintados sin escapar según su contexto («Plantillas» de `DESARROLLO.md`), `menu.php` de idiomas y copias de ficheros de `general` que ya no coinciden con el actual.
 - **Sus copias de ficheros de `general`** se rehacen sobre el fichero actual, llevando solo el cambio que la web necesitaba, o se eliminan si CFW ya lo trae.
 - **Usuarios**: las contraseñas en md5 valen tal cual y se convierten en el primer login. Comprueba el tamaño de la columna `pass` y el valor de `activo`, que ahora se exige para entrar.
 - **PHP**: el origen puede usar sintaxis o funciones que PHP 8.2 ya no admite. Lo que se traiga se pasa por `php -l` con la versión del proyecto, y los avisos de `Deprecated` del log cuentan.
@@ -52,4 +52,4 @@ Una etapa termina cuando sus ids están migrados o descartados. No se da la migr
 
 ### Datos
 
-Los cambios de esquema y la conversión de datos van como archivos SQL o scripts repetibles, probados contra una copia en el entorno local. La copia es la real de producción, por decisión del usuario: no hace falta anonimizarla. Aun así, no copies correos, nombres ni contraseñas a los informes, a la ficha ni a `migracion.md`: cita la tabla, la columna y el id de la fila. Las capturas sí pueden mostrar datos de la copia: en una migración, el `documentador` no las borra por eso, solo si muestran contraseñas, claves u otros secretos.
+Los cambios de esquema y la conversión de datos van como archivos SQL o scripts repetibles en `despliegue/` de la tarea, probados contra una copia en el entorno local, y también como archivo numerado en `.magents/entorno/bd-inicial/`, detrás del volcado, para que las tareas siguientes prueben con el esquema nuevo. La copia es la real de producción, por decisión del usuario: no hace falta anonimizarla. Aun así, no copies correos, nombres ni contraseñas a los informes, a la ficha ni a `migracion.md`: cita la tabla, la columna y el id de la fila. Las capturas sí pueden mostrar datos de la copia: en una migración, el `documentador` no las borra por eso, solo si muestran contraseñas, claves u otros secretos.

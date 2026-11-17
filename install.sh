@@ -39,6 +39,29 @@ if [ -t 0 ] && [ -e "$destino/.claude/skills/tarea/SKILL.md" ]; then
   fi
 fi
 
+# Reinstalar cambia las reglas: mejor cuando no haya nada a medias. Solo avisa.
+a_medias=""
+for estado in "$destino/.magents"/tareas/*/informes/estado.md "$destino/.magents"/tareas/*/estado.md; do
+  [ -f "$estado" ] || continue
+  tarea="${estado#"$destino/.magents/tareas/"}"
+  tarea="${tarea%%/*}"
+  # Con ficha, la tarea ya se documentó: las antiguas no siempre dejaron la fase al día.
+  [ ! -f "$destino/.magents/tareas/$tarea/README.md" ] || continue
+  fase="$(awk '/^## Fase actual/ { leer = 1; next } leer && NF { print; exit }' "$estado")"
+  if [ -n "$fase" ] && ! grep -qi 'terminad' <<<"$fase"; then
+    a_medias="$a_medias la tarea $tarea (fase: $fase);"
+  fi
+done
+if grep -qs '^Pendiente:' "$destino/.magents"/calibracion/*/estado.md; then
+  a_medias="$a_medias una calibración con el defecto sin deshacer (ejecuta /calibrar);"
+fi
+if [ -f "$destino/.magents/bd-usuario/pendiente" ]; then
+  a_medias="$a_medias una copia de la BD sin restaurar (restaurar-bd.sh);"
+fi
+if [ -n "$a_medias" ]; then
+  magents_aviso "AVISO: hay algo a medias en $destino:${a_medias%;}. Reinstalar ahora cambia las reglas a mitad; es mejor terminarlo antes."
+fi
+
 agentes=(preparador triage desarrollador revisor-codigo revisor-seguridad probador documentador)
 skills=(preparar tarea calibrar magents-normas php-preparacion php-triage php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
 

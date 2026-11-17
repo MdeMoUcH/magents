@@ -96,7 +96,7 @@ Ejecuta antes `.magents/scripts/comprobar-entorno.sh`. Si no pasa, no pares el s
 | Evidencia | `screenshot_page`, `set_viewport_size` |
 | Comprobar estado | `evaluate_script` (solo para leer; no para simular lo que debe hacer el usuario) |
 
-**Diálogos de JavaScript:** el controlador de Firefox puede descartarlos solo y hacer fallar `accept_dialog` y `dismiss_dialog`. En ese caso, y solo para esto, sustituye `window.confirm` con `evaluate_script`, mantén el clic real e indica en «Sin probar» que no se pulsó el diálogo. Es un método aceptado: no deja el criterio en `PARCIAL` ni hace falta preguntar.
+**Diálogos de JavaScript:** el controlador de Firefox puede descartarlos solo y hacer fallar `accept_dialog` y `dismiss_dialog`. En ese caso, y solo para esto, sustituye `window.confirm`, `window.alert` o `window.prompt` con `evaluate_script`, por una función que anote el mensaje y devuelva lo que el criterio necesite, mantén el clic real e indica en «Sin probar» que no se pulsó el diálogo. Es un método aceptado: no deja el criterio en `PARCIAL` ni hace falta preguntar.
 
 Guarda las capturas y las salidas que sirvan de evidencia en la carpeta que indique el prompt, con una ruta relativa como `.magents/tareas/<id>/capturas/<n>/`, porque las rutas relativas se resuelven desde el directorio del proyecto. Cada resultado ocupa contexto durante el resto de la prueba, así que pide lo justo:
 

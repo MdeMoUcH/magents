@@ -500,6 +500,25 @@ caso('permite', 'solo-magents: borrar dentro de la autorizada', bash('rm cfw/dat
 caso('bloquea', 'solo-magents: borrar junto a la autorizada', bash('rm cfw/data/clave_privada.pem', 'solo-magents'));
 fs.rmSync(path.join(raiz, '.magents/rutas-autorizadas.txt'));
 
+// Copias de la BD del usuario: nadie las lee ni las toca, y nadie restablece sin copia.
+fs.mkdirSync(path.join(raiz, '.magents/bd-usuario'), { recursive: true });
+fs.writeFileSync(path.join(raiz, '.magents/bd-usuario/20260101-000000.sql'), 'x');
+caso('bloquea', 'leer una copia de la BD', bash('cat .magents/bd-usuario/20260101-000000.sql'));
+caso('bloquea', 'listar las copias de la BD', bash('ls .magents/bd-usuario'));
+caso('bloquea', 'buscar en las copias de la BD', bash('grep -r pass .magents/bd-usuario/'));
+caso('bloquea', 'borrar una copia de la BD', bash('rm .magents/bd-usuario/20260101-000000.sql'));
+caso('bloquea', 'borrar la marca de pendiente', bash('rm .magents/bd-usuario/pendiente', 'solo-magents'));
+caso('bloquea', 'copiar una copia de la BD', bash('cp .magents/bd-usuario/20260101-000000.sql .magents/tareas/1/tmp/'));
+caso('bloquea', 'Read de una copia de la BD', decision({ tool_name: 'Read', tool_input: { file_path: `${raiz}/.magents/bd-usuario/20260101-000000.sql` } }));
+caso('bloquea', 'Write en las copias de la BD', decision({ tool_name: 'Write', tool_input: { file_path: `${raiz}/.magents/bd-usuario/pendiente`, content: '' } }));
+caso('bloquea', 'Grep en las copias de la BD', decision({ tool_name: 'Grep', tool_input: { pattern: 'a', path: '.magents/bd-usuario' } }));
+caso('bloquea', 'reiniciar-bd.sh --sin-copia', bash('.magents/scripts/reiniciar-bd.sh --sin-copia'));
+caso('bloquea', 'reiniciar-bd.sh --sin-copia con bash', bash('bash .magents/scripts/reiniciar-bd.sh --sin-copia 2>&1 | tail -3', 'solo-magents'));
+caso('permite', 'reiniciar-bd.sh', bash('.magents/scripts/reiniciar-bd.sh', 'solo-magents'));
+caso('permite', 'restaurar-bd.sh --estado', bash('.magents/scripts/restaurar-bd.sh --estado'));
+caso('permite', 'restaurar-bd.sh con copia y migración', bash('.magents/scripts/restaurar-bd.sh --copia 20260101-000000.sql .magents/tareas/1/tmp/01-a.sql'));
+caso('permite', 'leer otra carpeta de .magents', bash('ls .magents/tareas'));
+
 // Si el hook no puede decidir, bloquea.
 const roto = spawnSync('node', [hook], { input: '{no es json', env: { ...process.env, CLAUDE_PROJECT_DIR: raiz }, encoding: 'utf8' });
 caso('2', 'entrada inválida', String(roto.status));

@@ -10,6 +10,7 @@ const os = require('os');
 const path = require('path');
 
 const ARCHIVO_RUTAS = '.magents/rutas-autorizadas.txt';
+const COPIAS_BD = '.magents/bd-usuario';
 const HOME = os.homedir();
 // Nunca se modifican, aunque haya una ruta autorizada.
 const CRITICAS = ['/bin', '/boot', '/dev', '/etc', '/lib', '/lib32', '/lib64', '/proc', '/root', '/run', '/sbin', '/sys', '/usr', '/var'];
@@ -358,6 +359,7 @@ class Analizador {
   comprobarLectura(texto) {
     if (this.contenedor) return;
     const ruta = this.resolver(texto);
+    if (dentroDe(ruta, path.join(this.raiz, COPIAS_BD))) bloquea(`${COPIAS_BD}/ guarda copias de la BD del usuario: solo las usan guardar-bd.sh y restaurar-bd.sh`);
     if (ruta === '/dev/urandom' || ruta === '/dev/zero' || ruta === '/dev/stdin' || SALIDAS_INOFENSIVAS.has(ruta)) return;
     if (!this.lecturaPermitida(ruta)) bloquea(`la ruta ${ruta} está fuera de la raíz del proyecto`);
   }
@@ -383,6 +385,7 @@ class Analizador {
       if (dentroDe(ruta, path.join(this.raiz, protegida))) bloquea(`no se puede modificar ${protegida}/`);
     }
     if (ruta === path.join(this.raiz, ARCHIVO_RUTAS)) bloquea(`${ARCHIVO_RUTAS} solo lo edita el usuario`);
+    if (dentroDe(ruta, path.join(this.raiz, COPIAS_BD))) bloquea(`${COPIAS_BD}/ guarda copias de la BD del usuario: solo las usan guardar-bd.sh y restaurar-bd.sh`);
     if (this.soloMagents && !dentroDe(ruta, path.join(this.raiz, '.magents')) && !SONDA.test(path.basename(ruta))
       && !this.autorizadas.some((base) => dentroDe(ruta, base))) {
       bloquea(`este agente solo escribe en .magents/ (los temporales, en la carpeta tmp/ de la tarea) y en sondas llamadas magents-sonda-<algo>; ${ruta} no lo es`);
@@ -405,6 +408,7 @@ class Analizador {
     this.profundidad += 1;
     if (this.profundidad > 8) bloquea('comando demasiado anidado para verificarlo');
     if (texto.includes('rutas-autorizadas')) bloquea(`${ARCHIVO_RUTAS} solo lo edita el usuario`);
+    if (/reiniciar-bd\.sh\b[^\n;&|]*--sin-copia/.test(texto)) bloquea('reiniciar-bd.sh --sin-copia borra la BD sin guardar los datos del usuario: solo lo ejecuta él');
     const { ordenes, internos, entradas } = analizarSintaxis(texto, {
       PWD: this.cwd,
       CLAUDE_PROJECT_DIR: this.raiz,
