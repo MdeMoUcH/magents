@@ -473,6 +473,23 @@ caso('bloquea', 'touch -r de fuera', bash('touch -r /etc/passwd .magents/tareas/
 caso('bloquea', 'touch --reference= de fuera', bash('touch --reference=/etc/passwd .magents/tareas/1/tmp/a'));
 caso('bloquea', 'touch -d fuera', bash('touch -d 2020-01-01 /tmp/a'));
 
+// mkdir -m y sed -i: ni el modo ni la expresión son rutas.
+caso('permite', 'mkdir -m en temporales', bash('mkdir -m 700 .magents/tareas/1/tmp/x', 'solo-magents'));
+caso('permite', 'mkdir --mode= en temporales', bash('mkdir -p --mode=700 .magents/tareas/1/tmp/x', 'solo-magents'));
+caso('permite', 'mkdir -m en el contenedor', bash(`${enWeb} mkdir -m 700 /tmp/sonda-subidas`, 'solo-magents'));
+caso('bloquea', 'mkdir -m en el código, solo-magents', bash('mkdir -m 700 cfw/nueva', 'solo-magents'));
+caso('bloquea', 'mkdir -m fuera', bash('mkdir -m 700 /tmp/x'));
+caso('permite', 'sed -i en temporales', bash("sed -i 's/a/b/' .magents/tareas/1/tmp/a.php", 'solo-magents'));
+caso('permite', 'sed -i -e en temporales', bash("sed -i -e 's/a/b/' -e 's/c/d/' .magents/tareas/1/tmp/a.php", 'solo-magents'));
+caso('permite', 'sed -E -i con ruta en la expresión', bash("sed -E -i 's#/var/www#/p#' .magents/tareas/1/tmp/a.php", 'solo-magents'));
+caso('permite', 'sed -i.bak en temporales', bash("sed -i.bak 's/a/b/' .magents/tareas/1/tmp/a.php", 'solo-magents'));
+caso('permite', 'sed -i en el código, desarrollador', bash("sed -i 's#/etc/x#/p#' cfw/a.php"));
+caso('bloquea', 'sed -i -e en el código, solo-magents', bash("sed -i -e 's/a/b/' cfw/a.php", 'solo-magents'));
+caso('bloquea', 'sed -i con dos archivos, uno en el código', bash("sed -i 's/a/b/' .magents/tareas/1/tmp/a.php cfw/a.php", 'solo-magents'));
+caso('bloquea', 'sed -i -e fuera', bash("sed -i -e 's/a/b/' /etc/hosts"));
+caso('bloquea', 'sed -i -f de fuera', bash('sed -i -f /etc/guion.sed .magents/tareas/1/tmp/a.php'));
+caso('bloquea', 'sed --in-place fuera', bash("sed --in-place 's/a/b/' /tmp/a"));
+
 // Una carpeta del proyecto en rutas-autorizadas.txt se puede limpiar con solo-magents, exista o no.
 caso('bloquea', 'solo-magents: borrar carpeta sin autorizar', bash(`rm -r ${raiz}/cfw/data/intentos`, 'solo-magents'));
 fs.writeFileSync(path.join(raiz, '.magents/rutas-autorizadas.txt'), `# contadores\n${raiz}/cfw/data/intentos\n`);

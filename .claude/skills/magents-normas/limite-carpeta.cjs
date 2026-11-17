@@ -499,7 +499,7 @@ class Analizador {
       return undefined;
     }
     if (MODIFICAN.has(nombre)) return this.modifica(nombre, argumentos);
-    if (nombre === 'sed' && argumentos.some((a) => /^(-[a-zA-Z]*i|--in-place)/.test(a.texto))) return this.modifica('sed -i', argumentos.slice(1));
+    if (nombre === 'sed' && argumentos.some((a) => /^(-[a-zA-Z]*i|--in-place)/.test(a.texto))) return this.modifica('sed -i', this.archivosDeSed(argumentos));
     if (LEEN.has(nombre)) return this.lee(nombre, argumentos);
     return undefined;
   }
@@ -537,6 +537,35 @@ class Analizador {
       }
     }
     return lista;
+  }
+
+  // Archivos que edita sed -i: ni las opciones, ni la expresión, ni el archivo de -f, que solo se lee.
+  archivosDeSed(argumentos) {
+    const archivos = [];
+    let conExpresion = false;
+    let soloArchivos = false;
+    for (let i = 0; i < argumentos.length; i += 1) {
+      const a = argumentos[i];
+      if (soloArchivos || a.dinamica || !a.texto.startsWith('-') || a.texto === '-') {
+        archivos.push(a);
+      } else if (a.texto === '--') {
+        soloArchivos = true;
+      } else if (/^(-e|--expression)$/.test(a.texto)) {
+        conExpresion = true;
+        i += 1;
+      } else if (/^(-f|--file)$/.test(a.texto)) {
+        conExpresion = true;
+        const guion = argumentos[(i += 1)];
+        if (guion && !guion.dinamica) this.comprobarLectura(guion.texto);
+      } else if (/^--(expression|file)=/.test(a.texto) || /^-[a-zA-Z]*[ef]$/.test(a.texto)) {
+        conExpresion = true;
+        if (/^-[a-zA-Z]*[ef]$/.test(a.texto)) i += 1;
+      } else if (/^(-l|--line-length)$/.test(a.texto)) {
+        i += 1;
+      }
+    }
+    // Sin -e ni -f, el primer argumento que no es una opción es la expresión.
+    return conExpresion ? archivos : archivos.slice(1);
   }
 
   modifica(verbo, argumentos) {
@@ -578,6 +607,15 @@ class Analizador {
         } else sinValores.push(a);
       }
       argumentos = sinValores;
+    }
+    // En mkdir y mkfifo, el valor de -m es un modo.
+    if (verbo === 'mkdir' || verbo === 'mkfifo') {
+      const sinModo = [];
+      for (let i = 0; i < argumentos.length; i += 1) {
+        if (/^(-m|--mode)$/.test(argumentos[i].texto)) i += 1;
+        else if (!/^--mode=/.test(argumentos[i].texto)) sinModo.push(argumentos[i]);
+      }
+      argumentos = sinModo;
     }
     const lista = this.posicionales(argumentos);
     const destinoInofensivo = verbo === 'tee' || verbo === 'cp';

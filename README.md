@@ -91,7 +91,7 @@ Después, `/preparar`, una primera `/tarea` que pida el inventario y el plan de 
 
 ### Calibrar las pruebas
 
-`/calibrar [NNNN]` comprueba que un `APROBADO` de las pruebas significa algo. Sobre una tarea ya terminada, la última si no indicas otra, y con el código sin cambios pendientes, `desarrollador` siembra un defecto de una o dos líneas que incumple uno de sus criterios, `probador` la prueba sin saberlo y el defecto se deshace. Eliges si es evidente o sutil, y el resultado queda en `.magents/calibracion/<fecha y hora>/resultado.md`: `DETECTADO`, `A MEDIAS`, `NO DETECTADO` o `SIN RESULTADO`. Al terminar comprueba con `git status` que el código queda como estaba; si se interrumpe, `/tarea` no arranca hasta que vuelvas a ejecutar `/calibrar`, que deshace lo pendiente. Conviene pasarla tras cambiar `php-pruebas-firefox` o de modelo.
+`/calibrar [NNNN]` comprueba que un `APROBADO` de las pruebas significa algo. Sobre una tarea ya terminada, la última si no indicas otra, y con el código sin cambios pendientes, `desarrollador` siembra un defecto de una o dos líneas que incumple uno de sus criterios, `probador` la prueba sin saberlo y el defecto se deshace. Para que sea a ciegas, durante la prueba el archivo sembrado queda oculto a git (`git status` y `git diff` no lo enseñan) y la evidencia se guarda como una pasada más de la tarea de referencia. Eliges si es evidente o sutil, y el resultado queda en `.magents/calibracion/<fecha y hora>/resultado.md`: `DETECTADO`, `A MEDIAS`, `NO DETECTADO` o `SIN RESULTADO`. Al terminar comprueba con `git status` que el código queda como estaba; si se interrumpe, `/tarea` no arranca hasta que vuelvas a ejecutar `/calibrar`, que deshace lo pendiente. Conviene pasarla tras cambiar `php-pruebas-firefox` o de modelo.
 
 ### Entorno local
 
@@ -107,7 +107,7 @@ Después, `/preparar`, una primera `/tarea` que pida el inventario y el plan de 
 .magents/scripts/comprobar-entorno.sh   # Busca fallos de estructura y muestra el estado, sin arrancar ni cambiar nada
 ```
 
-`guardar-iteracion.sh` es de uso interno de `/tarea` y no aparece en el menú.
+`guardar-iteracion.sh` es de uso interno de `/tarea`, y `ocultar-siembra.sh`, de `/calibrar`; no aparecen en el menú.
 
 Lo que puede perder algo pide confirmación, tanto desde `menu.sh` como lanzado a mano: `reiniciar-bd.sh`, `restaurar-bd.sh` y `copiar-revision.sh` siempre, e `iniciar.sh` y `parar.sh` si el entorno está en marcha, porque se pierden los logs y temporales de los contenedores. Sin terminal o dentro de Claude Code no pregunta, para que los agentes no se queden esperando; esto incluye los comandos `!` de Claude Code. Para no preguntar en un uso propio, define `MAGENTS_CONFIRMADO=1`. Un script añade esa confirmación con una línea `# menu: confirmar: <motivo>` o `# menu: confirmar-si-en-marcha: <motivo>` y cargando `confirmar.sh`, y su descripción sale de la línea 2. En una terminal, los scripts e `install.sh` muestran una cabecera, que se omite para agentes y tuberías. El color sigue la misma regla: morado para el logo, verde para lo correcto, rojo para los errores y amarillo para lo que requiere atención. `NO_COLOR=1` lo desactiva.
 

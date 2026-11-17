@@ -126,6 +126,7 @@ instalar_script copiar-revision.sh
 instalar_script comprobar-entorno.sh
 instalar_script confirmar.sh
 instalar_script guardar-iteracion.sh
+instalar_script ocultar-siembra.sh
 instalar_script menu.sh
 dirname "$origen" > "$scripts/.ruta-magents"
 
@@ -166,7 +167,7 @@ if [ -e "$entorno/iniciar.sh" ] || [ -e "$scripts/iniciar.sh" ]; then
 fi
 
 # Registro de lo instalado, para distinguir en la próxima instalación los cambios propios.
-(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh guardar-iteracion.sh menu.sh $(ls iniciar.sh parar.sh bd-comun.sh reiniciar-bd.sh guardar-bd.sh restaurar-bd.sh 2>/dev/null)) > "$instalados"
+(cd "$scripts" && sha256sum copiar-revision.sh comprobar-entorno.sh confirmar.sh guardar-iteracion.sh ocultar-siembra.sh menu.sh $(ls iniciar.sh parar.sh bd-comun.sh reiniciar-bd.sh guardar-bd.sh restaurar-bd.sh 2>/dev/null)) > "$instalados"
 
 magents_pintar "1;32" "Instalado en $destino"
 echo
