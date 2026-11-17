@@ -44,7 +44,7 @@ Las tareas que cambien lo que describen deben actualizarlos. -->
 
 ## Tareas menores
 
-- Omitir las verificaciones que proponga el triage: <!-- sí, no o preguntar; sin valor, se pregunta en cada tarea -->
+- Omitir las verificaciones que proponga el triaje: <!-- sí, no o preguntar; sin valor, se pregunta en cada tarea -->
 
 ## Comprobaciones automáticas
 

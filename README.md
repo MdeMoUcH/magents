@@ -3,17 +3,17 @@
 Agentes de Claude Code para el desarrollo de webs en PHP. Cada tarea pasa por seis fases, cada una con su subagente y su skill:
 
 ```
-triage → entorno → desarrollador → revisor-codigo → revisor-seguridad → probador → documentador
+triaje → entorno → desarrollador → revisor-codigo → revisor-seguridad → probador → documentador
                         ↑                 │                 │               │
                         └──── RECHAZADO ──┴─────────────────┴───────────────┘
 ```
 
-`entorno` es `probador` comprobando, antes de desarrollar, que se va a poder probar: lo básico y las «Necesidades de prueba» que señale el triage. Si no hay ninguna y el entorno responde, se omite. Antes de la primera tarea, `/preparar` genera el entorno local con el agente `preparador`.
+`entorno` es `probador` comprobando, antes de desarrollar, que se va a poder probar: lo básico y las «Necesidades de prueba» que señale el triaje. Si no hay ninguna y el entorno responde, se omite. Antes de la primera tarea, `/preparar` genera el entorno local con el agente `preparador`.
 
 | Fase | Subagente | Skill | Permisos |
 |---|---|---|---|
 | Preparación (`/preparar`): detecta el stack y genera el entorno | `preparador` | `php-preparacion` | Edición, solo en `.magents/` |
-| Triage: analiza la tarea contra el código actual | `triage` | `php-triage` | Sin herramientas de edición |
+| Triaje: analiza la tarea contra el código actual | `triaje` | `php-triaje` | Sin herramientas de edición |
 | Desarrollo | `desarrollador` | `php-desarrollo` | Edición |
 | Revisión de código | `revisor-codigo` | `php-revision-codigo` | Sin herramientas de edición |
 | Revisión de seguridad | `revisor-seguridad` | `php-revision-seguridad` | Sin herramientas de edición |
@@ -24,12 +24,12 @@ Salvo a `desarrollador`, el hook solo deja escribir a los agentes dentro de `.ma
 
 La skill `/tarea` coordina el flujo y `magents-normas` reúne las normas comunes de git, carpeta y Docker. Tras un rechazo vuelve a desarrollo y repite las tres verificaciones en orden: las pruebas, completas; las dos revisiones, solo sobre lo que ha cambiado desde la iteración que ya revisaron y lo que eso afecta, con el delta que deja `guardar-iteracion.sh` en `informes/`. Para en dos casos: si hay una duda para ti, o si no converge (5 iteraciones o el mismo problema dos veces seguidas). Las iteraciones que abres tú para aplicar sugerencias de las revisiones no cuentan para ese límite.
 
-Para que una tarea no deje deuda que obligue a lanzar otra, el triage busca el mismo problema en otros sitios y las consecuencias del cambio, y lo incluye en el plan o te lo enseña antes de desarrollar como «Fuera de alcance». Todo lo que el triage deja para ti, sean dudas, fuera de alcance, borrados, discrepancias con `proyecto.md` o métodos de prueba nuevos, llega en una sola consulta. Las revisiones separan lo no bloqueante en tres grupos:
+Para que una tarea no deje deuda que obligue a lanzar otra, el triaje busca el mismo problema en otros sitios y las consecuencias del cambio, y lo incluye en el plan o te lo enseña antes de desarrollar como «Fuera de alcance». Todo lo que el triaje deja para ti, sean dudas, fuera de alcance, borrados, discrepancias con `proyecto.md` o métodos de prueba nuevos, llega en una sola consulta. Las revisiones separan lo no bloqueante en tres grupos:
 - «Del cambio»: lo que la tarea deja a medias. `/tarea` recomienda hacerlo en la misma tarea.
 - Notas: sugerencias y endurecimientos sin escenario de fallo. No se recomiendan ni pasan a la deuda.
 - Preexistentes.
 
-Una tarea que solo cambia textos, estilos, comentarios o documentación puede ahorrarse la revisión de seguridad, y una que no cambia nada que la web sirva o ejecute, también las pruebas en Firefox. Lo propone el triage en «Verificaciones que se pueden omitir», lo decides tú (una vez por tarea, o para siempre en «Tareas menores» de `.magents/proyecto.md`, con `sí` o `no`) y la revisión de código lo confirma con el diff: si el cambio toca algo más, la verificación se hace. La revisión de código y la documentación no se omiten nunca.
+Una tarea que solo cambia textos, estilos, comentarios o documentación puede ahorrarse la revisión de seguridad, y una que no cambia nada que la web sirva o ejecute, también las pruebas en Firefox. Lo propone el triaje en «Verificaciones que se pueden omitir», lo decides tú (una vez por tarea, o para siempre en «Tareas menores» de `.magents/proyecto.md`, con `sí` o `no`) y la revisión de código lo confirma con el diff: si el cambio toca algo más, la verificación se hace. La revisión de código y la documentación no se omiten nunca.
 
 Las iteraciones que abres tú sin que haya un rechazo, para aplicar sugerencias o documentación pendiente, cuestan menos que las demás. Si solo cambian documentación, las revisa solo la revisión de código, sin seguridad ni pruebas, salvo que el cambio toque permisos, credenciales, configuración o comandos. Tras ellas solo se te pregunta por lo «del cambio», no por sugerencias nuevas, y `documentador` actualiza lo que ya escribió en vez de rehacerlo.
 
@@ -39,7 +39,7 @@ Al terminar, los cambios quedan **sin confirmar** en el proyecto, con un resumen
 
 ## Documentación del proyecto
 
-Los archivos que explican la web, como el `README.md` o una guía de instalación, se listan en «Documentación del proyecto» de `.magents/proyecto.md`. El triage incluye en el plan lo que cambia en ellos, la revisión de código rechaza si falta o si un documento contradice al código, y `documentador`, que no los toca, te enseña al final lo que haya quedado pendiente para que decidas si se aplica en otra iteración o queda como deuda.
+Los archivos que explican la web, como el `README.md` o una guía de instalación, se listan en «Documentación del proyecto» de `.magents/proyecto.md`. El triaje incluye en el plan lo que cambia en ellos, la revisión de código rechaza si falta o si un documento contradice al código, y `documentador`, que no los toca, te enseña al final lo que haya quedado pendiente para que decidas si se aplica en otra iteración o queda como deuda.
 
 ## Estilo del código
 

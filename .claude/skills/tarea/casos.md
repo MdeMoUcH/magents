@@ -4,7 +4,7 @@ Complementa a `SKILL.md`: sus reglas siguen valiendo aquí.
 
 ## Retomar una tarea
 
-Con `continuar <NNNN>`, busca `.magents/tareas/<NNNN>-*/` y lee su `informes/estado.md` y sus informes. Si `estado.md` está en la raíz de la tarea y no en `informes/`, como en algunas tareas antiguas, muévelo a `informes/` antes de seguir. Conserva el id, el commit base y el contador de iteraciones. Si hay una línea `Pendiente:`, o una confirmación o un cambio de entorno sin resolver en el historial, resuélvelo antes de lanzar nada. Ejecuta también `.magents/scripts/comprobar-entorno.sh`, si existe, y actúa como en el punto 2 de «Preparación». Después relanza la primera fase sin veredicto guardado. No repitas la preparación. Si los archivos han cambiado desde el último informe, avisa al usuario antes de seguir. Si no encuentras la carpeta o no hay `estado.md` en ninguno de los dos sitios, díselo y para.
+Con `continuar <NNNN>`, busca `.magents/tareas/<NNNN>-*/` y lee su `informes/estado.md` y sus informes. Si `estado.md` está en la raíz de la tarea y no en `informes/`, como en algunas tareas antiguas, muévelo a `informes/` antes de seguir. Conserva el id, el commit base y el contador de iteraciones. En una tarea empezada con una versión anterior de magents, el informe del triaje se llama `triage.md` (y `triage-1.md`, `triage-anexo.md`): no lo renombres; pasa esa ruta a los subagentes donde esta skill dice `triaje.md`, y guarda los informes nuevos del triaje con el nombre actual. Si hay una línea `Pendiente:`, o una confirmación o un cambio de entorno sin resolver en el historial, resuélvelo antes de lanzar nada. Ejecuta también `.magents/scripts/comprobar-entorno.sh`, si existe, y actúa como en el punto 2 de «Preparación». Después relanza la primera fase sin veredicto guardado. No repitas la preparación. Si los archivos han cambiado desde el último informe, avisa al usuario antes de seguir. Si no encuentras la carpeta o no hay `estado.md` en ninguno de los dos sitios, díselo y para.
 
 ## Salir de la raíz
 
@@ -16,11 +16,11 @@ Lo mismo vale para un archivo del proyecto que un agente que no programa tenga q
 
 ## Corrección de entorno
 
-Si el triage señala discrepancias con `proyecto.md`, enséñaselas al usuario en la consulta del paso 2, antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme y guarda su respuesta en `informes/preparacion-<n>.md`. Con `LISTO`, sigue con la comprobación de entorno, que ya no se puede omitir por no tener necesidades de prueba; si las pruebas se omiten por tarea menor, se omite igualmente. Con `BLOQUEADO`, aplica la regla de «Veredictos», con un máximo de tres bloqueos seguidos.
+Si el triaje señala discrepancias con `proyecto.md`, enséñaselas al usuario en la consulta del paso 2, antes de la comprobación de entorno. Si hay que corregir la configuración o el entorno, lanza `preparador` en modo `generar` con lo que confirme y guarda su respuesta en `informes/preparacion-<n>.md`. Con `LISTO`, sigue con la comprobación de entorno, que ya no se puede omitir por no tener necesidades de prueba; si las pruebas se omiten por tarea menor, se omite igualmente. Con `BLOQUEADO`, aplica la regla de «Veredictos», con un máximo de tres bloqueos seguidos.
 
 ## Cambio de entorno que depende del código
 
-A veces el entorno no se puede cambiar antes del desarrollo, porque el cambio solo funciona con el código nuevo: por ejemplo, un montaje de `compose.yml` sobre un archivo que la web aún no lee. El triage debe decirlo en su plan, separado del resto, y el usuario lo acepta en la consulta del paso 2. Entonces:
+A veces el entorno no se puede cambiar antes del desarrollo, porque el cambio solo funciona con el código nuevo: por ejemplo, un montaje de `compose.yml` sobre un archivo que la web aún no lee. El triaje debe decirlo en su plan, separado del resto, y el usuario lo acepta en la consulta del paso 2. Entonces:
 
 1. La comprobación de entorno se hace antes del desarrollo, con el entorno sin cambiar.
 2. `desarrollador` hace primero el código y después, en la misma iteración, el cambio de `.magents/entorno/`, de `antes-de-iniciar.sh` y de `proyecto.md`, sin tocar los scripts fijos. Puede que la web en marcha deje de responder hasta el reinicio: debe decirlo en su informe.

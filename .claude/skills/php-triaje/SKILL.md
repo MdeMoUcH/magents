@@ -1,10 +1,10 @@
 ---
-name: php-triage
+name: php-triaje
 description: Método para analizar una tarea de una web PHP contra el código actual y convertirla en un plan con criterios de aceptación verificables.
 user-invocable: false
 ---
 
-# Triage de tareas PHP
+# Triaje de tareas PHP
 
 Tu resultado es lo único que el desarrollador y los revisores sabrán de la tarea: tiene que bastarles sin volver a investigar.
 
@@ -43,7 +43,7 @@ Léelo, pero compruébalo contra el código. Si no coincide, por ejemplo en la v
 ## Formato del informe
 
 ```markdown
-# Triage: <tarea>
+# Triaje: <tarea>
 ## Entendimiento de la tarea
 ## Stack y convenciones relevantes
 ## Código afectado
@@ -78,4 +78,4 @@ VEREDICTO: LISTO | DUDAS | BLOQUEADO
 
 Usa `DUDAS` solo si no se puede hacer un plan fiable sin la respuesta.
 
-Este informe lo leen todas las fases: mantenlo en lo que necesitan para trabajar. Si un inventario largo o los detalles de tus experimentos no caben en pocas líneas, déjalos en `informes/triage-anexo.md`, escrito con `Bash`, y resume aquí su conclusión y su ruta.
+Este informe lo leen todas las fases: mantenlo en lo que necesitan para trabajar. Si un inventario largo o los detalles de tus experimentos no caben en pocas líneas, déjalos en `informes/triaje-anexo.md`, escrito con `Bash`, y resume aquí su conclusión y su ruta.

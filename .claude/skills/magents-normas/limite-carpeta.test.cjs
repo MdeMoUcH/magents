@@ -110,7 +110,7 @@ const permitidos = [
   'cp -t .magents/tareas/1/tmp .claude/skills/php-preparacion/plantillas/php.ini cfw/a.php',
   'rsync -a .claude/skills/php-preparacion/plantillas/ .magents/tareas/1/tmp/p/',
   'mv .magents/entorno .magents/entorno.anterior/20261103-1000',
-  'find .magents/entorno .magents/scripts -type f -newer .magents/tareas/1/informes/triage.md',
+  'find .magents/entorno .magents/scripts -type f -newer .magents/tareas/1/informes/triaje.md',
   'bash <<EOF\ncurl -s http://127.0.0.1:8215/ > .magents/tareas/1/tmp/s.txt\nEOF',
   'python3 - <<EOF\nprint("/admin/login")\nEOF',
   'cat <<EOF | python3 -c "import sys; print(sys.stdin.read())"\n/etc/passwd\nEOF',

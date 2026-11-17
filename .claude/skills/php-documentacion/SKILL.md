@@ -49,7 +49,7 @@ Solo dentro de `.magents/`, que git ignora. No modifiques `informes/` ni `despli
    | Id | Qué | Cerrada por | Fecha |
    ```
 
-   - **Añade** a «Abierta» los preexistentes de las revisiones, lo «del cambio» que el usuario haya aplazado según el historial de `estado.md`, lo de «Fuera de alcance» de `triage.md` que no se haya hecho y la documentación del proyecto pendiente. Cada punto lleva un id nuevo (`D001`, `D002`…, siguiendo el mayor que exista), la gravedad (alta, media o baja), el tipo (seguridad, código o documentación), `ruta:línea`, una frase y la tarea e informe de origen. Antes, comprueba que no esté ya, aunque con otras palabras. Los endurecimientos y las sugerencias sin escenario de fallo no entran.
+   - **Añade** a «Abierta» los preexistentes de las revisiones, lo «del cambio» que el usuario haya aplazado según el historial de `estado.md`, lo de «Fuera de alcance» de `triaje.md` que no se haya hecho y la documentación del proyecto pendiente. Cada punto lleva un id nuevo (`D001`, `D002`…, siguiendo el mayor que exista), la gravedad (alta, media o baja), el tipo (seguridad, código o documentación), `ruta:línea`, una frase y la tarea e informe de origen. Antes, comprueba que no esté ya, aunque con otras palabras. Los endurecimientos y las sugerencias sin escenario de fallo no entran.
    - **Cierra** lo que esta tarea resuelve: compruébalo en el diff y en el código actual, y muévelo a «Cerrada» con la tarea y la fecha. Si solo lo resuelve en parte, déjalo abierto y corrige la frase.
    - **Si no existe**, créalo y recoge también lo que siga abierto en «Riesgos y deuda pendiente» de las fichas anteriores, comprobando cada punto en el código actual. No añadas lo ya resuelto, y marca «sin comprobar» en «Qué» lo que no puedas comprobar.
 

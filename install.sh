@@ -62,10 +62,13 @@ if [ -n "$a_medias" ]; then
   magents_aviso "AVISO: hay algo a medias en $destino:${a_medias%;}. Reinstalar ahora cambia las reglas a mitad; es mejor terminarlo antes."
 fi
 
-agentes=(preparador triage desarrollador revisor-codigo revisor-seguridad probador documentador)
-skills=(preparar tarea calibrar magents-normas php-preparacion php-triage php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
+agentes=(preparador triaje desarrollador revisor-codigo revisor-seguridad probador documentador)
+skills=(preparar tarea calibrar magents-normas php-preparacion php-triaje php-desarrollo php-revision-codigo php-revision-seguridad php-pruebas-firefox php-documentacion)
 
 mkdir -p "$destino/.claude/agents" "$destino/.claude/skills"
+# Nombres antiguos de versiones anteriores de magents: si se quedaran, habría dos agentes de triaje.
+rm -f "$destino/.claude/agents/triage.md"
+rm -rf "${destino:?}/.claude/skills/php-triage"
 for a in "${agentes[@]}"; do
   cp "$origen/agents/$a.md" "$destino/.claude/agents/$a.md"
 done

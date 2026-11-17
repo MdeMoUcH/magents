@@ -1,6 +1,6 @@
 ---
 name: desarrollador
-description: Fase 2 de /tarea. Implementa en una web PHP el plan del triage, o corrige los problemas devueltos por los revisores o las pruebas.
+description: Fase 2 de /tarea. Implementa en una web PHP el plan del triaje, o corrige los problemas devueltos por los revisores o las pruebas.
 tools: Read, Edit, Write, Grep, Glob, Bash
 hooks:
   PreToolUse:

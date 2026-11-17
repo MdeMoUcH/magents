@@ -1,6 +1,6 @@
 ---
 name: tarea
-description: "Ejecuta una tarea de desarrollo web PHP con el flujo completo de agentes: triage, desarrollo, revisión de código, revisión de seguridad, pruebas en Firefox y documentación."
+description: "Ejecuta una tarea de desarrollo web PHP con el flujo completo de agentes: triaje, desarrollo, revisión de código, revisión de seguridad, pruebas en Firefox y documentación."
 argument-hint: "[descripción de la tarea | continuar <NNNN>]"
 disable-model-invocation: true
 hooks:
@@ -25,7 +25,7 @@ Lee `${CLAUDE_SKILL_DIR}/../magents-normas/SKILL.md`: sus normas valen también 
 ## Flujo
 
 ```
-triage → entorno → desarrollador → revisor-codigo → revisor-seguridad → probador → documentador
+triaje → entorno → desarrollador → revisor-codigo → revisor-seguridad → probador → documentador
                         ↑                 │                 │               │
                         └──── RECHAZADO ──┴─────────────────┴───────────────┘
 ```
@@ -41,13 +41,13 @@ No indiques `model` al lanzarlos: cada uno usa el de su definición. Los subagen
 
 | Fase | Subagente | Guardar en | Le pasas además |
 |---|---|---|---|
-| 1 | `triage` | `triage.md` | ruta de `.magents/proyecto.md`; respuestas previas del usuario, si las hay |
+| 1 | `triaje` | `triaje.md` | ruta de `.magents/proyecto.md`; respuestas previas del usuario, si las hay |
 | Corrección de entorno | `preparador` | `preparacion-<n>.md` | modo `generar`; lo que haya confirmado el usuario |
-| Entorno | `probador` | `entorno.md` | indicación de hacer solo la comprobación de entorno; rutas de `triage.md` y `.magents/proyecto.md`; carpeta de evidencia `capturas/entorno/`; métodos aceptados por el usuario |
-| 2 | `desarrollador` | `desarrollo-<n>.md` | rutas de `triage.md` y `.magents/proyecto.md`; desde `n=2`, ruta del informe que rechazó |
-| 3 | `revisor-codigo` | `revision-codigo-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; verificaciones que se omiten, si las hay; si ya revisó una iteración, lo del paso 5 |
-| 4 | `revisor-seguridad` | `revision-seguridad-<n>.md` | rutas de `triage.md` y `desarrollo-<n>.md`; si ya revisó una iteración, lo del paso 5 |
-| 5 | `probador` | `pruebas-<n>.md` | rutas de `triage.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; commit base; carpeta de evidencia `capturas/<n>/`; métodos aceptados por el usuario; ejecución anterior de esta iteración, si la hay |
+| Entorno | `probador` | `entorno.md` | indicación de hacer solo la comprobación de entorno; rutas de `triaje.md` y `.magents/proyecto.md`; carpeta de evidencia `capturas/entorno/`; métodos aceptados por el usuario |
+| 2 | `desarrollador` | `desarrollo-<n>.md` | rutas de `triaje.md` y `.magents/proyecto.md`; desde `n=2`, ruta del informe que rechazó |
+| 3 | `revisor-codigo` | `revision-codigo-<n>.md` | rutas de `triaje.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; verificaciones que se omiten, si las hay; si ya revisó una iteración, lo del paso 5 |
+| 4 | `revisor-seguridad` | `revision-seguridad-<n>.md` | rutas de `triaje.md` y `desarrollo-<n>.md`; si ya revisó una iteración, lo del paso 5 |
+| 5 | `probador` | `pruebas-<n>.md` | rutas de `triaje.md`, `desarrollo-<n>.md` y `.magents/proyecto.md`; commit base; carpeta de evidencia `capturas/<n>/`; métodos aceptados por el usuario; ejecución anterior de esta iteración, si la hay |
 | 6 | `documentador` | `documentacion.md` | ruta de la carpeta de la tarea |
 
 ## Veredictos
@@ -56,12 +56,12 @@ Cada subagente termina con una línea `VEREDICTO: <valor>`. Si falta o es ambigu
 
 | Veredicto | Acción |
 |---|---|
-| `LISTO` (triage o entorno), `IMPLEMENTADO` (desarrollo), `DOCUMENTADO` | Siguiente fase |
+| `LISTO` (triaje o entorno), `IMPLEMENTADO` (desarrollo), `DOCUMENTADO` | Siguiente fase |
 | `APROBADO` | Siguiente fase |
 | `RECHAZADO` | `n += 1` y volver a `desarrollador` |
 | `DUDAS` / `BLOQUEADO` | Pregunta al usuario con AskUserQuestion, incluyendo el contexto, y pasa la respuesta a esa misma fase: si puedes, continúa el mismo subagente con SendMessage, que ya tiene el análisis hecho; si no, relánzala con la respuesta. Un `BLOQUEADO` del probador no es un rechazo: no gastes una iteración de desarrollo en él |
 
-Antes de guardar una respuesta nueva de la misma fase, renombra el informe anterior añadiendo un número (`triage-1.md`, `entorno-1.md`, `pruebas-1-1.md`…); haz lo mismo con cualquier informe que se vaya a sobrescribir, como `documentacion.md`.
+Antes de guardar una respuesta nueva de la misma fase, renombra el informe anterior añadiendo un número (`triaje-1.md`, `entorno-1.md`, `pruebas-1-1.md`…); haz lo mismo con cualquier informe que se vaya a sobrescribir, como `documentacion.md`.
 
 ## Paso a paso
 
@@ -105,27 +105,27 @@ Mantén `informes/estado.md` al día: en cada cambio de fase, **sustituye** los 
 - <AAAA-MM-DD>: <decisión del usuario o hecho, y qué se hace después>
 ```
 
-### 2. Triage y consulta al usuario
+### 2. Triaje y consulta al usuario
 
-Lanza `triage`. Cuando termine, junta en **una sola consulta** con AskUserQuestion, una pregunta por apartado, todo lo que su informe deje para el usuario. Enséñale antes el contenido de cada apartado, y escribe cada pregunta de forma que se entienda sola, nombrando los puntos. Si no hay nada que preguntar, sigue sin parar.
+Lanza `triaje`. Cuando termine, junta en **una sola consulta** con AskUserQuestion, una pregunta por apartado, todo lo que su informe deje para el usuario. Enséñale antes el contenido de cada apartado, y escribe cada pregunta de forma que se entienda sola, nombrando los puntos. Si no hay nada que preguntar, sigue sin parar.
 
-| Apartado de `triage.md` | Qué preguntas | Después |
+| Apartado de `triaje.md` | Qué preguntas | Después |
 |---|---|---|
-| «Dudas» (veredicto `DUDAS`) | Cada duda, con sus opciones y la recomendación del triage | La respuesta vuelve al triage |
-| «Fuera de alcance» | Qué incluye, con el motivo y lo que costaría cada punto. Recomienda incluir lo que sea consecuencia directa del cambio o el mismo problema en otro sitio, porque si no se convierte en otra tarea | Si incluye algo, la respuesta vuelve al triage. Lo que quede fuera lo recoge `documentador` en `.magents/deuda.md` |
-| «Borrados» | Si se hacen, con la ruta y el motivo de cada uno | Uno que no acepte vuelve al triage, para que cambie el plan |
+| «Dudas» (veredicto `DUDAS`) | Cada duda, con sus opciones y la recomendación del triaje | La respuesta vuelve al triaje |
+| «Fuera de alcance» | Qué incluye, con el motivo y lo que costaría cada punto. Recomienda incluir lo que sea consecuencia directa del cambio o el mismo problema en otro sitio, porque si no se convierte en otra tarea | Si incluye algo, la respuesta vuelve al triaje. Lo que quede fuera lo recoge `documentador` en `.magents/deuda.md` |
+| «Borrados» | Si se hacen, con la ruta y el motivo de cada uno | Uno que no acepte vuelve al triaje, para que cambie el plan |
 | «Discrepancias con .magents/proyecto.md» | Qué se corrige en la configuración o el entorno | «Corrección de entorno» de `casos.md`, antes del paso 3 |
 | «Necesidades de prueba» con un método que no esté en «Métodos de prueba aceptados» de `proyecto.md`, o que cambien datos o archivos | Si lo acepta, y si vale solo para esta tarea o también para las siguientes | Anótalo en el historial y pásalo a `probador` y a `desarrollador` indicando que lo ha aceptado el usuario. Si vale para las siguientes, añádelo a «Métodos de prueba aceptados» |
 
-Con `DUDAS`, añade a la misma consulta lo que el informe ya traiga de los demás apartados, para que el triage reciba todas las respuestas de una vez. Lo que vuelve al triage se le pasa como indica «Veredictos». Cuando devuelva `LISTO`, pregunta solo por lo que sea nuevo respecto a lo ya respondido.
+Con `DUDAS`, añade a la misma consulta lo que el informe ya traiga de los demás apartados, para que el triaje reciba todas las respuestas de una vez. Lo que vuelve al triaje se le pasa como indica «Veredictos». Cuando devuelva `LISTO`, pregunta solo por lo que sea nuevo respecto a lo ya respondido.
 
-**Tareas menores:** si «Verificaciones que se pueden omitir» de `triage.md` propone alguna, mira «Tareas menores» de `.magents/proyecto.md`. Con `sí`, se omiten sin preguntar; con `no`, no se omiten. Si no dice nada o dice `preguntar`, añádelo a la misma consulta, con el motivo del triage: si las omite en esta tarea, si además quiere que se omitan siempre que el triage lo proponga (anota entonces `sí` en `proyecto.md`) o que no se pregunte más (anota `no`). Anota en el historial lo que se omite. Una verificación omitida se hace igualmente si `revisor-codigo` no confirma su condición, y lo que el triage no propuso no se omite.
+**Tareas menores:** si «Verificaciones que se pueden omitir» de `triaje.md` propone alguna, mira «Tareas menores» de `.magents/proyecto.md`. Con `sí`, se omiten sin preguntar; con `no`, no se omiten. Si no dice nada o dice `preguntar`, añádelo a la misma consulta, con el motivo del triaje: si las omite en esta tarea, si además quiere que se omitan siempre que el triaje lo proponga (anota entonces `sí` en `proyecto.md`) o que no se pregunte más (anota `no`). Anota en el historial lo que se omite. Una verificación omitida se hace igualmente si `revisor-codigo` no confirma su condición, y lo que el triaje no propuso no se omite.
 
 ### 3. Comprobación de entorno
 
-Es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Si se omiten las pruebas por tarea menor, se omite también, aunque haya habido corrección de entorno. Si no, sáltala solo si se cumple todo esto: «Necesidades de prueba» de `triage.md` dice «Ninguna», no ha habido corrección de entorno en esta tarea, `.magents/scripts/comprobar-entorno.sh` pasa justo antes y la URL base de `proyecto.md` responde con `curl`. Anótalo en el historial («Entorno: omitida, sin necesidades de prueba») y pasa al paso 4. Si `probador` se bloquea después por el entorno o el MCP, resuélvelo como cualquier `BLOQUEADO`: no cuenta como iteración.
+Es `probador` en modo de comprobación: confirma que se podrá probar antes de gastar desarrollo y revisiones. Si se omiten las pruebas por tarea menor, se omite también, aunque haya habido corrección de entorno. Si no, sáltala solo si se cumple todo esto: «Necesidades de prueba» de `triaje.md` dice «Ninguna», no ha habido corrección de entorno en esta tarea, `.magents/scripts/comprobar-entorno.sh` pasa justo antes y la URL base de `proyecto.md` responde con `curl`. Anótalo en el historial («Entorno: omitida, sin necesidades de prueba») y pasa al paso 4. Si `probador` se bloquea después por el entorno o el MCP, resuélvelo como cualquier `BLOQUEADO`: no cuenta como iteración.
 
-Si se bloquea solo por un método de prueba y el usuario lo acepta, no la repitas: trátalo como en la última fila de la tabla del paso 2. Haz lo mismo si termina en `LISTO` pero propone un método de prueba o un cambio de datos o de archivos que no estén en `triage.md` ni entre los aceptados, como crear un archivo de configuración temporal: pregúntaselo al usuario antes de pasarlo a `desarrollador` o `probador`, y pásalo solo si lo acepta.
+Si se bloquea solo por un método de prueba y el usuario lo acepta, no la repitas: trátalo como en la última fila de la tabla del paso 2. Haz lo mismo si termina en `LISTO` pero propone un método de prueba o un cambio de datos o de archivos que no estén en `triaje.md` ni entre los aceptados, como crear un archivo de configuración temporal: pregúntaselo al usuario antes de pasarlo a `desarrollador` o `probador`, y pásalo solo si lo acepta.
 
 ### 4. Desarrollo
 
