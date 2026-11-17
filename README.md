@@ -180,7 +180,7 @@ El hook no se entera de ese permiso: lo que le vale es `.magents/rutas-autorizad
 
 ```
 # .magents/rutas-autorizadas.txt
-/ruta/del/proyecto/cfw/data/intentos
+/ruta/del/proyecto/data/intentos
 ```
 
 ## Limitaciones
