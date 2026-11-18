@@ -105,6 +105,16 @@ Mantén `informes/estado.md` al día: en cada cambio de fase, **sustituye** los 
 - <AAAA-MM-DD>: <decisión del usuario o hecho, y qué se hace después>
 ```
 
+Cada vez que lances `desarrollador` a partir de la segunda iteración, añade a esa línea del historial `Causa: <tipo>`, con uno de estos tipos, o varios separados por comas si la iteración junta cosas de distinto origen:
+
+- `triaje`: el plan estaba mal, le faltaba algo o tenía un supuesto equivocado (por ejemplo, el usuario corrige una decisión que el triaje tomó por su cuenta).
+- `desarrollo`: un fallo del código que el plan sí cubría.
+- `documentación`: imprecisiones o huecos en el texto que ha escrito el desarrollador.
+- `sugerencia`: algo opcional de una revisión o del `documentador`, aceptado por el usuario.
+- `usuario`: algo nuevo que pide el usuario, que no salió de ningún informe.
+
+Sirve para saber, tras varias tareas, qué fase provoca las iteraciones de más.
+
 ### 2. Triaje y consulta al usuario
 
 Lanza `triaje`. Cuando termine, junta en **una sola consulta** con AskUserQuestion, una pregunta por apartado, todo lo que su informe deje para el usuario. Enséñale antes el contenido de cada apartado, y escribe cada pregunta de forma que se entienda sola, nombrando los puntos. Si no hay nada que preguntar, sigue sin parar.
